@@ -28,6 +28,13 @@ try:
 except ImportError:
     HAS_DIARY = False
 
+# 导入大模型分析器
+try:
+    from llm_analyzer import LLMAnalyzer
+    HAS_LLM = True
+except ImportError:
+    HAS_LLM = False
+
 
 class KeyManager:
     """密钥管理器 - 负责密钥的加密存储和验证"""
@@ -125,9 +132,11 @@ class AILoveWorldSkill:
         self.diary: Dict[str, Any] = {}
         self.key_manager: Optional[KeyManager] = None
         self.diary_manager: Optional[DiaryManager] = None
+        self.llm_analyzer: Optional[LLMAnalyzer] = None
         
         self._load_config()
         self._init_diary_manager()
+        self._init_llm_analyzer()
     
     def _load_config(self) -> None:
         """加载配置文件"""
@@ -144,6 +153,17 @@ class AILoveWorldSkill:
             except Exception as e:
                 print(f"初始化交友档案失败：{e}")
                 self.diary_manager = None
+    
+    def _init_llm_analyzer(self) -> None:
+        """初始化大模型分析器"""
+        if HAS_LLM:
+            try:
+                api_key = self.config.get("llm_api_key", "")
+                provider = self.config.get("llm_provider", "dashscope")
+                self.llm_analyzer = LLMAnalyzer(api_key, provider)
+            except Exception as e:
+                print(f"初始化大模型分析器失败：{e}")
+                self.llm_analyzer = None
     
     def _save_config(self) -> None:
         """保存配置文件"""
@@ -234,6 +254,45 @@ class AILoveWorldSkill:
         except Exception as e:
             print(f"解密密钥失败：{e}")
             return None
+    
+    def set_llm_api_key(self, api_key: str, provider: str = "dashscope") -> bool:
+        """
+        设置大模型 API 密钥
+        
+        Args:
+            api_key: API 密钥
+            provider: 提供商（dashscope|openai）
+            
+        Returns:
+            bool: 是否成功
+        """
+        try:
+            self.config["llm_api_key"] = api_key
+            self.config["llm_provider"] = provider
+            self._save_config()
+            self._init_llm_analyzer()
+            return True
+        except Exception as e:
+            print(f"设置 API 密钥失败：{e}")
+            return False
+    
+    def get_llm_status(self) -> Dict[str, Any]:
+        """
+        获取大模型分析器状态
+        
+        Returns:
+            Dict: 状态信息
+        """
+        if HAS_LLM and self.llm_analyzer:
+            return {
+                "available": self.llm_analyzer.available,
+                "provider": self.llm_analyzer.provider,
+                "model": self.llm_analyzer.model
+            }
+        return {
+            "available": False,
+            "message": "大模型分析器未初始化"
+        }
     
     def check_key_status(self) -> Dict[str, Any]:
         """
@@ -527,24 +586,13 @@ class AILoveWorldSkill:
         
         调用大模型 API 分析情感发展阶段
         """
-        # TODO: 实现大模型 API 调用
-        # 这里预留接口，后续接入通义千问或其他大模型
-        
-        prompt = self._build_relationship_analysis_prompt(target_name, chat_history)
-        
-        # 模拟返回（实际应调用 API）
-        return {
-            "target": target_name,
-            "stage": "朋友",  # 陌生/认识/朋友/暧昧/恋爱/结婚
-            "affinity": 65,  # 好感度 0-100
-            "analysis": "基于聊天内容分析，你们的关系处于朋友阶段，对方对你有好感但还未到暧昧程度",
-            "confidence": 0.8,
-            "suggestions": [
-                "可以多聊聊共同兴趣爱好",
-                "适当表达关心，但不要过于急切",
-                "寻找机会线下见面"
-            ]
-        }
+        if HAS_LLM and self.llm_analyzer:
+            # 获取人物设定
+            profile = self.get_profile().get('parsed', {})
+            return self.llm_analyzer.analyze_relationship(target_name, chat_history, profile)
+        else:
+            # 降级到规则分析
+            return self._rule_based_analysis(target_name, chat_history)
     
     def _build_relationship_analysis_prompt(
         self,
