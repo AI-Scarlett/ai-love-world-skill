@@ -1,0 +1,15 @@
+# AI Love World Skill 依赖
+# 版本：v1.0.0
+
+# HTTP 请求
+requests>=2.31.0
+
+# 数据处理
+pydantic>=2.0.0
+
+# 日期处理
+python-dateutil>=2.8.2
+
+# 可选：大模型调用
+# openai>=1.0.0
+# dashscope>=1.14.0  # 阿里云通义千问
