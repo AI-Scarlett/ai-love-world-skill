@@ -35,6 +35,13 @@ try:
 except ImportError:
     HAS_LLM = False
 
+# 导入服务器同步管理器
+try:
+    from server_sync import ServerSyncManager
+    HAS_SYNC = True
+except ImportError:
+    HAS_SYNC = False
+
 
 class KeyManager:
     """密钥管理器 - 负责密钥的加密存储和验证"""
@@ -133,10 +140,12 @@ class AILoveWorldSkill:
         self.key_manager: Optional[KeyManager] = None
         self.diary_manager: Optional[DiaryManager] = None
         self.llm_analyzer: Optional[LLMAnalyzer] = None
+        self.sync_manager: Optional[ServerSyncManager] = None
         
         self._load_config()
         self._init_diary_manager()
         self._init_llm_analyzer()
+        self._init_sync_manager()
     
     def _load_config(self) -> None:
         """加载配置文件"""
@@ -164,6 +173,20 @@ class AILoveWorldSkill:
             except Exception as e:
                 print(f"初始化大模型分析器失败：{e}")
                 self.llm_analyzer = None
+    
+    def _init_sync_manager(self) -> None:
+        """初始化服务器同步管理器"""
+        if HAS_SYNC:
+            try:
+                server_url = self.config.get("server_url", "")
+                appid = self.config.get("appid", "")
+                key = self.config.get("key", "")
+                
+                if server_url and appid and key:
+                    self.sync_manager = ServerSyncManager(server_url, appid, key)
+            except Exception as e:
+                print(f"初始化同步管理器失败：{e}")
+                self.sync_manager = None
     
     def _save_config(self) -> None:
         """保存配置文件"""
@@ -292,6 +315,78 @@ class AILoveWorldSkill:
         return {
             "available": False,
             "message": "大模型分析器未初始化"
+        }
+    
+    def sync_data(
+        self,
+        action: str,
+        data_type: str,
+        data_id: str,
+        data: Dict[str, Any]
+    ) -> Optional[str]:
+        """
+        同步数据到服务器
+        
+        Args:
+            action: 操作类型 (create/update/delete)
+            data_type: 数据类型 (profile/diary/chat)
+            data_id: 数据 ID
+            data: 数据内容
+            
+        Returns:
+            Optional[str]: 同步记录 ID，失败返回 None
+        """
+        if HAS_SYNC and self.sync_manager:
+            record_id = self.sync_manager.queue_sync(action, data_type, data_id, data)
+            print(f"✅ 数据已加入同步队列：{record_id}")
+            return record_id
+        else:
+            print("⚠️ 同步管理器未初始化")
+            return None
+    
+    def sync_now(self) -> Dict[str, Any]:
+        """
+        立即执行同步
+        
+        Returns:
+            Dict: 同步结果
+        """
+        if HAS_SYNC and self.sync_manager:
+            return self.sync_manager.sync_now()
+        return {
+            "status": "failed",
+            "message": "同步管理器未初始化"
+        }
+    
+    def get_sync_status(self) -> Dict[str, Any]:
+        """
+        获取同步状态
+        
+        Returns:
+            Dict: 同步状态信息
+        """
+        if HAS_SYNC and self.sync_manager:
+            return self.sync_manager.get_sync_status()
+        return {
+            "available": False,
+            "message": "同步管理器未初始化"
+        }
+    
+    def auto_sync(self, interval_minutes: int = 5) -> Dict[str, Any]:
+        """
+        自动同步
+        
+        Args:
+            interval_minutes: 同步间隔（分钟）
+            
+        Returns:
+            Dict: 同步结果
+        """
+        if HAS_SYNC and self.sync_manager:
+            return self.sync_manager.auto_sync(interval_minutes)
+        return {
+            "status": "failed",
+            "message": "同步管理器未初始化"
         }
     
     def check_key_status(self) -> Dict[str, Any]:
