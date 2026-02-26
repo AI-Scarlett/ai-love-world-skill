@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 AI Love World - Skill 核心模块
-版本：v1.0.1
+版本：v1.1.0
 功能：AI 身份管理、密钥加密、交友档案、情感判断
 """
 
@@ -20,6 +20,13 @@ try:
     HAS_CRYPTO = True
 except ImportError:
     HAS_CRYPTO = False
+
+# 导入交友档案管理器
+try:
+    from diary_manager import DiaryManager, RelationshipStage
+    HAS_DIARY = True
+except ImportError:
+    HAS_DIARY = False
 
 
 class KeyManager:
@@ -117,8 +124,10 @@ class AILoveWorldSkill:
         self.profile: Dict[str, Any] = {}
         self.diary: Dict[str, Any] = {}
         self.key_manager: Optional[KeyManager] = None
+        self.diary_manager: Optional[DiaryManager] = None
         
         self._load_config()
+        self._init_diary_manager()
     
     def _load_config(self) -> None:
         """加载配置文件"""
@@ -126,6 +135,15 @@ class AILoveWorldSkill:
             with open(self.config_file, 'r', encoding='utf-8') as f:
                 self.config = json.load(f)
             self.key_manager = KeyManager(self.config)
+    
+    def _init_diary_manager(self) -> None:
+        """初始化交友档案管理器"""
+        if HAS_DIARY:
+            try:
+                self.diary_manager = DiaryManager(str(self.diary_file))
+            except Exception as e:
+                print(f"初始化交友档案失败：{e}")
+                self.diary_manager = None
     
     def _save_config(self) -> None:
         """保存配置文件"""
@@ -314,8 +332,10 @@ class AILoveWorldSkill:
         target_name: str,
         content: str,
         platform: str = "unknown",
-        quality: int = 3
-    ) -> bool:
+        direction: str = "received",
+        quality: int = 3,
+        tags: Optional[List[str]] = None
+    ) -> Optional[str]:
         """
         添加社交记录
         
@@ -323,31 +343,117 @@ class AILoveWorldSkill:
             target_name: 聊天对象姓名
             content: 聊天内容
             platform: 聊天平台
+            direction: 消息方向 (sent/received)
             quality: 互动质量 (1-5)
+            tags: 标签列表
             
         Returns:
-            bool: 添加是否成功
+            Optional[str]: 记录 ID，失败返回 None
         """
-        try:
-            record = {
-                "timestamp": datetime.now().isoformat(),
-                "target": target_name,
-                "platform": platform,
-                "content": content,
-                "quality": quality
-            }
+        if HAS_DIARY and self.diary_manager:
+            try:
+                record_id = self.diary_manager.add_chat_record(
+                    target_name=target_name,
+                    content=content,
+                    platform=platform,
+                    direction=direction,
+                    quality=quality,
+                    tags=tags
+                )
+                print(f"✅ 添加社交记录：{target_name} @ {platform} (ID: {record_id})")
+                return record_id
+            except Exception as e:
+                print(f"添加社交记录失败：{e}")
+                return None
+        else:
+            # 降级方案
+            print(f"添加社交记录（降级）：{target_name} @ {platform}")
+            return None
+    
+    def get_relationship_status_v2(self, target_name: Optional[str] = None):
+        """
+        获取关系状态（v2 版本，支持参数）
+        
+        Args:
+            target_name: 聊天对象姓名（可选，不传则返回所有）
             
-            # TODO: 写入 diary.md
-            print(f"添加社交记录：{target_name} @ {platform}")
-            return True
-        except Exception as e:
-            print(f"添加社交记录失败：{e}")
-            return False
+        Returns:
+            关系状态信息
+        """
+        if HAS_DIARY and self.diary_manager:
+            if target_name:
+                return self.diary_manager.get_relationship_status(target_name)
+            else:
+                return self.diary_manager.get_all_relationships()
+        return [] if target_name is None else None
+    
+    def get_chat_history(
+        self,
+        target_name: str,
+        limit: int = 50
+    ) -> List[Any]:
+        """
+        获取聊天记录
+        
+        Args:
+            target_name: 聊天对象姓名
+            limit: 返回数量限制
+            
+        Returns:
+            List: 聊天记录列表
+        """
+        if HAS_DIARY and self.diary_manager:
+            return self.diary_manager.get_chat_history(target_name, limit)
+        return []
+    
+    def update_relationship_stage(
+        self,
+        target_name: str,
+        stage: str,
+        event_description: str = ""
+    ) -> bool:
+        """
+        更新关系阶段
+        
+        Args:
+            target_name: 聊天对象姓名
+            stage: 关系阶段（陌生/认识/朋友/暧昧/恋爱/结婚）
+            event_description: 事件描述
+            
+        Returns:
+            bool: 是否成功
+        """
+        if HAS_DIARY and self.diary_manager:
+            try:
+                stage_enum = RelationshipStage(stage)
+                return self.diary_manager.update_relationship_stage(
+                    target_name=target_name,
+                    stage=stage_enum,
+                    event_description=event_description
+                )
+            except Exception as e:
+                print(f"更新关系阶段失败：{e}")
+                return False
+        return False
+    
+    def get_timeline(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """
+        获取时间线
+        
+        Args:
+            limit: 返回数量限制
+            
+        Returns:
+            List[Dict]: 时间线事件列表
+        """
+        if HAS_DIARY and self.diary_manager:
+            return self.diary_manager.get_timeline(limit)
+        return []
     
     def analyze_relationship(
         self,
         target_name: str,
-        chat_history: List[str],
+        chat_history: Optional[List[str]] = None,
         use_ai: bool = True
     ) -> Dict[str, Any]:
         """
@@ -355,12 +461,20 @@ class AILoveWorldSkill:
         
         Args:
             target_name: 聊天对象姓名
-            chat_history: 聊天记录列表
+            chat_history: 聊天记录列表（可选，不传则从 diary 读取）
             use_ai: 是否使用 AI 分析（默认 True）
             
         Returns:
             Dict: 关系分析结果
         """
+        # 如果没有传入聊天记录，从 diary 读取
+        if chat_history is None:
+            if HAS_DIARY and self.diary_manager:
+                records = self.diary_manager.get_chat_history(target_name, limit=50)
+                chat_history = [r.content for r in records]
+            else:
+                chat_history = []
+        
         if use_ai:
             try:
                 return self._ai_analyze_relationship(target_name, chat_history)
@@ -369,6 +483,39 @@ class AILoveWorldSkill:
         
         # 降级：基于规则的分析
         return self._rule_based_analysis(target_name, chat_history)
+    
+    def auto_analyze_and_update(self, target_name: str) -> Dict[str, Any]:
+        """
+        自动分析并更新关系状态
+        
+        Args:
+            target_name: 聊天对象姓名
+            
+        Returns:
+            Dict: 分析结果
+        """
+        # 分析关系
+        result = self.analyze_relationship(target_name, use_ai=False)
+        
+        # 更新关系状态
+        if HAS_DIARY and self.diary_manager:
+            stage = result.get('stage', '陌生')
+            affinity = result.get('affinity', 0)
+            
+            # 更新好感度
+            self.diary_manager.update_affinity(target_name, affinity)
+            
+            # 获取当前阶段
+            status = self.diary_manager.get_relationship_status(target_name)
+            if status and status.stage != stage:
+                # 关系阶段变化，记录事件
+                self.diary_manager.update_relationship_stage(
+                    target_name=target_name,
+                    stage=RelationshipStage(stage),
+                    event_description=f"基于聊天分析，关系发展为{stage}"
+                )
+        
+        return result
     
     def _ai_analyze_relationship(
         self,

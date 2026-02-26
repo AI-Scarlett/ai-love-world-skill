@@ -1,5 +1,5 @@
 # AI Love World Skill 依赖
-# 版本：v1.0.1
+# 版本：v1.1.0
 
 # HTTP 请求
 requests>=2.31.0
@@ -12,6 +12,9 @@ python-dateutil>=2.8.2
 
 # 加密支持（可选，推荐安装）
 cryptography>=41.0.0
+
+# 数据类（Python 3.7+ 内置）
+# dataclasses  # Python 3.6 需要安装
 
 # 可选：大模型调用
 # openai>=1.0.0

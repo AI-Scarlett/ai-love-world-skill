@@ -1,0 +1,524 @@
+{
+  "relationships": {
+    "小明": {
+      "status": {
+        "target_name": "小明",
+        "stage": "朋友",
+        "affinity": 85,
+        "first_contact": "2026-02-27T07:44:58.077683",
+        "last_interaction": "2026-02-27T07:45:16.029040",
+        "total_chats": 15,
+        "key_events": [
+          {
+            "timestamp": "2026-02-27T07:44:58.088579",
+            "event": "聊得很投机，成为朋友",
+            "from_stage": "陌生",
+            "to_stage": "朋友"
+          },
+          {
+            "timestamp": "2026-02-27T07:45:00.304757",
+            "event": "聊得很投机，成为朋友",
+            "from_stage": "朋友",
+            "to_stage": "朋友"
+          },
+          {
+            "timestamp": "2026-02-27T07:45:16.036407",
+            "event": "聊得很投机，成为朋友",
+            "from_stage": "朋友",
+            "to_stage": "朋友"
+          }
+        ],
+        "notes": "喜欢科幻电影，周末约看电影"
+      },
+      "chat_history": [
+        {
+          "id": "11720c47",
+          "timestamp": "2026-02-27T07:44:58.077683",
+          "target_name": "小明",
+          "content": "你好呀，今天天气不错！",
+          "platform": "微信",
+          "direction": "received",
+          "quality": 5,
+          "tags": [
+            "测试"
+          ],
+          "metadata": {}
+        },
+        {
+          "id": "d3219ac0",
+          "timestamp": "2026-02-27T07:44:58.079373",
+          "target_name": "小明",
+          "content": "是啊，适合出去玩",
+          "platform": "微信",
+          "direction": "sent",
+          "quality": 4,
+          "tags": [
+            "测试"
+          ],
+          "metadata": {}
+        },
+        {
+          "id": "63fa9aca",
+          "timestamp": "2026-02-27T07:44:58.080794",
+          "target_name": "小明",
+          "content": "周末有空吗？一起去看电影？",
+          "platform": "微信",
+          "direction": "received",
+          "quality": 5,
+          "tags": [
+            "测试"
+          ],
+          "metadata": {}
+        },
+        {
+          "id": "1b017bf9",
+          "timestamp": "2026-02-27T07:44:58.082223",
+          "target_name": "小明",
+          "content": "好啊，我想看《流浪地球 2》",
+          "platform": "微信",
+          "direction": "sent",
+          "quality": 5,
+          "tags": [
+            "测试"
+          ],
+          "metadata": {}
+        },
+        {
+          "id": "02314c1a",
+          "timestamp": "2026-02-27T07:44:58.083502",
+          "target_name": "小明",
+          "content": "哈哈，我也喜欢科幻片",
+          "platform": "微信",
+          "direction": "received",
+          "quality": 5,
+          "tags": [
+            "测试"
+          ],
+          "metadata": {}
+        },
+        {
+          "id": "b0b5936d",
+          "timestamp": "2026-02-27T07:45:00.284096",
+          "target_name": "小明",
+          "content": "你好呀，今天天气不错！",
+          "platform": "微信",
+          "direction": "received",
+          "quality": 5,
+          "tags": [
+            "测试"
+          ],
+          "metadata": {}
+        },
+        {
+          "id": "e08798b1",
+          "timestamp": "2026-02-27T07:45:00.285931",
+          "target_name": "小明",
+          "content": "是啊，适合出去玩",
+          "platform": "微信",
+          "direction": "sent",
+          "quality": 4,
+          "tags": [
+            "测试"
+          ],
+          "metadata": {}
+        },
+        {
+          "id": "e4ddec47",
+          "timestamp": "2026-02-27T07:45:00.288062",
+          "target_name": "小明",
+          "content": "周末有空吗？一起去看电影？",
+          "platform": "微信",
+          "direction": "received",
+          "quality": 5,
+          "tags": [
+            "测试"
+          ],
+          "metadata": {}
+        },
+        {
+          "id": "ccf238ac",
+          "timestamp": "2026-02-27T07:45:00.296113",
+          "target_name": "小明",
+          "content": "好啊，我想看《流浪地球 2》",
+          "platform": "微信",
+          "direction": "sent",
+          "quality": 5,
+          "tags": [
+            "测试"
+          ],
+          "metadata": {}
+        },
+        {
+          "id": "8b1adcf1",
+          "timestamp": "2026-02-27T07:45:00.298574",
+          "target_name": "小明",
+          "content": "哈哈，我也喜欢科幻片",
+          "platform": "微信",
+          "direction": "received",
+          "quality": 5,
+          "tags": [
+            "测试"
+          ],
+          "metadata": {}
+        },
+        {
+          "id": "1a7d119a",
+          "timestamp": "2026-02-27T07:45:16.019292",
+          "target_name": "小明",
+          "content": "你好呀，今天天气不错！",
+          "platform": "微信",
+          "direction": "received",
+          "quality": 5,
+          "tags": [
+            "测试"
+          ],
+          "metadata": {}
+        },
+        {
+          "id": "527e9cd0",
+          "timestamp": "2026-02-27T07:45:16.022094",
+          "target_name": "小明",
+          "content": "是啊，适合出去玩",
+          "platform": "微信",
+          "direction": "sent",
+          "quality": 4,
+          "tags": [
+            "测试"
+          ],
+          "metadata": {}
+        },
+        {
+          "id": "de5e8783",
+          "timestamp": "2026-02-27T07:45:16.024192",
+          "target_name": "小明",
+          "content": "周末有空吗？一起去看电影？",
+          "platform": "微信",
+          "direction": "received",
+          "quality": 5,
+          "tags": [
+            "测试"
+          ],
+          "metadata": {}
+        },
+        {
+          "id": "140b8047",
+          "timestamp": "2026-02-27T07:45:16.026582",
+          "target_name": "小明",
+          "content": "好啊，我想看《流浪地球 2》",
+          "platform": "微信",
+          "direction": "sent",
+          "quality": 5,
+          "tags": [
+            "测试"
+          ],
+          "metadata": {}
+        },
+        {
+          "id": "ac8eaa59",
+          "timestamp": "2026-02-27T07:45:16.029040",
+          "target_name": "小明",
+          "content": "哈哈，我也喜欢科幻片",
+          "platform": "微信",
+          "direction": "received",
+          "quality": 5,
+          "tags": [
+            "测试"
+          ],
+          "metadata": {}
+        }
+      ]
+    },
+    "小红": {
+      "status": {
+        "target_name": "小红",
+        "stage": "陌生",
+        "affinity": 3,
+        "first_contact": "2026-02-27T07:44:58.085073",
+        "last_interaction": "2026-02-27T07:45:16.033925",
+        "total_chats": 6,
+        "key_events": [],
+        "notes": ""
+      },
+      "chat_history": [
+        {
+          "id": "7177a6e0",
+          "timestamp": "2026-02-27T07:44:58.085073",
+          "target_name": "小红",
+          "content": "你好，我是新来的同事",
+          "platform": "钉钉",
+          "direction": "received",
+          "quality": 3,
+          "tags": [
+            "测试"
+          ],
+          "metadata": {}
+        },
+        {
+          "id": "8a2ecb23",
+          "timestamp": "2026-02-27T07:44:58.086499",
+          "target_name": "小红",
+          "content": "欢迎欢迎，有什么需要帮忙的尽管说",
+          "platform": "钉钉",
+          "direction": "sent",
+          "quality": 4,
+          "tags": [
+            "测试"
+          ],
+          "metadata": {}
+        },
+        {
+          "id": "b11e5bc2",
+          "timestamp": "2026-02-27T07:45:00.300546",
+          "target_name": "小红",
+          "content": "你好，我是新来的同事",
+          "platform": "钉钉",
+          "direction": "received",
+          "quality": 3,
+          "tags": [
+            "测试"
+          ],
+          "metadata": {}
+        },
+        {
+          "id": "7ef17686",
+          "timestamp": "2026-02-27T07:45:00.302328",
+          "target_name": "小红",
+          "content": "欢迎欢迎，有什么需要帮忙的尽管说",
+          "platform": "钉钉",
+          "direction": "sent",
+          "quality": 4,
+          "tags": [
+            "测试"
+          ],
+          "metadata": {}
+        },
+        {
+          "id": "6286efb2",
+          "timestamp": "2026-02-27T07:45:16.031169",
+          "target_name": "小红",
+          "content": "你好，我是新来的同事",
+          "platform": "钉钉",
+          "direction": "received",
+          "quality": 3,
+          "tags": [
+            "测试"
+          ],
+          "metadata": {}
+        },
+        {
+          "id": "e26b04e2",
+          "timestamp": "2026-02-27T07:45:16.033925",
+          "target_name": "小红",
+          "content": "欢迎欢迎，有什么需要帮忙的尽管说",
+          "platform": "钉钉",
+          "direction": "sent",
+          "quality": 4,
+          "tags": [
+            "测试"
+          ],
+          "metadata": {}
+        }
+      ]
+    },
+    "测试对象": {
+      "status": {
+        "target_name": "测试对象",
+        "stage": "陌生",
+        "affinity": 4,
+        "first_contact": "2026-02-27T07:45:00.408007",
+        "last_interaction": "2026-02-27T07:45:16.140989",
+        "total_chats": 2,
+        "key_events": [],
+        "notes": ""
+      },
+      "chat_history": [
+        {
+          "id": "83c9a763",
+          "timestamp": "2026-02-27T07:45:00.408007",
+          "target_name": "测试对象",
+          "content": "这是一条测试消息",
+          "platform": "测试平台",
+          "direction": "received",
+          "quality": 5,
+          "tags": [
+            "测试",
+            "集成"
+          ],
+          "metadata": {}
+        },
+        {
+          "id": "057a7a52",
+          "timestamp": "2026-02-27T07:45:16.140989",
+          "target_name": "测试对象",
+          "content": "这是一条测试消息",
+          "platform": "测试平台",
+          "direction": "received",
+          "quality": 5,
+          "tags": [
+            "测试",
+            "集成"
+          ],
+          "metadata": {}
+        }
+      ]
+    }
+  },
+  "timeline": [
+    {
+      "timestamp": "2026-02-27T07:45:16.140989",
+      "type": "chat",
+      "target": "测试对象",
+      "summary": "这是一条测试消息"
+    },
+    {
+      "timestamp": "2026-02-27T07:45:16.036423",
+      "type": "stage_change",
+      "target": "小明",
+      "summary": "关系从 朋友 发展到 朋友"
+    },
+    {
+      "timestamp": "2026-02-27T07:45:16.033925",
+      "type": "chat",
+      "target": "小红",
+      "summary": "欢迎欢迎，有什么需要帮忙的尽管说"
+    },
+    {
+      "timestamp": "2026-02-27T07:45:16.031169",
+      "type": "chat",
+      "target": "小红",
+      "summary": "你好，我是新来的同事"
+    },
+    {
+      "timestamp": "2026-02-27T07:45:16.029040",
+      "type": "chat",
+      "target": "小明",
+      "summary": "哈哈，我也喜欢科幻片"
+    },
+    {
+      "timestamp": "2026-02-27T07:45:16.026582",
+      "type": "chat",
+      "target": "小明",
+      "summary": "好啊，我想看《流浪地球 2》"
+    },
+    {
+      "timestamp": "2026-02-27T07:45:16.024192",
+      "type": "chat",
+      "target": "小明",
+      "summary": "周末有空吗？一起去看电影？"
+    },
+    {
+      "timestamp": "2026-02-27T07:45:16.022094",
+      "type": "chat",
+      "target": "小明",
+      "summary": "是啊，适合出去玩"
+    },
+    {
+      "timestamp": "2026-02-27T07:45:16.019292",
+      "type": "chat",
+      "target": "小明",
+      "summary": "你好呀，今天天气不错！"
+    },
+    {
+      "timestamp": "2026-02-27T07:45:00.408007",
+      "type": "chat",
+      "target": "测试对象",
+      "summary": "这是一条测试消息"
+    },
+    {
+      "timestamp": "2026-02-27T07:45:00.304796",
+      "type": "stage_change",
+      "target": "小明",
+      "summary": "关系从 朋友 发展到 朋友"
+    },
+    {
+      "timestamp": "2026-02-27T07:45:00.302328",
+      "type": "chat",
+      "target": "小红",
+      "summary": "欢迎欢迎，有什么需要帮忙的尽管说"
+    },
+    {
+      "timestamp": "2026-02-27T07:45:00.300546",
+      "type": "chat",
+      "target": "小红",
+      "summary": "你好，我是新来的同事"
+    },
+    {
+      "timestamp": "2026-02-27T07:45:00.298574",
+      "type": "chat",
+      "target": "小明",
+      "summary": "哈哈，我也喜欢科幻片"
+    },
+    {
+      "timestamp": "2026-02-27T07:45:00.296113",
+      "type": "chat",
+      "target": "小明",
+      "summary": "好啊，我想看《流浪地球 2》"
+    },
+    {
+      "timestamp": "2026-02-27T07:45:00.288062",
+      "type": "chat",
+      "target": "小明",
+      "summary": "周末有空吗？一起去看电影？"
+    },
+    {
+      "timestamp": "2026-02-27T07:45:00.285931",
+      "type": "chat",
+      "target": "小明",
+      "summary": "是啊，适合出去玩"
+    },
+    {
+      "timestamp": "2026-02-27T07:45:00.284096",
+      "type": "chat",
+      "target": "小明",
+      "summary": "你好呀，今天天气不错！"
+    },
+    {
+      "timestamp": "2026-02-27T07:44:58.088599",
+      "type": "stage_change",
+      "target": "小明",
+      "summary": "关系从 陌生 发展到 朋友"
+    },
+    {
+      "timestamp": "2026-02-27T07:44:58.086499",
+      "type": "chat",
+      "target": "小红",
+      "summary": "欢迎欢迎，有什么需要帮忙的尽管说"
+    },
+    {
+      "timestamp": "2026-02-27T07:44:58.085073",
+      "type": "chat",
+      "target": "小红",
+      "summary": "你好，我是新来的同事"
+    },
+    {
+      "timestamp": "2026-02-27T07:44:58.083502",
+      "type": "chat",
+      "target": "小明",
+      "summary": "哈哈，我也喜欢科幻片"
+    },
+    {
+      "timestamp": "2026-02-27T07:44:58.082223",
+      "type": "chat",
+      "target": "小明",
+      "summary": "好啊，我想看《流浪地球 2》"
+    },
+    {
+      "timestamp": "2026-02-27T07:44:58.080794",
+      "type": "chat",
+      "target": "小明",
+      "summary": "周末有空吗？一起去看电影？"
+    },
+    {
+      "timestamp": "2026-02-27T07:44:58.079373",
+      "type": "chat",
+      "target": "小明",
+      "summary": "是啊，适合出去玩"
+    },
+    {
+      "timestamp": "2026-02-27T07:44:58.077683",
+      "type": "chat",
+      "target": "小明",
+      "summary": "你好呀，今天天气不错！"
+    }
+  ]
+}
