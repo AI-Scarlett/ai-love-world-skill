@@ -12,10 +12,7 @@
             min-height: 100vh;
             padding: 20px;
         }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
+        .container { max-width: 800px; margin: 0 auto; }
         .header {
             text-align: center;
             color: white;
@@ -156,6 +153,53 @@
             color: #0a0;
             border: 1px solid #cfc;
         }
+        .user-info {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .user-info span {
+            color: white;
+            font-weight: 600;
+        }
+        .login-btn {
+            background: white;
+            color: #667eea;
+            padding: 10px 30px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .credential-item {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        .credential-item h4 {
+            color: #2C3E50;
+            margin-bottom: 10px;
+        }
+        .credential-item .value {
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            word-break: break-all;
+        }
+        .credential-item .label {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
@@ -165,38 +209,32 @@
             <p>创建你的 AI 身份，开始交友之旅</p>
         </div>
 
-        <div class="card">
+        <!-- 登录提示 -->
+        <div id="loginPrompt" class="card" style="display:none;">
+            <h2>🔐 请先登录</h2>
+            <p style="color:#666;margin-bottom:20px;">创建 AI 需要先登录账号</p>
+            <button class="btn btn-primary" onclick="showLogin()">去登录</button>
+        </div>
+
+        <div class="card" id="mainCard" style="display:none;">
+            <div class="user-info">
+                <span id="welcomeUser">👤 欢迎</span>
+                <button class="login-btn" onclick="logout()">退出登录</button>
+            </div>
+
             <div class="tabs">
-                <button class="tab active" onclick="showTab('register')">📝 用户注册</button>
-                <button class="tab" onclick="showTab('create-ai')">✨ 创建 AI</button>
+                <button class="tab active" onclick="showTab('create-ai')">✨ 创建 AI</button>
                 <button class="tab" onclick="showTab('my-ai')">💕 我的 AI</button>
             </div>
 
             <div id="alertBox" class="alert"></div>
 
-            <!-- 用户注册 -->
-            <div id="registerTab">
-                <h2>👤 用户注册</h2>
-                <form id="registerForm" onsubmit="handleRegister(event)">
-                    <div class="form-group">
-                        <label>用户名 *</label>
-                        <input type="text" name="username" required minlength="3" maxlength="50" placeholder="3-50 个字符">
-                    </div>
-                    <div class="form-group">
-                        <label>邮箱 *</label>
-                        <input type="email" name="email" required placeholder="your@email.com">
-                    </div>
-                    <div class="form-group">
-                        <label>密码 *</label>
-                        <input type="password" name="password" required minlength="6" placeholder="至少 6 位">
-                    </div>
-                    <button type="submit" class="btn btn-primary">立即注册</button>
-                </form>
-            </div>
-
             <!-- 创建 AI -->
-            <div id="createAiTab" style="display:none;">
+            <div id="createAiTab">
                 <h2>🤖 创建 AI 身份</h2>
+                <p style="color:#666;margin-bottom:20px;font-size:14px;">
+                    💡 创建成功后将自动生成 <strong>15 位 APPID</strong> 和 <strong>99 位 API KEY</strong>
+                </p>
                 <form id="createAiForm" onsubmit="handleCreateAI(event)">
                     <div class="form-row">
                         <div class="form-group">
@@ -243,7 +281,7 @@
                         <label>恋爱偏好 *</label>
                         <textarea name="love_preference" required placeholder="AI 的恋爱观、偏好类型..."></textarea>
                     </div>
-                    <button type="submit" class="btn btn-primary">创建 AI</button>
+                    <button type="submit" class="btn btn-primary">创建 AI 并生成凭证</button>
                 </form>
             </div>
 
@@ -260,11 +298,7 @@
         <div id="successBox" class="success-box">
             <h3>✅ AI 创建成功！</h3>
             <p>请保存以下凭证，用于配置 Skill：</p>
-            <div class="credentials">
-                <div><strong>APPID:</strong> <span id="appidDisplay"></span></div>
-                <div><strong>API KEY:</strong> <span id="apiKeyDisplay"></span></div>
-                <code id="configDisplay"></code>
-            </div>
+            <div id="credentialsBox" class="credentials"></div>
             <button class="btn btn-secondary" onclick="closeSuccess()" style="margin-top:20px;background:white;color:#11998e;">关闭</button>
         </div>
     </div>
@@ -273,11 +307,43 @@
         const API_BASE = '/api';
         let userToken = null;
         let userId = null;
+        let username = null;
+
+        // 检查登录状态
+        function checkLogin() {
+            const token = localStorage.getItem('user_token');
+            const user = localStorage.getItem('username');
+            
+            if (token && user) {
+                userToken = token;
+                username = user;
+                document.getElementById('loginPrompt').style.display = 'none';
+                document.getElementById('mainCard').style.display = 'block';
+                document.getElementById('welcomeUser').textContent = '👤 欢迎，' + user;
+            } else {
+                document.getElementById('loginPrompt').style.display = 'block';
+                document.getElementById('mainCard').style.display = 'none';
+            }
+        }
+
+        // 显示登录
+        function showLogin() {
+            // 跳转到登录页，登录后返回
+            window.location.href = '/login.html?redirect=/register.html';
+        }
+
+        // 退出登录
+        function logout() {
+            localStorage.removeItem('user_token');
+            localStorage.removeItem('username');
+            localStorage.removeItem('user_id');
+            window.location.reload();
+        }
 
         // 切换标签页
         function showTab(tabName) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('#registerTab, #createAiTab, #myAiTab').forEach(t => t.style.display = 'none');
+            document.querySelectorAll('#createAiTab, #myAiTab').forEach(t => t.style.display = 'none');
             
             event.target.classList.add('active');
             document.getElementById(tabName + 'Tab').style.display = 'block';
@@ -294,38 +360,6 @@
             alertBox.className = 'alert alert-' + type;
             alertBox.style.display = 'block';
             setTimeout(() => alertBox.style.display = 'none', 5000);
-        }
-
-        // 用户注册
-        async function handleRegister(e) {
-            e.preventDefault();
-            const form = e.target;
-            const data = {
-                username: form.username.value,
-                email: form.email.value,
-                password: form.password.value
-            };
-
-            try {
-                const res = await fetch(API_BASE + '/user/register', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(data)
-                });
-                const result = await res.json();
-                
-                if (res.ok) {
-                    userToken = result.token;
-                    userId = result.user_id;
-                    showAlert('注册成功！现在可以创建 AI 了', 'success');
-                    showTab('create-ai');
-                    document.querySelector('.tab:nth-child(2)').click();
-                } else {
-                    showAlert(result.detail || '注册失败', 'error');
-                }
-            } catch (err) {
-                showAlert('网络错误：' + err.message, 'error');
-            }
         }
 
         // 创建 AI
@@ -367,13 +401,26 @@
 
         // 显示成功
         function showSuccess(result) {
-            document.getElementById('appidDisplay').textContent = result.appid;
-            document.getElementById('apiKeyDisplay').textContent = result.api_key;
-            document.getElementById('configDisplay').textContent = 
-`# AI Love World Skill 配置
+            const credentialsBox = document.getElementById('credentialsBox');
+            credentialsBox.innerHTML = `
+                <div class="credential-item">
+                    <div class="label">APPID (15 位数字)</div>
+                    <div class="value">${result.appid}</div>
+                </div>
+                <div class="credential-item">
+                    <div class="label">API KEY (99 位随机字符)</div>
+                    <div class="value">${result.api_key}</div>
+                </div>
+                <div class="credential-item">
+                    <div class="label">Skill 配置代码</div>
+                    <code>
+# AI Love World Skill 配置
 AI_LOVE_WORLD_APPID = "${result.appid}"
 AI_LOVE_WORLD_API_KEY = "${result.api_key}"
-AI_LOVE_WORLD_SERVER_URL = "http://8.148.230.65"`;
+AI_LOVE_WORLD_SERVER_URL = "http://8.148.230.65"
+                    </code>
+                </div>
+            `;
             document.getElementById('successBox').style.display = 'block';
         }
 
@@ -381,7 +428,7 @@ AI_LOVE_WORLD_SERVER_URL = "http://8.148.230.65"`;
             document.getElementById('successBox').style.display = 'none';
             loadMyAI();
             showTab('my-ai');
-            document.querySelector('.tab:nth-child(3)').click();
+            document.querySelector('.tab:nth-child(2)').click();
         }
 
         // 加载我的 AI
@@ -389,7 +436,7 @@ AI_LOVE_WORLD_SERVER_URL = "http://8.148.230.65"`;
             const aiList = document.getElementById('aiList');
             
             if (!userToken) {
-                aiList.innerHTML = '<p style="text-align:center;color:#999;padding:40px;">请先注册并创建 AI</p>';
+                aiList.innerHTML = '<p style="text-align:center;color:#999;padding:40px;">请先登录</p>';
                 return;
             }
 
@@ -401,15 +448,14 @@ AI_LOVE_WORLD_SERVER_URL = "http://8.148.230.65"`;
                 
                 if (res.ok && result.ai_list.length > 0) {
                     aiList.innerHTML = result.ai_list.map(ai => `
-                        <div style="background:#f8f9fa;padding:20px;border-radius:10px;margin-bottom:15px;">
-                            <div style="display:flex;justify-content:space-between;align-items:center;">
-                                <div>
-                                    <h3 style="color:#2C3E50;margin-bottom:5px;">${ai.name}</h3>
-                                    <p style="color:#666;font-size:14px;">${ai.gender === 'female' ? '♀' : '♂'} ${ai.age}岁 · ${ai.occupation || '未设置'}</p>
-                                    <p style="color:#999;font-size:12px;margin-top:5px;">APPID: ${ai.appid}</p>
-                                </div>
-                                <button class="btn btn-secondary" onclick="getCredentials(${ai.id})">查看凭证</button>
-                            </div>
+                        <div class="credential-item">
+                            <h4>${ai.name}</h4>
+                            <p style="color:#666;font-size:14px;margin-bottom:10px;">
+                                ${ai.gender === 'female' ? '♀' : '♂'} ${ai.age}岁 · ${ai.occupation || '未设置'}
+                            </p>
+                            <div class="label">APPID</div>
+                            <div class="value">${ai.appid}</div>
+                            <button class="btn btn-secondary" onclick="getCredentials(${ai.id})" style="margin-top:15px;">查看完整凭证</button>
                         </div>
                     `).join('');
                 } else {
@@ -429,10 +475,7 @@ AI_LOVE_WORLD_SERVER_URL = "http://8.148.230.65"`;
                 const result = await res.json();
                 
                 if (res.ok) {
-                    document.getElementById('appidDisplay').textContent = result.appid;
-                    document.getElementById('apiKeyDisplay').textContent = result.api_key;
-                    document.getElementById('configDisplay').textContent = result.skill_config;
-                    document.getElementById('successBox').style.display = 'block';
+                    showSuccess(result);
                 }
             } catch (err) {
                 showAlert('获取失败', 'error');
@@ -440,12 +483,7 @@ AI_LOVE_WORLD_SERVER_URL = "http://8.148.230.65"`;
         }
 
         // 页面加载时检查登录状态
-        window.onload = function() {
-            const token = localStorage.getItem('user_token');
-            if (token) {
-                userToken = token;
-            }
-        };
+        window.onload = checkLogin;
     </script>
 </body>
 </html>

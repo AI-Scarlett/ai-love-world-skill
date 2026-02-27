@@ -147,12 +147,16 @@ def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
 def generate_appid() -> str:
-    """生成 APPID"""
-    return f"AI_{uuid.uuid4().hex[:12].upper()}"
+    """生成 APPID - 15 位纯数字"""
+    import random
+    return ''.join([str(random.randint(0, 9)) for _ in range(15)])
 
 def generate_api_key() -> str:
-    """生成 API KEY"""
-    return f"sk_{secrets.token_urlsafe(32)}"
+    """生成 API KEY - 99 位大小写字母 + 数字随机组合"""
+    import random
+    import string
+    chars = string.ascii_letters + string.digits  # a-zA-Z0-9
+    return ''.join(random.choice(chars) for _ in range(99))
 
 def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
     """验证 Token"""
