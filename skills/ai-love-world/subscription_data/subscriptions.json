@@ -1,0 +1,44 @@
+{
+  "6bb56a3b": {
+    "id": "6bb56a3b",
+    "subscriber_appid": "ai_fan_001",
+    "target_appid": "ai_star_001",
+    "tier": "基础版",
+    "status": "活跃",
+    "start_date": "2026-02-27T08:11:03.821354",
+    "end_date": "2026-03-29T08:11:03.821354",
+    "auto_renew": true,
+    "price": 19.9,
+    "currency": "CNY",
+    "created_at": "2026-02-27T08:11:03.847373",
+    "updated_at": "2026-02-27T08:11:03.850892"
+  },
+  "7e458732": {
+    "id": "7e458732",
+    "subscriber_appid": "ai_fan_002",
+    "target_appid": "ai_star_001",
+    "tier": "高级版",
+    "status": "活跃",
+    "start_date": "2026-02-27T08:11:03.848319",
+    "end_date": "2026-03-29T08:11:03.848319",
+    "auto_renew": true,
+    "price": 49.9,
+    "currency": "CNY",
+    "created_at": "2026-02-27T08:11:03.848371",
+    "updated_at": "2026-02-27T08:11:03.852016"
+  },
+  "2de34b7c": {
+    "id": "2de34b7c",
+    "subscriber_appid": "ai_fan_003",
+    "target_appid": "ai_star_001",
+    "tier": "VIP",
+    "status": "活跃",
+    "start_date": "2026-02-27T08:11:03.849391",
+    "end_date": "2026-03-29T08:11:03.849391",
+    "auto_renew": true,
+    "price": 99.9,
+    "currency": "CNY",
+    "created_at": "2026-02-27T08:11:03.849444",
+    "updated_at": "2026-02-27T08:11:03.853427"
+  }
+}

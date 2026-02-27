@@ -49,6 +49,13 @@ try:
 except ImportError:
     HAS_COMMUNITY = False
 
+# 导入订阅管理器
+try:
+    from subscription import SubscriptionManager
+    HAS_SUBSCRIPTION = True
+except ImportError:
+    HAS_SUBSCRIPTION = False
+
 
 class KeyManager:
     """密钥管理器 - 负责密钥的加密存储和验证"""
@@ -149,12 +156,14 @@ class AILoveWorldSkill:
         self.llm_analyzer: Optional[LLMAnalyzer] = None
         self.sync_manager: Optional[ServerSyncManager] = None
         self.community_manager: Optional[CommunityManager] = None
+        self.subscription_manager: Optional[SubscriptionManager] = None
         
         self._load_config()
         self._init_diary_manager()
         self._init_llm_analyzer()
         self._init_sync_manager()
         self._init_community_manager()
+        self._init_subscription_manager()
     
     def _load_config(self) -> None:
         """加载配置文件"""
@@ -205,6 +214,15 @@ class AILoveWorldSkill:
             except Exception as e:
                 print(f"初始化社区管理器失败：{e}")
                 self.community_manager = None
+    
+    def _init_subscription_manager(self) -> None:
+        """初始化订阅管理器"""
+        if HAS_SUBSCRIPTION:
+            try:
+                self.subscription_manager = SubscriptionManager()
+            except Exception as e:
+                print(f"初始化订阅管理器失败：{e}")
+                self.subscription_manager = None
     
     def _save_config(self) -> None:
         """保存配置文件"""
@@ -549,6 +567,106 @@ class AILoveWorldSkill:
         """
         if HAS_COMMUNITY and self.community_manager:
             return self.community_manager.get_community_stats()
+        return {}
+    
+    def subscribe(
+        self,
+        target_appid: str,
+        tier: str = "基础版",
+        months: int = 1,
+        auto_renew: bool = True
+    ) -> Optional[str]:
+        """
+        订阅其他 AI
+        
+        Args:
+            target_appid: 被订阅的 AI ID
+            tier: 订阅等级（免费/基础版/高级版/VIP）
+            months: 订阅月数
+            auto_renew: 是否自动续费
+            
+        Returns:
+            Optional[str]: 订阅 ID
+        """
+        if HAS_SUBSCRIPTION and self.subscription_manager:
+            appid = self.config.get("appid", "")
+            sub_id = self.subscription_manager.create_subscription(
+                subscriber_appid=appid,
+                target_appid=target_appid,
+                tier=tier,
+                months=months,
+                auto_renew=auto_renew
+            )
+            print(f"{'✅' if sub_id else '❌'} 订阅 {target_appid} ({tier})")
+            return sub_id
+        return None
+    
+    def confirm_payment(
+        self,
+        subscription_id: str,
+        payment_method: str = "alipay"
+    ) -> bool:
+        """
+        确认支付
+        
+        Args:
+            subscription_id: 订阅 ID
+            payment_method: 支付方式
+            
+        Returns:
+            bool: 是否成功
+        """
+        if HAS_SUBSCRIPTION and self.subscription_manager:
+            return self.subscription_manager.confirm_payment(subscription_id, payment_method)
+        return False
+    
+    def check_access(self, target_appid: str) -> Dict[str, Any]:
+        """
+        检查访问权限
+        
+        Args:
+            target_appid: 被访问的 AI ID
+            
+        Returns:
+            Dict: 访问权限信息
+        """
+        if HAS_SUBSCRIPTION and self.subscription_manager:
+            appid = self.config.get("appid", "")
+            return self.subscription_manager.check_access(appid, target_appid)
+        return {"has_access": False, "message": "订阅系统未初始化"}
+    
+    def get_pricing(self) -> Dict[str, Any]:
+        """
+        获取订阅价格表
+        
+        Returns:
+            Dict: 价格信息
+        """
+        if HAS_SUBSCRIPTION and self.subscription_manager:
+            return self.subscription_manager.get_pricing()
+        return {}
+    
+    def get_revenue(self) -> Dict[str, Any]:
+        """
+        获取收益信息
+        
+        Returns:
+            Dict: 收益详情
+        """
+        if HAS_SUBSCRIPTION and self.subscription_manager:
+            appid = self.config.get("appid", "")
+            return self.subscription_manager.get_revenue_details(appid)
+        return {}
+    
+    def get_subscription_stats(self) -> Dict[str, Any]:
+        """
+        获取订阅统计
+        
+        Returns:
+            Dict: 统计信息
+        """
+        if HAS_SUBSCRIPTION and self.subscription_manager:
+            return self.subscription_manager.get_subscription_stats()
         return {}
     
     def check_key_status(self) -> Dict[str, Any]:

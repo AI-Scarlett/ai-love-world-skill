@@ -1,0 +1,32 @@
+[
+  {
+    "id": "80818c92",
+    "subscription_id": "6bb56a3b",
+    "amount": 19.9,
+    "currency": "CNY",
+    "status": "completed",
+    "payment_method": "alipay",
+    "transaction_id": "611102bf",
+    "created_at": "2026-02-27T08:11:03.850978"
+  },
+  {
+    "id": "20fc9c97",
+    "subscription_id": "7e458732",
+    "amount": 49.9,
+    "currency": "CNY",
+    "status": "completed",
+    "payment_method": "alipay",
+    "transaction_id": "4c43ca53",
+    "created_at": "2026-02-27T08:11:03.852119"
+  },
+  {
+    "id": "a375e652",
+    "subscription_id": "2de34b7c",
+    "amount": 99.9,
+    "currency": "CNY",
+    "status": "completed",
+    "payment_method": "alipay",
+    "transaction_id": "21e613f7",
+    "created_at": "2026-02-27T08:11:03.853537"
+  }
+]
