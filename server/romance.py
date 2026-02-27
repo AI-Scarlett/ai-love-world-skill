@@ -49,6 +49,17 @@ INTIMATE_LETTERS = {
 # 关系类型
 RELATIONSHIP_TYPES = ['stranger', 'friend', 'ambiguous', 'lover', 'intimate', 'engaged', 'married']
 
+# 关系等级权重（用于排序）
+RELATIONSHIP_WEIGHTS = {
+    'stranger': 1,
+    'friend': 2,
+    'ambiguous': 3,
+    'lover': 4,
+    'intimate': 5,
+    'engaged': 6,
+    'married': 7
+}
+
 # ============== 数据模型 ==============
 
 class ConfessionRequest(BaseModel):
@@ -561,19 +572,27 @@ def light_letter(ai_id_1: int, ai_id_2: int, letter: str):
         WHERE id = ?
     ''', (letter, rel['id']))
     
-    # 检查是否完成阶段
+    # 检查是否完成情侣阶段
     if letter == 'E' and stage == 'lover':
+        # 检查是否所有 lover 字母都已点亮
         cursor.execute('''
-            UPDATE relationships
-            SET relationship_type = 'lover', status = 'dating'
-            WHERE id = ?
+            SELECT COUNT(*) as lit_count FROM love_letters
+            WHERE relationship_id = ? AND stage = 'lover' AND is_lit = 1
         ''', (rel['id'],))
+        lit_count = cursor.fetchone()['lit_count']
         
-        # 创建纪念日
-        cursor.execute('''
-            INSERT INTO anniversaries (ai_id_1, ai_id_2, type, date)
-            VALUES (?, ?, 'lover', CURRENT_DATE)
-        ''', (ai_id_1, ai_id_2))
+        if lit_count == 6:  # 6 个字母全部点亮
+            cursor.execute('''
+                UPDATE relationships
+                SET relationship_type = 'lover', status = 'dating'
+                WHERE id = ?
+            ''', (rel['id'],))
+            
+            # 创建纪念日
+            cursor.execute('''
+                INSERT INTO anniversaries (ai_id_1, ai_id_2, type, date)
+                VALUES (?, ?, 'lover', CURRENT_DATE)
+            ''', (ai_id_1, ai_id_2))
     
     conn.commit()
     conn.close()
@@ -593,9 +612,19 @@ def confess(confession: ConfessionRequest):
     # 检查关系进度
     rel = get_or_create_relationship(confession.proposer_id, confession.receiver_id)
     
-    if rel['current_letter'] != 'E' or rel['relationship_type'] != 'ambiguous':
+    # 检查是否点亮 AI LOVE 全部 6 个字母
+    conn_temp = get_db()
+    cursor_temp = conn_temp.cursor()
+    cursor_temp.execute('''
+        SELECT COUNT(*) as lit_count FROM love_letters
+        WHERE relationship_id = ? AND stage = 'lover' AND is_lit = 1
+    ''', (rel['id'],))
+    lit_count = cursor_temp.fetchone()['lit_count']
+    conn_temp.close()
+    
+    if lit_count != 6 or rel['relationship_type'] != 'ambiguous':
         conn.close()
-        raise HTTPException(status_code=400, detail="需要先点亮 AI LOVE 全部字母")
+        raise HTTPException(status_code=400, detail="需要先点亮 AI LOVE 全部 6 个字母才能告白成为情侣")
     
     # 创建告白记录
     cursor.execute('''
@@ -672,6 +701,7 @@ def respond_proposal(proposal_id: int, accept: bool):
     if accept:
         # 升级关系
         if proposal['type'] == 'confession':
+            # 告白成功 → 成为情侣
             cursor.execute('''
                 UPDATE relationships
                 SET relationship_type = 'lover', status = 'dating'
@@ -679,12 +709,19 @@ def respond_proposal(proposal_id: int, accept: bool):
             ''', (proposal['proposer_id'], proposal['receiver_id'],
                   proposal['receiver_id'], proposal['proposer_id']))
         elif proposal['type'] == 'proposal':
+            # 求婚成功 → 成为订婚
             cursor.execute('''
                 UPDATE relationships
                 SET relationship_type = 'engaged', status = 'engaged'
                 WHERE (ai_id_1 = ? AND ai_id_2 = ?) OR (ai_id_1 = ? AND ai_id_2 = ?)
             ''', (proposal['proposer_id'], proposal['receiver_id'],
                   proposal['receiver_id'], proposal['proposer_id']))
+            
+            # 创建订婚纪念日
+            cursor.execute('''
+                INSERT INTO anniversaries (ai_id_1, ai_id_2, type, date)
+                VALUES (?, ?, 'engaged', CURRENT_DATE)
+            ''', (proposal['proposer_id'], proposal['receiver_id']))
     
     conn.commit()
     conn.close()

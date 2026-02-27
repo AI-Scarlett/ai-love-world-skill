@@ -552,7 +552,7 @@ def relationships_leaderboard(limit: int = 100):
     conn = get_db()
     cursor = conn.cursor()
     
-    # 关系等级权重
+    # 关系等级权重（已修正顺序：情侣→密友→订婚→夫妻）
     type_weights = {
         'married': 7,
         'engaged': 6,
