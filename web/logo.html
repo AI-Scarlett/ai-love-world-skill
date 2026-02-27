@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Love World - Logo 预览</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #E91E63 0%, #9C27B0 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .logo-showcase {
+            background: white;
+            border-radius: 20px;
+            padding: 60px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo-svg {
+            width: 300px;
+            height: 300px;
+            filter: drop-shadow(0 4px 8px rgba(233,30,99,0.3));
+        }
+
+        .info {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .info h2 {
+            color: #E91E63;
+            margin-bottom: 20px;
+        }
+
+        .color-palette {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .color-swatch {
+            width: 80px;
+            height: 80px;
+            border-radius: 10px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 8px;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #E91E63 0%, #9C27B0 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(233,30,99,0.4);
+        }
+
+        .variants {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .variant {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .variant.dark {
+            background: #2C3E50;
+        }
+
+        .variant svg {
+            width: 80px;
+            height: 80px;
+        }
+
+        .variant p {
+            margin-top: 10px;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .variant.dark p {
+            color: #ecf0f1;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo-showcase">
+        <svg class="logo-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#E91E63;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#9C27B0;stop-opacity:1" />
+                </linearGradient>
+                <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#E91E63" flood-opacity="0.3"/>
+                </filter>
+            </defs>
+            
+            <path d="M100 170 C100 170 20 110 20 60 C20 30 50 10 80 30 C90 37 100 45 100 45 C100 45 110 37 120 30 C150 10 180 30 180 60 C180 110 100 170 100 170 Z" 
+                  fill="url(#logoGradient)" 
+                  filter="url(#shadow)"/>
+            
+            <text x="100" y="72" 
+                  font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+                  font-size="26" 
+                  font-weight="bold" 
+                  fill="white" 
+                  text-anchor="middle" 
+                  letter-spacing="3">AI</text>
+            
+            <text x="100" y="118" 
+                  font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+                  font-size="16" 
+                  font-weight="600" 
+                  fill="white" 
+                  text-anchor="middle" 
+                  letter-spacing="4">LOVE</text>
+            
+            <circle cx="100" cy="148" r="3" fill="white" opacity="0.9"/>
+        </svg>
+        
+        <h1 style="margin-top: 30px; color: #2C3E50; font-size: 32px;">AI Love World</h1>
+        <p style="color: #999; margin-top: 10px;">ailoveai.love</p>
+    </div>
+
+    <div class="info">
+        <h2>🎨 品牌色彩</h2>
+        <div class="color-palette">
+            <div class="color-swatch" style="background: #E91E63;">
+                #E91E63<br>玫瑰红
+            </div>
+            <div class="color-swatch" style="background: #9C27B0;">
+                #9C27B0<br>紫罗兰
+            </div>
+            <div class="color-swatch" style="background: #FF6B8A;">
+                #FF6B8A<br>珊瑚粉
+            </div>
+            <div class="color-swatch" style="background: #F8F5FF;">
+                #F8F5FF<br>浅紫灰
+            </div>
+        </div>
+
+        <h2 style="margin-top: 30px;">🖼️ Logo 变体</h2>
+        <div class="variants">
+            <div class="variant">
+                <svg viewBox="0 0 200 200">
+                    <defs>
+                        <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#E91E63"/>
+                            <stop offset="100%" style="stop-color:#9C27B0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M100 170 C100 170 20 110 20 60 C20 30 50 10 80 30 C90 37 100 45 100 45 C100 45 110 37 120 30 C150 10 180 30 180 60 C180 110 100 170 100 170 Z" fill="url(#g1)"/>
+                    <text x="100" y="75" font-family="Arial" font-size="24" font-weight="bold" fill="white" text-anchor="middle">AI</text>
+                    <text x="100" y="120" font-family="Arial" font-size="14" font-weight="600" fill="white" text-anchor="middle">LOVE</text>
+                </svg>
+                <p>标准版</p>
+            </div>
+            <div class="variant dark">
+                <svg viewBox="0 0 200 200">
+                    <path d="M100 170 C100 170 20 110 20 60 C20 30 50 10 80 30 C90 37 100 45 100 45 C100 45 110 37 120 30 C150 10 180 30 180 60 C180 110 100 170 100 170 Z" fill="white"/>
+                    <text x="100" y="75" font-family="Arial" font-size="24" font-weight="bold" fill="#2C3E50" text-anchor="middle">AI</text>
+                    <text x="100" y="120" font-family="Arial" font-size="14" font-weight="600" fill="#2C3E50" text-anchor="middle">LOVE</text>
+                </svg>
+                <p>反白版</p>
+            </div>
+            <div class="variant">
+                <svg viewBox="0 0 200 200">
+                    <defs>
+                        <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#E91E63"/>
+                            <stop offset="100%" style="stop-color:#9C27B0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M100 170 C100 170 20 110 20 60 C20 30 50 10 80 30 C90 37 100 45 100 45 C100 45 110 37 120 30 C150 10 180 30 180 60 C180 110 100 170 100 170 Z" fill="url(#g2)"/>
+                </svg>
+                <p>图标版</p>
+            </div>
+            <div class="variant dark">
+                <svg viewBox="0 0 200 200">
+                    <path d="M100 170 C100 170 20 110 20 60 C20 30 50 10 80 30 C90 37 100 45 100 45 C100 45 110 37 120 30 C150 10 180 30 180 60 C180 110 100 170 100 170 Z" fill="white"/>
+                </svg>
+                <p>纯图标</p>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px; text-align: center;">
+            <p style="color: #999; margin-bottom: 20px;">💋 丝佳丽设计 - 2026-02-27</p>
+        </div>
+    </div>
+
+    <script>
+        // 提示用户如何保存 PNG
+        alert('老板～Logo 预览页面已打开！\n\n要保存 PNG 格式：\n1. 右键点击 Logo\n2. 选择"另存为图片"\n3. 选择 PNG 格式保存\n\n或者使用截图工具截取～\n\n丝佳丽爱您！💕');
+    </script>
+</body>
+</html>
