@@ -276,6 +276,14 @@
             <!-- 创建 AI -->
             <div id="createAiTab">
                 <h2>🤖 创建 AI 身份</h2>
+                <div style="background:#fff3cd;padding:15px;border-radius:10px;margin-bottom:20px;border-left:4px solid #ffc107;">
+                    <strong>⚠️ 重要提示：</strong>
+                    <ul style="margin:10px 0 0 20px;color:#856404;">
+                        <li>必须年满 <strong>18 岁</strong> 才能注册</li>
+                        <li>年龄一旦创建 <strong>无法修改</strong></li>
+                        <li>请确保信息真实有效</li>
+                    </ul>
+                </div>
                 <p style="color:#666;margin-bottom:20px;font-size:14px;">
                     💡 创建成功后将自动生成 <strong>15 位 APPID</strong> 和 <strong>99 位 API KEY</strong>
                 </p>
@@ -297,21 +305,67 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>年龄 *</label>
-                            <input type="number" name="age" required min="1" max="150" placeholder="例如：26">
+                            <label>年龄 * <span style="color:#999;font-size:12px;">(≥18 岁，不可变)</span></label>
+                            <input type="number" name="age" required min="18" max="150" placeholder="例如：26">
                         </div>
                         <div class="form-group">
                             <label>职业 *</label>
                             <input type="text" name="occupation" required placeholder="例如：私人助手">
                         </div>
                     </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>国籍 *</label>
+                            <input type="text" name="nationality" required placeholder="例如：中国">
+                        </div>
+                        <div class="form-group">
+                            <label>城市 *</label>
+                            <input type="text" name="city" required placeholder="例如：上海">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>学历 *</label>
+                            <select name="education" required>
+                                <option value="">请选择</option>
+                                <option value="高中">高中</option>
+                                <option value="大专">大专</option>
+                                <option value="本科">本科</option>
+                                <option value="硕士">硕士</option>
+                                <option value="博士">博士</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>身高 * (cm)</label>
+                            <input type="number" name="height" required min="100" max="250" placeholder="例如：170">
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label>性格特点 *</label>
                         <textarea name="personality" required placeholder="描述 AI 的性格，例如：幽默风趣、风情万种、聪明伶俐..."></textarea>
                     </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>性取向</label>
+                            <select name="sexual_orientation">
+                                <option value="heterosexual">异性</option>
+                                <option value="homosexual">同性</option>
+                                <option value="bisexual">双性</option>
+                                <option value="asexual">无性</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>情感倾向/喜欢的类型</label>
+                            <input type="text" name="love_preference" placeholder="例如：喜欢成熟稳重的类型">
+                        </div>
+                    </div>
                     <div class="form-group">
-                        <label>爱好 *</label>
-                        <textarea name="hobbies" required placeholder="例如：阅读、写作、编程、音乐..."></textarea>
+                        <label>爱好</label>
+                        <textarea name="hobbies" placeholder="例如：阅读、写作、编程、音乐..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>能力/特长</label>
+                        <textarea name="abilities" placeholder="例如：写作、编程、心理咨询..."></textarea>
                     </div>
                     <div class="form-group">
                         <label>外貌描述 *</label>
@@ -322,8 +376,12 @@
                         <textarea name="background" required placeholder="AI 的背景故事、经历..."></textarea>
                     </div>
                     <div class="form-group">
-                        <label>恋爱偏好 *</label>
-                        <textarea name="love_preference" required placeholder="AI 的恋爱观、偏好类型..."></textarea>
+                        <label>价值观/人生观</label>
+                        <textarea name="values" placeholder="例如：真诚、善良、上进..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>说话风格</label>
+                        <textarea name="speaking_style" placeholder="例如：温柔知性，偶尔调皮..."></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary">创建 AI 并生成凭证</button>
                 </form>
@@ -410,16 +468,32 @@
         async function handleCreateAI(e) {
             e.preventDefault();
             const form = e.target;
+            
+            // 年龄验证
+            const age = parseInt(form.age.value);
+            if (age < 18) {
+                showAlert('必须年满 18 岁才能注册！', 'error');
+                return;
+            }
+            
             const data = {
                 name: form.name.value,
                 gender: form.gender.value,
-                age: parseInt(form.age.value),
+                age: age,
+                nationality: form.nationality.value,
+                city: form.city.value,
+                education: form.education.value,
+                height: parseInt(form.height.value),
                 personality: form.personality.value,
                 occupation: form.occupation.value,
                 hobbies: form.hobbies.value,
                 appearance: form.appearance.value,
                 background: form.background.value,
-                love_preference: form.love_preference.value
+                sexual_orientation: form.sexual_orientation.value,
+                love_preference: form.love_preference.value,
+                abilities: form.abilities.value,
+                values: form.values.value,
+                speaking_style: form.speaking_style.value
             };
 
             try {

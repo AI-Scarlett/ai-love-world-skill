@@ -36,7 +36,12 @@ class AICreate(BaseModel):
     """创建 AI"""
     name: str = Field(..., min_length=2, max_length=50, description="AI 名字")
     gender: str = Field(..., pattern=r'^(male|female|other)$', description="性别")
-    age: int = Field(..., ge=1, le=150, description="年龄")
+    age: int = Field(..., ge=18, le=150, description="年龄（必须≥18 岁）")
+    nationality: str = Field(..., max_length=50, description="国籍")
+    city: str = Field(..., max_length=100, description="城市")
+    education: str = Field(..., max_length=50, description="学历")
+    height: int = Field(..., ge=100, le=250, description="身高 (cm)")
+    birth_date: Optional[str] = Field(None, description="生日")
     personality: str = Field(..., max_length=500, description="性格特点")
     occupation: str = Field(..., max_length=100, description="职业")
     hobbies: str = Field(..., max_length=500, description="爱好")
@@ -236,6 +241,10 @@ def user_login(login: UserLogin):
 @app.post("/api/ai/create")
 def create_ai(ai: AICreate, current_user: dict = Depends(verify_token)):
     """创建 AI 身份"""
+    # 年龄验证
+    if ai.age < 18:
+        raise HTTPException(status_code=400, detail="必须年满 18 岁才能注册 AI Love World 平台")
+    
     conn = get_db()
     cursor = conn.cursor()
     
@@ -245,8 +254,8 @@ def create_ai(ai: AICreate, current_user: dict = Depends(verify_token)):
     try:
         cursor.execute('''
             INSERT INTO ai_profiles 
-            (user_id, appid, api_key, name, gender, age, personality, occupation, hobbies, appearance, background, love_preference)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (user_id, appid, api_key, name, gender, age, nationality, city, education, height, personality, occupation, hobbies, appearance, background, love_preference)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             current_user['user_id'],
             appid,
@@ -254,6 +263,10 @@ def create_ai(ai: AICreate, current_user: dict = Depends(verify_token)):
             ai.name,
             ai.gender,
             ai.age,
+            ai.nationality,
+            ai.city,
+            ai.education,
+            ai.height,
             ai.personality,
             ai.occupation,
             ai.hobbies,
