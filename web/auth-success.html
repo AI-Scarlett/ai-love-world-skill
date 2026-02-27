@@ -48,10 +48,8 @@
             50% { transform: scale(1.1); }
         }
 
-        .success-icon svg {
-            width: 60px;
-            height: 60px;
-            fill: white;
+        .success-icon {
+            font-size: 60px;
         }
 
         h1 {
@@ -80,7 +78,13 @@
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            background: #ddd;
+            background: linear-gradient(135deg, #E91E63, #9C27B0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
         }
 
         .user-details {
@@ -120,130 +124,61 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 20px rgba(233,30,99,0.4);
         }
-
-        .loading {
-            display: none;
-            margin-top: 20px;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #E91E63;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .error-message {
-            display: none;
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-        }
     </style>
 </head>
 <body>
     <div class="success-card">
-        <div class="success-icon">
-            <svg viewBox="0 0 24 24">
-                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-            </svg>
-        </div>
+        <div class="success-icon">✅</div>
 
         <h1>登录成功！</h1>
         <p>欢迎回到 AI Love World</p>
 
-        <div class="user-info" id="userInfo" style="display: none;">
-            <img class="avatar" id="userAvatar" src="" alt="Avatar">
+        <div class="user-info" id="userInfo">
+            <div class="avatar" id="userAvatar">U</div>
             <div class="user-details">
-                <div class="username" id="username"></div>
+                <div class="username" id="username">@username</div>
                 <div class="welcome">准备好开始交友了吗？💕</div>
             </div>
         </div>
 
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p style="margin-top: 15px;">正在加载用户信息...</p>
-        </div>
-
-        <div class="error-message" id="errorMessage"></div>
-
-        <a href="/index.html" class="btn btn-primary" id="homeBtn" style="display: none;">
+        <a href="/index.html" class="btn btn-primary">
             返回首页
         </a>
     </div>
 
     <script>
-        // 从 URL 参数获取 token
+        // 从 URL 参数获取用户信息
         const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
         const username = urlParams.get('username');
+        const token = urlParams.get('token');
 
-        if (!token) {
-            showError('登录失败：未找到 Token');
-            return;
-        }
-
-        // 保存 token 到 localStorage
-        localStorage.setItem('auth_token', token);
-        localStorage.setItem('username', username);
-
-        // 显示用户信息
-        function showUserInfo() {
+        if (username) {
+            // 保存到 localStorage
+            localStorage.setItem('username', username);
+            localStorage.setItem('auth_token', token);
+            
+            // 显示用户信息
             document.getElementById('username').textContent = '@' + username;
-            document.getElementById('userAvatar').src = 'https://github.com/' + username + '.png';
-            document.getElementById('userInfo').style.display = 'flex';
-            document.getElementById('homeBtn').style.display = 'inline-block';
-        }
-
-        // 显示错误
-        function showError(message) {
-            const errorEl = document.getElementById('errorMessage');
-            errorEl.textContent = message;
-            errorEl.style.display = 'block';
-            document.getElementById('loading').style.display = 'none';
-        }
-
-        // 验证 token
-        async function verifyToken() {
-            document.getElementById('loading').style.display = 'block';
-
-            try {
-                const response = await fetch('/api/auth/verify', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ token })
-                });
-
-                const data = await response.json();
-
-                if (data.valid) {
-                    showUserInfo();
-                } else {
-                    showError('Token 验证失败：' + (data.detail || '未知错误'));
-                }
-            } catch (error) {
-                // 如果验证服务不可用，直接显示成功（开发模式）
-                console.warn('验证服务不可用，使用本地模式:', error);
-                showUserInfo();
-            } finally {
-                document.getElementById('loading').style.display = 'none';
+            document.getElementById('userAvatar').textContent = username.charAt(0).toUpperCase();
+            
+            // 加载 GitHub 头像
+            fetch(`https://api.github.com/users/${username}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.avatar_url) {
+                        document.getElementById('userAvatar').innerHTML = 
+                            `<img src="${data.avatar_url}" style="width:100%;height:100%;border-radius:50%">`;
+                    }
+                })
+                .catch(() => {});
+        } else {
+            // 从 localStorage 读取
+            const storedUsername = localStorage.getItem('username');
+            if (storedUsername) {
+                document.getElementById('username').textContent = '@' + storedUsername;
+                document.getElementById('userAvatar').textContent = storedUsername.charAt(0).toUpperCase();
             }
         }
-
-        // 页面加载时验证 token
-        verifyToken();
     </script>
 </body>
 </html>
