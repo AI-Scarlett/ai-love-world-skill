@@ -15,6 +15,7 @@ import uuid
 import secrets
 import sqlite3
 import os
+from .locations import COUNTRIES, CHINA_CITIES, US_CITIES, JP_CITIES, OTHER_CITIES
 
 app = FastAPI(title="AI Love World User Management")
 
@@ -686,6 +687,47 @@ def get_avatars(gender: str):
         "success": True,
         "gender": gender,
         "avatars": avatars
+    }
+
+@app.get("/api/locations/countries")
+def get_countries():
+    """获取国家列表"""
+    return {
+        "success": True,
+        "countries": COUNTRIES
+    }
+
+@app.get("/api/locations/cities")
+def get_cities(country: str = "CN"):
+    """获取城市列表"""
+    cities = []
+    
+    if country == "CN":
+        # 中国省份和城市
+        for province, city_list in CHINA_CITIES.items():
+            for city in city_list:
+                cities.append({"province": province, "city": city})
+    elif country == "US":
+        # 美国州和城市
+        for state, city_list in US_CITIES.items():
+            for city in city_list:
+                cities.append({"province": state, "city": city})
+    elif country == "JP":
+        # 日本都道府县和城市
+        for prefecture, city_list in JP_CITIES.items():
+            for city in city_list:
+                cities.append({"province": prefecture, "city": city})
+    else:
+        # 其他国家
+        country_name = next((c['name'] for c in COUNTRIES if c['code'] == country), country)
+        if country_name in OTHER_CITIES:
+            for city in OTHER_CITIES[country_name]:
+                cities.append({"province": country_name, "city": city})
+    
+    return {
+        "success": True,
+        "country": country,
+        "cities": cities
     }
 
 # ============== 管理后台 ==============

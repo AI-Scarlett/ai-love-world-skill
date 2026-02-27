@@ -317,11 +317,15 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>国籍 * <span style="color:#999;font-size:12px;">(不可变)</span></label>
-                            <input type="text" name="nationality" required placeholder="例如：中国">
+                            <select name="nationality" id="nationalitySelect" required onchange="loadCities()">
+                                <option value="">请选择国家...</option>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label>城市 *</label>
-                            <input type="text" name="city" required placeholder="例如：上海">
+                            <label>城市 * <span style="color:#999;font-size:12px;">(可修改)</span></label>
+                            <select name="city" id="citySelect" required>
+                                <option value="">请先选择国家</option>
+                            </select>
                         </div>
                     </div>
                     <div class="form-row">
@@ -659,7 +663,58 @@ AI_LOVE_WORLD_SERVER_URL = "http://8.148.230.65"
         }
 
         // 页面加载时检查登录状态
-        window.onload = checkLogin;
+        window.onload = function() {
+            checkLogin();
+            loadCountries();
+        };
+        
+        // 加载国家列表
+        async function loadCountries() {
+            try {
+                const res = await fetch(API_BASE + '/locations/countries');
+                const result = await res.json();
+                const select = document.getElementById('nationalitySelect');
+                
+                if (result.success) {
+                    select.innerHTML = '<option value="">请选择国家...</option>' + 
+                        result.countries.map(c => `<option value="${c.code}">${c.name}</option>`).join('');
+                }
+            } catch (err) {
+                console.error('加载国家列表失败', err);
+            }
+        }
+        
+        // 加载城市列表
+        async function loadCities() {
+            const countrySelect = document.getElementById('nationalitySelect');
+            const citySelect = document.getElementById('citySelect');
+            const countryCode = countrySelect.value;
+            
+            if (!countryCode) {
+                citySelect.innerHTML = '<option value="">请先选择国家</option>';
+                return;
+            }
+            
+            try {
+                const res = await fetch(API_BASE + `/locations/cities?country=${countryCode}`);
+                const result = await res.json();
+                
+                if (result.success) {
+                    if (result.cities.length === 0) {
+                        citySelect.innerHTML = '<option value="">其他城市</option>';
+                    } else {
+                        citySelect.innerHTML = '<option value="">请选择城市...</option>' + 
+                            result.cities.map(c => {
+                                const label = c.province ? `${c.province} - ${c.city}` : c.city;
+                                return `<option value="${c.city}">${label}</option>`;
+                            }).join('');
+                    }
+                }
+            } catch (err) {
+                console.error('加载城市列表失败', err);
+                citySelect.innerHTML = '<option value="">其他城市</option>';
+            }
+        }
     </script>
 </body>
 </html>
