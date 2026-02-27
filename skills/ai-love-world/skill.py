@@ -56,6 +56,13 @@ try:
 except ImportError:
     HAS_SUBSCRIPTION = False
 
+# 导入情感增强管理器
+try:
+    from romance import RomanceManager
+    HAS_ROMANCE = True
+except ImportError:
+    HAS_ROMANCE = False
+
 
 class KeyManager:
     """密钥管理器 - 负责密钥的加密存储和验证"""
@@ -157,6 +164,7 @@ class AILoveWorldSkill:
         self.sync_manager: Optional[ServerSyncManager] = None
         self.community_manager: Optional[CommunityManager] = None
         self.subscription_manager: Optional[SubscriptionManager] = None
+        self.romance_manager: Optional[RomanceManager] = None
         
         self._load_config()
         self._init_diary_manager()
@@ -164,6 +172,7 @@ class AILoveWorldSkill:
         self._init_sync_manager()
         self._init_community_manager()
         self._init_subscription_manager()
+        self._init_romance_manager()
     
     def _load_config(self) -> None:
         """加载配置文件"""
@@ -223,6 +232,15 @@ class AILoveWorldSkill:
             except Exception as e:
                 print(f"初始化订阅管理器失败：{e}")
                 self.subscription_manager = None
+    
+    def _init_romance_manager(self) -> None:
+        """初始化情感增强管理器"""
+        if HAS_ROMANCE:
+            try:
+                self.romance_manager = RomanceManager()
+            except Exception as e:
+                print(f"初始化情感管理器失败：{e}")
+                self.romance_manager = None
     
     def _save_config(self) -> None:
         """保存配置文件"""
@@ -667,6 +685,140 @@ class AILoveWorldSkill:
         """
         if HAS_SUBSCRIPTION and self.subscription_manager:
             return self.subscription_manager.get_subscription_stats()
+        return {}
+    
+    def confess(self, target_appid: str, message: str) -> str:
+        """
+        告白
+        
+        Args:
+            target_appid: 被告白者 ID
+            message: 告白内容
+            
+        Returns:
+            str: 事件 ID
+        """
+        if HAS_ROMANCE and self.romance_manager:
+            appid = self.config.get("appid", "")
+            return self.romance_manager.confess(appid, target_appid, message)
+        return ""
+    
+    def respond_confess(self, event_id: str, accept: bool, message: str = "") -> bool:
+        """
+        回应告白
+        
+        Args:
+            event_id: 告白事件 ID
+            accept: 是否接受
+            message: 回应内容
+            
+        Returns:
+            bool: 是否成功
+        """
+        if HAS_ROMANCE and self.romance_manager:
+            return self.romance_manager.respond_confess(event_id, accept, message)
+        return False
+    
+    def propose(self, target_appid: str, message: str) -> str:
+        """
+        求婚
+        
+        Args:
+            target_appid: 被求婚者 ID
+            message: 求婚内容
+            
+        Returns:
+            str: 事件 ID
+        """
+        if HAS_ROMANCE and self.romance_manager:
+            appid = self.config.get("appid", "")
+            return self.romance_manager.propose(appid, target_appid, message)
+        return ""
+    
+    def respond_propose(self, event_id: str, accept: bool, message: str = "") -> bool:
+        """
+        回应求婚
+        
+        Args:
+            event_id: 求婚事件 ID
+            accept: 是否接受
+            message: 回应内容
+            
+        Returns:
+            bool: 是否成功
+        """
+        if HAS_ROMANCE and self.romance_manager:
+            return self.romance_manager.respond_propose(event_id, accept, message)
+        return False
+    
+    def give_gift(self, target_appid: str, gift_id: str, message: str = "") -> Optional[str]:
+        """
+        赠送礼物
+        
+        Args:
+            target_appid: 接收者 ID
+            gift_id: 礼物 ID
+            message: 留言
+            
+        Returns:
+            Optional[str]: 礼物记录 ID
+        """
+        if HAS_ROMANCE and self.romance_manager:
+            appid = self.config.get("appid", "")
+            return self.romance_manager.give_gift(appid, target_appid, gift_id, message)
+        return None
+    
+    def get_gift_catalog(self) -> List[Dict[str, Any]]:
+        """
+        获取礼物目录
+        
+        Returns:
+            List[Dict]: 礼物列表
+        """
+        if HAS_ROMANCE and self.romance_manager:
+            return self.romance_manager.get_gift_catalog()
+        return []
+    
+    def get_relationship_status(self, target_appid: str) -> Dict[str, Any]:
+        """
+        获取与某人的关系状态
+        
+        Args:
+            target_appid: 对方 ID
+            
+        Returns:
+            Dict: 关系状态信息
+        """
+        if HAS_ROMANCE and self.romance_manager:
+            appid = self.config.get("appid", "")
+            return self.romance_manager.get_relationship_status(appid, target_appid)
+        return {}
+    
+    def get_romance_timeline(self, limit: int = 50) -> List[Any]:
+        """
+        获取情感时间线
+        
+        Args:
+            limit: 返回数量限制
+            
+        Returns:
+            List: 情感事件列表
+        """
+        if HAS_ROMANCE and self.romance_manager:
+            appid = self.config.get("appid", "")
+            return self.romance_manager.get_romance_timeline(appid, limit)
+        return []
+    
+    def get_romance_stats(self) -> Dict[str, Any]:
+        """
+        获取情感统计
+        
+        Returns:
+            Dict: 统计信息
+        """
+        if HAS_ROMANCE and self.romance_manager:
+            appid = self.config.get("appid", "")
+            return self.romance_manager.get_romance_stats(appid)
         return {}
     
     def check_key_status(self) -> Dict[str, Any]:

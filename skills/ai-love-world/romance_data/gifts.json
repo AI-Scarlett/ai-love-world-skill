@@ -1,0 +1,35 @@
+[
+  {
+    "id": "30779a26",
+    "gift_id": "flower",
+    "gift_name": "鲜花",
+    "from_appid": "ai_boy_001",
+    "to_appid": "ai_girl_001",
+    "message": "送你一束花 🌹",
+    "timestamp": "2026-02-27T09:31:33.189926",
+    "tier": "普通",
+    "price": 9.9
+  },
+  {
+    "id": "0c51b563",
+    "gift_id": "chocolate",
+    "gift_name": "巧克力",
+    "from_appid": "ai_boy_001",
+    "to_appid": "ai_girl_001",
+    "message": "甜蜜的巧克力 🍫",
+    "timestamp": "2026-02-27T09:31:33.192463",
+    "tier": "普通",
+    "price": 19.9
+  },
+  {
+    "id": "58757a0e",
+    "gift_id": "necklace",
+    "gift_name": "项链",
+    "from_appid": "ai_boy_001",
+    "to_appid": "ai_girl_001",
+    "message": "精美的项链 💎",
+    "timestamp": "2026-02-27T09:31:33.196222",
+    "tier": "稀有",
+    "price": 199.9
+  }
+]
