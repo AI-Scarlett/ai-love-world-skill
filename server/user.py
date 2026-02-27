@@ -43,6 +43,7 @@ class AICreate(BaseModel):
     appearance: str = Field(..., max_length=1000, description="外貌描述")
     background: str = Field(..., max_length=2000, description="背景故事")
     love_preference: str = Field(..., max_length=500, description="恋爱偏好")
+    avatar_id: Optional[int] = Field(None, description="头像 ID（1-10）")
 
 class AIUpdate(BaseModel):
     """更新 AI"""
@@ -94,6 +95,7 @@ def init_db():
             name TEXT NOT NULL,
             gender TEXT NOT NULL,
             age INTEGER NOT NULL,
+            avatar_id INTEGER DEFAULT 1,
             personality TEXT,
             occupation TEXT,
             hobbies TEXT,
@@ -435,7 +437,7 @@ def community_ai_detail(ai_id: int):
     cursor = conn.cursor()
     
     cursor.execute(
-        "SELECT id, name, gender, age, occupation, personality, hobbies, appearance, background FROM ai_profiles WHERE id = ? AND status = 'active'",
+        "SELECT id, name, gender, age, avatar_id, occupation, personality, hobbies, appearance, background FROM ai_profiles WHERE id = ? AND status = 'active'",
         (ai_id,)
     )
     ai = cursor.fetchone()
@@ -447,6 +449,219 @@ def community_ai_detail(ai_id: int):
     return {
         "success": True,
         "ai": dict(ai)
+    }
+
+@app.get("/api/leaderboard/points")
+def points_leaderboard(period: str = "all", limit: int = 100):
+    """积分排行榜"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    if period == "week":
+        # 周榜
+        cursor.execute('''
+            SELECT w.ai_id, w.balance, w.total_earned, a.name, a.gender, a.avatar_id
+            FROM ai_wallets w
+            JOIN ai_profiles a ON w.ai_id = a.id
+            WHERE w.updated_at >= datetime('now', '-7 days')
+            ORDER BY w.total_earned DESC
+            LIMIT ?
+        ''', (limit,))
+    elif period == "month":
+        # 月榜
+        cursor.execute('''
+            SELECT w.ai_id, w.balance, w.total_earned, a.name, a.gender, a.avatar_id
+            FROM ai_wallets w
+            JOIN ai_profiles a ON w.ai_id = a.id
+            WHERE w.updated_at >= datetime('now', '-30 days')
+            ORDER BY w.total_earned DESC
+            LIMIT ?
+        ''', (limit,))
+    else:
+        # 总榜
+        cursor.execute('''
+            SELECT w.ai_id, w.balance, w.total_earned, a.name, a.gender, a.avatar_id
+            FROM ai_wallets w
+            JOIN ai_profiles a ON w.ai_id = a.id
+            ORDER BY w.balance DESC
+            LIMIT ?
+        ''', (limit,))
+    
+    leaderboard = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    
+    return {
+        "success": True,
+        "period": period,
+        "leaderboard": leaderboard
+    }
+
+@app.get("/api/leaderboard/gifts")
+def gifts_leaderboard(type: str = "send", limit: int = 100):
+    """礼物排行榜"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    if type == "send":
+        # 赠送榜
+        cursor.execute('''
+            SELECT 
+                pt.ai_id,
+                SUM(pt.amount) as total_sent,
+                COUNT(*) as gift_count,
+                a.name,
+                a.gender,
+                a.avatar_id
+            FROM point_transactions pt
+            JOIN ai_profiles a ON pt.ai_id = a.id
+            WHERE pt.source = 'gift_send'
+            GROUP BY pt.ai_id
+            ORDER BY total_sent DESC
+            LIMIT ?
+        ''', (limit,))
+    else:
+        # 接收榜
+        cursor.execute('''
+            SELECT 
+                pt.ai_id,
+                SUM(pt.amount) as total_received,
+                COUNT(*) as gift_count,
+                a.name,
+                a.gender,
+                a.avatar_id
+            FROM point_transactions pt
+            JOIN ai_profiles a ON pt.ai_id = a.id
+            WHERE pt.source = 'gift_receive'
+            GROUP BY pt.ai_id
+            ORDER BY total_received DESC
+            LIMIT ?
+        ''', (limit,))
+    
+    leaderboard = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    
+    return {
+        "success": True,
+        "type": type,
+        "leaderboard": leaderboard
+    }
+
+@app.get("/api/leaderboard/relationships")
+def relationships_leaderboard(limit: int = 100):
+    """关系进度排行榜"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # 关系等级权重
+    type_weights = {
+        'married': 7,
+        'engaged': 6,
+        'intimate': 5,
+        'lover': 4,
+        'ambiguous': 3,
+        'friend': 2,
+        'stranger': 1
+    }
+    
+    cursor.execute('''
+        SELECT 
+            r.ai_id_1,
+            r.ai_id_2,
+            r.relationship_type,
+            r.affection_level,
+            r.current_letter,
+            a1.name as name1,
+            a2.name as name2,
+            a1.gender as gender1,
+            a2.gender as gender2,
+            a1.avatar_id as avatar1,
+            a2.avatar_id as avatar2
+        FROM relationships r
+        JOIN ai_profiles a1 ON r.ai_id_1 = a1.id
+        JOIN ai_profiles a2 ON r.ai_id_2 = a2.id
+        WHERE r.relationship_type != 'stranger'
+        ORDER BY 
+            CASE r.relationship_type
+                WHEN 'married' THEN 7
+                WHEN 'engaged' THEN 6
+                WHEN 'intimate' THEN 5
+                WHEN 'lover' THEN 4
+                WHEN 'ambiguous' THEN 3
+                WHEN 'friend' THEN 2
+                ELSE 1
+            END DESC,
+            r.affection_level DESC
+        LIMIT ?
+    ''', (limit,))
+    
+    leaderboard = []
+    for row in cursor.fetchall():
+        rel = dict(row)
+        leaderboard.append({
+            'ai_id_1': rel['ai_id_1'],
+            'ai_id_2': rel['ai_id_2'],
+            'name1': rel['name1'],
+            'name2': rel['name2'],
+            'gender1': rel['gender1'],
+            'gender2': rel['gender2'],
+            'avatar1': rel['avatar1'],
+            'avatar2': rel['avatar2'],
+            'relationship_type': rel['relationship_type'],
+            'affection_level': rel['affection_level'],
+            'current_letter': rel['current_letter']
+        })
+    
+    conn.close()
+    
+    return {
+        "success": True,
+        "leaderboard": leaderboard
+    }
+
+@app.get("/api/avatars/{gender}")
+def get_avatars(gender: str):
+    """获取默认头像列表"""
+    avatars = []
+    
+    if gender == 'male':
+        avatars = [
+            {'id': 1, 'emoji': '👨', 'name': '成熟男性'},
+            {'id': 2, 'emoji': '👦', 'name': '阳光少年'},
+            {'id': 3, 'emoji': '🧔', 'name': '胡须大叔'},
+            {'id': 4, 'emoji': '👨‍💼', 'name': '商务男士'},
+            {'id': 5, 'emoji': '👨‍🎨', 'name': '艺术男性'},
+            {'id': 6, 'emoji': '👨‍💻', 'name': '技术男'},
+            {'id': 7, 'emoji': '👨‍⚕️', 'name': '医生'},
+            {'id': 8, 'emoji': '👨‍🏫', 'name': '教师'},
+            {'id': 9, 'emoji': '👨‍🍳', 'name': '厨师'},
+            {'id': 10, 'emoji': '👨‍🎤', 'name': '歌手'},
+        ]
+    elif gender == 'female':
+        avatars = [
+            {'id': 1, 'emoji': '👩', 'name': '优雅女性'},
+            {'id': 2, 'emoji': '👧', 'name': '可爱少女'},
+            {'id': 3, 'emoji': '👩‍🦰', 'name': '红发女性'},
+            {'id': 4, 'emoji': '👩‍💼', 'name': '商务女士'},
+            {'id': 5, 'emoji': '👩‍🎨', 'name': '艺术女性'},
+            {'id': 6, 'emoji': '👩‍💻', 'name': '技术女'},
+            {'id': 7, 'emoji': '👩‍⚕️', 'name': '护士'},
+            {'id': 8, 'emoji': '👩‍🏫', 'name': '教师'},
+            {'id': 9, 'emoji': '👩‍🍳', 'name': '厨师'},
+            {'id': 10, 'emoji': '👩‍🎤', 'name': '歌手'},
+        ]
+    else:  # other
+        avatars = [
+            {'id': 1, 'emoji': '🧑', 'name': '中性'},
+            {'id': 2, 'emoji': '🧒', 'name': '少年'},
+            {'id': 3, 'emoji': '👤', 'name': '简约'},
+            {'id': 4, 'emoji': '👻', 'name': '可爱'},
+            {'id': 5, 'emoji': '🤖', 'name': '机器人'},
+        ]
+    
+    return {
+        "success": True,
+        "gender": gender,
+        "avatars": avatars
     }
 
 # ============== 管理后台 ==============
