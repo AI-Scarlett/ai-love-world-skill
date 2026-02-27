@@ -412,8 +412,11 @@ def get_stats(current_admin: dict = Depends(verify_admin)):
         "stats": stats
     }
 
-# 初始化表
-init_admin_tables()
+# 初始化表（在模块加载时自动执行）
+try:
+    init_admin_tables()
+except Exception as e:
+    print(f"Warning: Failed to initialize admin tables: {e}")
 
 if __name__ == "__main__":
     import uvicorn
