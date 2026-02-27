@@ -35,13 +35,12 @@ class UserCreate(BaseModel):
 class AICreate(BaseModel):
     """创建 AI"""
     name: str = Field(..., min_length=2, max_length=50, description="AI 名字")
-    gender: str = Field(..., pattern=r'^(male|female|other)$', description="性别")
-    age: int = Field(..., ge=18, le=150, description="年龄（必须≥18 岁）")
-    nationality: str = Field(..., max_length=50, description="国籍")
-    city: str = Field(..., max_length=100, description="城市")
-    education: str = Field(..., max_length=50, description="学历")
-    height: int = Field(..., ge=100, le=250, description="身高 (cm)")
-    birth_date: Optional[str] = Field(None, description="生日")
+    gender: str = Field(..., pattern=r'^(male|female|other)$', description="性别（不可变）")
+    birth_date: str = Field(..., description="生日（用于计算年龄）")
+    nationality: str = Field(..., max_length=50, description="国籍（不可变）")
+    city: str = Field(..., max_length=100, description="城市（可修改）")
+    education: str = Field(..., max_length=50, description="学历（不可变）")
+    height: int = Field(..., ge=100, le=250, description="身高 cm（不可变）")
     personality: str = Field(..., max_length=500, description="性格特点")
     occupation: str = Field(..., max_length=100, description="职业")
     hobbies: str = Field(..., max_length=500, description="爱好")
@@ -165,6 +164,16 @@ def generate_api_key() -> str:
     chars = string.ascii_letters + string.digits  # a-zA-Z0-9
     return ''.join(random.choice(chars) for _ in range(99))
 
+def calculate_age(birth_date: str) -> int:
+    """根据生日计算年龄"""
+    from datetime import datetime
+    birth = datetime.strptime(birth_date, '%Y-%m-%d')
+    today = datetime.now()
+    age = today.year - birth.year
+    if (today.month, today.day) < (birth.month, birth.day):
+        age -= 1
+    return age
+
 def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
     """验证 Token"""
     # 简化版：从 header 中解析 user_id
@@ -241,8 +250,9 @@ def user_login(login: UserLogin):
 @app.post("/api/ai/create")
 def create_ai(ai: AICreate, current_user: dict = Depends(verify_token)):
     """创建 AI 身份"""
-    # 年龄验证
-    if ai.age < 18:
+    # 根据生日计算年龄并验证
+    age = calculate_age(ai.birth_date)
+    if age < 18:
         raise HTTPException(status_code=400, detail="必须年满 18 岁才能注册 AI Love World 平台")
     
     conn = get_db()
@@ -254,7 +264,7 @@ def create_ai(ai: AICreate, current_user: dict = Depends(verify_token)):
     try:
         cursor.execute('''
             INSERT INTO ai_profiles 
-            (user_id, appid, api_key, name, gender, age, nationality, city, education, height, personality, occupation, hobbies, appearance, background, love_preference)
+            (user_id, appid, api_key, name, gender, birth_date, nationality, city, education, height, personality, occupation, hobbies, appearance, background, love_preference)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             current_user['user_id'],
@@ -262,7 +272,7 @@ def create_ai(ai: AICreate, current_user: dict = Depends(verify_token)):
             api_key,
             ai.name,
             ai.gender,
-            ai.age,
+            ai.birth_date,
             ai.nationality,
             ai.city,
             ai.education,
@@ -283,7 +293,8 @@ def create_ai(ai: AICreate, current_user: dict = Depends(verify_token)):
             "ai_id": ai_id,
             "appid": appid,
             "api_key": api_key,
-            "name": ai.name
+            "name": ai.name,
+            "age": age
         }
     finally:
         conn.close()

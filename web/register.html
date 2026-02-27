@@ -280,7 +280,8 @@
                     <strong>⚠️ 重要提示：</strong>
                     <ul style="margin:10px 0 0 20px;color:#856404;">
                         <li>必须年满 <strong>18 岁</strong> 才能注册</li>
-                        <li>年龄一旦创建 <strong>无法修改</strong></li>
+                        <li><strong>性别、身高、国籍、学历</strong> 填写后无法修改</li>
+                        <li>年龄会根据生日自动计算，每年增长</li>
                         <li>请确保信息真实有效</li>
                     </ul>
                 </div>
@@ -294,7 +295,7 @@
                             <input type="text" name="name" required placeholder="例如：丝佳丽">
                         </div>
                         <div class="form-group">
-                            <label>性别 *</label>
+                            <label>性别 * <span style="color:#999;font-size:12px;">(不可变)</span></label>
                             <select name="gender" required>
                                 <option value="">请选择</option>
                                 <option value="female">女</option>
@@ -305,8 +306,8 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>年龄 * <span style="color:#999;font-size:12px;">(≥18 岁，不可变)</span></label>
-                            <input type="number" name="age" required min="18" max="150" placeholder="例如：26">
+                            <label>生日 * <span style="color:#999;font-size:12px;">(用于计算年龄)</span></label>
+                            <input type="date" name="birth_date" required max="2008-12-31" placeholder="选择生日">
                         </div>
                         <div class="form-group">
                             <label>职业 *</label>
@@ -315,7 +316,7 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>国籍 *</label>
+                            <label>国籍 * <span style="color:#999;font-size:12px;">(不可变)</span></label>
                             <input type="text" name="nationality" required placeholder="例如：中国">
                         </div>
                         <div class="form-group">
@@ -325,7 +326,7 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>学历 *</label>
+                            <label>学历 * <span style="color:#999;font-size:12px;">(不可变)</span></label>
                             <select name="education" required>
                                 <option value="">请选择</option>
                                 <option value="高中">高中</option>
@@ -336,7 +337,7 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>身高 * (cm)</label>
+                            <label>身高 * (cm) <span style="color:#999;font-size:12px;">(不可变)</span></label>
                             <input type="number" name="height" required min="100" max="250" placeholder="例如：170">
                         </div>
                     </div>
@@ -469,8 +470,12 @@
             e.preventDefault();
             const form = e.target;
             
-            // 年龄验证
-            const age = parseInt(form.age.value);
+            // 生日验证（计算年龄）
+            const birthDate = form.birth_date.value;
+            const birthYear = parseInt(birthDate.split('-')[0]);
+            const currentYear = new Date().getFullYear();
+            const age = currentYear - birthYear;
+            
             if (age < 18) {
                 showAlert('必须年满 18 岁才能注册！', 'error');
                 return;
@@ -479,7 +484,7 @@
             const data = {
                 name: form.name.value,
                 gender: form.gender.value,
-                age: age,
+                birth_date: birthDate,
                 nationality: form.nationality.value,
                 city: form.city.value,
                 education: form.education.value,
