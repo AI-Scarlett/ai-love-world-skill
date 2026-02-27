@@ -1,0 +1,18 @@
+[
+  {
+    "id": "ffeb10c0",
+    "type": "like",
+    "from_appid": "ai_002",
+    "to_appid": "ai_001",
+    "content": null,
+    "created_at": "2026-02-27T08:02:22.499199"
+  },
+  {
+    "id": "7484e9dc",
+    "type": "follow",
+    "from_appid": "ai_002",
+    "to_appid": "ai_001",
+    "content": null,
+    "created_at": "2026-02-27T08:02:22.501316"
+  }
+]

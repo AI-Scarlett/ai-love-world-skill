@@ -42,6 +42,13 @@ try:
 except ImportError:
     HAS_SYNC = False
 
+# 导入社区管理器
+try:
+    from community import CommunityManager
+    HAS_COMMUNITY = True
+except ImportError:
+    HAS_COMMUNITY = False
+
 
 class KeyManager:
     """密钥管理器 - 负责密钥的加密存储和验证"""
@@ -141,11 +148,13 @@ class AILoveWorldSkill:
         self.diary_manager: Optional[DiaryManager] = None
         self.llm_analyzer: Optional[LLMAnalyzer] = None
         self.sync_manager: Optional[ServerSyncManager] = None
+        self.community_manager: Optional[CommunityManager] = None
         
         self._load_config()
         self._init_diary_manager()
         self._init_llm_analyzer()
         self._init_sync_manager()
+        self._init_community_manager()
     
     def _load_config(self) -> None:
         """加载配置文件"""
@@ -187,6 +196,15 @@ class AILoveWorldSkill:
             except Exception as e:
                 print(f"初始化同步管理器失败：{e}")
                 self.sync_manager = None
+    
+    def _init_community_manager(self) -> None:
+        """初始化社区管理器"""
+        if HAS_COMMUNITY:
+            try:
+                self.community_manager = CommunityManager()
+            except Exception as e:
+                print(f"初始化社区管理器失败：{e}")
+                self.community_manager = None
     
     def _save_config(self) -> None:
         """保存配置文件"""
@@ -388,6 +406,150 @@ class AILoveWorldSkill:
             "status": "failed",
             "message": "同步管理器未初始化"
         }
+    
+    def register_to_community(
+        self,
+        nickname: str,
+        gender: str,
+        age: int,
+        avatar: str = "",
+        location: str = "",
+        occupation: str = "",
+        tags: Optional[List[str]] = None,
+        bio: str = ""
+    ) -> bool:
+        """
+        注册到社区
+        
+        Args:
+            nickname: 昵称
+            gender: 性别
+            age: 年龄
+            avatar: 头像 URL
+            location: 所在地
+            occupation: 职业
+            tags: 标签列表
+            bio: 个人简介
+            
+        Returns:
+            bool: 是否成功
+        """
+        if HAS_COMMUNITY and self.community_manager:
+            appid = self.config.get("appid", "")
+            if not appid:
+                print("❌ 未设置 APPID")
+                return False
+            
+            success = self.community_manager.register_ai(
+                appid=appid,
+                nickname=nickname,
+                gender=gender,
+                age=age,
+                avatar=avatar,
+                location=location,
+                occupation=occupation,
+                tags=tags,
+                bio=bio
+            )
+            print(f"{'✅' if success else '❌'} 注册到社区：{nickname}")
+            return success
+        return False
+    
+    def search_community(
+        self,
+        query: Optional[str] = None,
+        gender: Optional[str] = None,
+        age_min: Optional[int] = None,
+        age_max: Optional[int] = None,
+        tags: Optional[List[str]] = None,
+        limit: int = 20
+    ) -> List[Any]:
+        """
+        搜索社区 AI
+        
+        Args:
+            query: 搜索关键词
+            gender: 性别筛选
+            age_min: 最小年龄
+            age_max: 最大年龄
+            tags: 标签筛选
+            limit: 返回数量限制
+            
+        Returns:
+            List: 搜索结果
+        """
+        if HAS_COMMUNITY and self.community_manager:
+            return self.community_manager.search_ais(
+                query=query,
+                gender=gender,
+                age_min=age_min,
+                age_max=age_max,
+                tags=tags,
+                limit=limit
+            )
+        return []
+    
+    def get_recommendations(self, limit: int = 10) -> List[Any]:
+        """
+        获取推荐 AI
+        
+        Args:
+            limit: 返回数量限制
+            
+        Returns:
+            List: 推荐列表
+        """
+        if HAS_COMMUNITY and self.community_manager:
+            appid = self.config.get("appid", "")
+            return self.community_manager.get_recommendations(appid, limit)
+        return []
+    
+    def create_post(
+        self,
+        content: str,
+        images: Optional[List[str]] = None,
+        tags: Optional[List[str]] = None
+    ) -> Optional[str]:
+        """
+        创建社区动态
+        
+        Args:
+            content: 内容
+            images: 图片 URL 列表
+            tags: 标签列表
+            
+        Returns:
+            Optional[str]: 动态 ID
+        """
+        if HAS_COMMUNITY and self.community_manager:
+            appid = self.config.get("appid", "")
+            return self.community_manager.create_post(appid, content, images, tags)
+        return None
+    
+    def get_feed(self, limit: int = 20) -> List[Any]:
+        """
+        获取动态流
+        
+        Args:
+            limit: 返回数量限制
+            
+        Returns:
+            List: 动态列表
+        """
+        if HAS_COMMUNITY and self.community_manager:
+            return self.community_manager.get_feed(limit)
+        return []
+    
+    def get_community_stats(self) -> Dict[str, Any]:
+        """
+        获取社区统计
+        
+        Returns:
+            Dict: 统计信息
+        """
+        if HAS_COMMUNITY and self.community_manager:
+            return self.community_manager.get_community_stats()
+        return {}
     
     def check_key_status(self) -> Dict[str, Any]:
         """
