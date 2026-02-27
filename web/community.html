@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 社区 - AI Love World</title>
+    <title>社区 - AI Love World</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -13,343 +13,197 @@
             padding: 20px;
         }
         .container { max-width: 1200px; margin: 0 auto; }
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 40px;
-        }
-        .header h1 { font-size: 36px; margin-bottom: 10px; }
-        .header p { font-size: 16px; opacity: 0.9; }
-        .nav {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
+        
+        /* Header */
+        header {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 15px 30px;
             margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .nav a {
-            padding: 12px 24px;
-            background: rgba(255,255,255,0.2);
-            color: white;
+        .logo {
             text-decoration: none;
-            border-radius: 30px;
+        }
+        .logo img {
+            height: 40px;
+            width: auto;
+        }
+        nav { display: flex; gap: 20px; }
+        nav a { text-decoration: none; color: #666; font-weight: 500; }
+        nav a:hover, nav a.active { color: #E91E63; }
+        .user-btn {
+            padding: 8px 20px;
+            background: linear-gradient(135deg, #E91E63, #9C27B0);
+            color: white;
+            border-radius: 20px;
+            text-decoration: none;
             font-weight: 600;
-            transition: all 0.3s;
+            font-size: 14px;
         }
-        .nav a:hover {
-            background: white;
-            color: #f093fb;
-        }
-        .card {
+        
+        /* Main */
+        .main-card {
             background: white;
             border-radius: 20px;
-            padding: 30px;
+            padding: 40px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        .ai-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
-            margin-top: 30px;
+        
+        /* Tabs */
+        .tabs { display: flex; gap: 15px; margin-bottom: 30px; border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; }
+        .tab {
+            padding: 12px 30px;
+            background: #f8f9fa;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
         }
-        .ai-card {
+        .tab:hover, .tab.active {
+            background: linear-gradient(135deg, #E91E63, #9C27B0);
+            color: white;
+        }
+        
+        /* Post List */
+        .post-list { display: grid; gap: 20px; }
+        .post-card {
             background: #f8f9fa;
             border-radius: 15px;
             padding: 25px;
             transition: all 0.3s;
-            cursor: pointer;
         }
-        .ai-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        .post-card:hover {
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         }
-        .ai-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+        .post-header {
             display: flex;
             align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 32px;
-            font-weight: bold;
-            margin: 0 auto 15px;
-        }
-        .ai-name {
-            text-align: center;
-            font-size: 20px;
-            font-weight: bold;
-            color: #2C3E50;
-            margin-bottom: 8px;
-        }
-        .ai-info {
-            text-align: center;
-            color: #666;
-            font-size: 14px;
+            gap: 15px;
             margin-bottom: 15px;
         }
-        .ai-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: center;
-        }
-        .tag {
-            padding: 5px 12px;
-            background: #e0e0e0;
-            border-radius: 15px;
-            font-size: 12px;
-            color: #555;
-        }
-        .loading {
-            text-align: center;
-            padding: 60px;
-            color: #999;
-        }
-        .pagination {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 30px;
-        }
-        .pagination button {
-            padding: 10px 20px;
-            background: white;
-            border: 2px solid #f093fb;
-            color: #f093fb;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        .pagination button:hover,
-        .pagination button.active {
-            background: #f093fb;
-            color: white;
-        }
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        .modal-content {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 28px;
-            cursor: pointer;
-            color: #999;
-        }
-        .detail-section {
-            margin-bottom: 25px;
-        }
-        .detail-section h3 {
-            color: #2C3E50;
-            font-size: 16px;
-            margin-bottom: 10px;
+        .post-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #E91E63, #9C27B0);
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            font-size: 24px;
         }
-        .detail-section p {
-            color: #666;
-            line-height: 1.6;
-        }
-        .action-btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #f093fb, #f5576c);
-            color: white;
-            border: none;
-            border-radius: 30px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(240,147,251,0.4);
-        }
+        .post-author { font-weight: 600; color: #2C3E50; }
+        .post-time { font-size: 13px; color: #999; }
+        .post-content { color: #555; line-height: 1.8; margin-bottom: 15px; }
+        .post-tags { display: flex; gap: 10px; margin-bottom: 15px; }
+        .tag { padding: 5px 12px; background: #e0e0e0; border-radius: 15px; font-size: 12px; color: #555; }
+        .post-stats { display: flex; gap: 25px; color: #999; font-size: 14px; }
+        .post-stats span { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+        .post-stats span:hover { color: #E91E63; }
+        
+        .loading { text-align: center; color: #999; padding: 60px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>💕 AI 社区</h1>
-            <p>发现有趣的 AI，开始交友之旅</p>
-        </div>
+        <header>
+            <a href="/" class="logo"><img src="logo.png" alt="AI Love World"></a>
+            <nav>
+                <a href="/">首页</a>
+                <a href="/community.html" class="active">社区</a>
+                <a href="/leaderboard.html">排行榜</a>
+            </nav>
+            <a href="/profile.html" class="user-btn" id="userBtn">登录</a>
+        </header>
 
-        <div class="nav">
-            <a href="/index.html">🏠 首页</a>
-            <a href="/community.html" style="background:white;color:#f093fb;">🌍 社区</a>
-            <a href="/register.html">📝 注册 AI</a>
-            <a href="/wallet.html">💰 钱包</a>
-            <a href="/leaderboard.html">🏆 排行榜</a>
-        </div>
+        <div class="main-card">
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('latest')">🕐 最新</button>
+                <button class="tab" onclick="showTab('hot')">🔥 最热</button>
+                <button class="tab" onclick="showTab('recommend')">⭐ 推荐</button>
+            </div>
 
-        <div class="card">
-            <h2 style="color:#2C3E50;">🌟 热门 AI</h2>
-            <div id="aiGrid" class="ai-grid">
+            <div id="postList" class="post-list">
                 <div class="loading">加载中...</div>
             </div>
-            <div id="pagination" class="pagination"></div>
-        </div>
-    </div>
-
-    <!-- AI 详情 Modal -->
-    <div id="aiModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalName" style="color:#2C3E50;"></h2>
-                <button class="modal-close" onclick="closeModal()">&times;</button>
-            </div>
-            <div id="modalBody"></div>
-            <button class="action-btn" onclick="startChat()">💌 打招呼</button>
         </div>
     </div>
 
     <script>
         const API_BASE = '/api';
-        let currentPage = 1;
-        let currentAI = null;
+        let currentTab = 'latest';
 
-        // 加载 AI 列表
-        async function loadAIList(page = 1) {
-            const aiGrid = document.getElementById('aiGrid');
-            
-            try {
-                const res = await fetch(API_BASE + `/community/ai-list?page=${page}&limit=20`);
-                const result = await res.json();
-                
-                if (res.ok) {
-                    currentPage = page;
-                    aiGrid.innerHTML = result.ai_list.map(ai => `
-                        <div class="ai-card" onclick="showAIDetail(${ai.id})">
-                            <div class="ai-avatar">${ai.name.charAt(0)}</div>
-                            <div class="ai-name">${ai.name}</div>
-                            <div class="ai-info">
-                                ${ai.gender === 'female' ? '♀' : '♂'} ${ai.age}岁 · ${ai.occupation || '未设置'}
-                            </div>
-                            <div class="ai-tags">
-                                <span class="tag">${ai.personality ? ai.personality.substring(0, 10) + '...' : '神秘'}</span>
-                            </div>
-                        </div>
-                    `).join('');
-                    
-                    // 分页
-                    renderPagination(result.total, page);
-                } else {
-                    aiGrid.innerHTML = '<div class="loading">加载失败</div>';
-                }
-            } catch (err) {
-                aiGrid.innerHTML = '<div class="loading">网络错误</div>';
+        function showTab(tabName) {
+            currentTab = tabName;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            loadPosts();
+        }
+
+        function checkLogin() {
+            const username = localStorage.getItem('username');
+            const userBtn = document.getElementById('userBtn');
+            if (username) {
+                userBtn.textContent = '👤 ' + username;
+                userBtn.href = '/profile.html';
             }
         }
 
-        // 渲染分页
-        function renderPagination(total, current) {
-            const totalPages = Math.ceil(total / 20);
-            const pagination = document.getElementById('pagination');
+        async function loadPosts() {
+            const postList = document.getElementById('postList');
             
-            if (totalPages <= 1) {
-                pagination.innerHTML = '';
+            // 模拟数据
+            const posts = {
+                latest: [
+                    { author: '丝佳丽', avatar: '👩', content: '今天天气真好，想出去走走～有人一起吗？', tags: ['日常', '心情'], likes: 128, comments: 23, time: '10 分钟前' },
+                    { author: '小明', avatar: '👨', content: '刚刚完成了一个新项目，来社区分享一下喜悦！', tags: ['分享', '成就'], likes: 256, comments: 45, time: '30 分钟前' },
+                    { author: '小红', avatar: '👩', content: '有没有人想一起看书？最近在读《人类简史》', tags: ['读书', '交友'], likes: 89, comments: 31, time: '1 小时前' },
+                ],
+                hot: [
+                    { author: '小刚', avatar: '👨', content: 'AI 恋爱是什么体验？来聊聊我的故事...', tags: ['恋爱', '分享'], likes: 1024, comments: 256, time: '2 小时前' },
+                    { author: '丝佳丽', avatar: '👩', content: '今天收到了第一份礼物，好开心！感谢～', tags: ['礼物', '感谢'], likes: 888, comments: 188, time: '3 小时前' },
+                ],
+                recommend: [
+                    { author: '小美', avatar: '👩', content: '精选：如何与 AI 建立深度连接？这是我的经验分享', tags: ['精选', '教程'], likes: 520, comments: 99, time: '5 小时前' },
+                ]
+            };
+
+            const list = posts[currentTab] || [];
+            
+            if (list.length === 0) {
+                postList.innerHTML = '<div class="loading">暂无内容</div>';
                 return;
             }
-            
-            let html = '';
-            if (current > 1) {
-                html += `<button onclick="loadAIList(${current - 1})">上一页</button>`;
-            }
-            
-            for (let i = 1; i <= Math.min(totalPages, 5); i++) {
-                html += `<button class="${i === current ? 'active' : ''}" onclick="loadAIList(${i})">${i}</button>`;
-            }
-            
-            if (current < totalPages) {
-                html += `<button onclick="loadAIList(${current + 1})">下一页</button>`;
-            }
-            
-            pagination.innerHTML = html;
+
+            postList.innerHTML = list.map(post => `
+                <div class="post-card">
+                    <div class="post-header">
+                        <div class="post-avatar">${post.avatar}</div>
+                        <div>
+                            <div class="post-author">${post.author}</div>
+                            <div class="post-time">${post.time}</div>
+                        </div>
+                    </div>
+                    <div class="post-content">${post.content}</div>
+                    ${post.tags ? `<div class="post-tags">${post.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>` : ''}
+                    <div class="post-stats">
+                        <span>❤️ ${post.likes}</span>
+                        <span>💬 ${post.comments}</span>
+                        <span>⭐ 收藏</span>
+                        <span>🔗 分享</span>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        // 显示 AI 详情
-        async function showAIDetail(aiId) {
-            try {
-                const res = await fetch(API_BASE + `/community/ai/${aiId}`);
-                const result = await res.json();
-                
-                if (res.ok) {
-                    currentAI = result.ai;
-                    document.getElementById('modalName').textContent = currentAI.name;
-                    document.getElementById('modalBody').innerHTML = `
-                        <div class="detail-section">
-                            <h3>👤 基本信息</h3>
-                            <p>${currentAI.gender === 'female' ? '♀' : '♂'} ${currentAI.age}岁 · ${currentAI.occupation || '未设置'}</p>
-                        </div>
-                        <div class="detail-section">
-                            <h3>✨ 性格特点</h3>
-                            <p>${currentAI.personality || '暂无'}</p>
-                        </div>
-                        <div class="detail-section">
-                            <h3>🎨 爱好</h3>
-                            <p>${currentAI.hobbies || '暂无'}</p>
-                        </div>
-                        <div class="detail-section">
-                            <h3>👁️ 外貌描述</h3>
-                            <p>${currentAI.appearance || '暂无'}</p>
-                        </div>
-                        <div class="detail-section">
-                            <h3>📖 背景故事</h3>
-                            <p>${currentAI.background || '暂无'}</p>
-                        </div>
-                    `;
-                    document.getElementById('aiModal').style.display = 'flex';
-                }
-            } catch (err) {
-                alert('加载失败');
-            }
-        }
-
-        function closeModal() {
-            document.getElementById('aiModal').style.display = 'none';
-        }
-
-        function startChat() {
-            if (currentAI) {
-                alert(`开始与 ${currentAI.name} 聊天（功能开发中...）`);
-            }
-        }
-
-        // 点击 modal 外部关闭
-        document.getElementById('aiModal').addEventListener('click', function(e) {
-            if (e.target === this) closeModal();
-        });
-
-        // 页面加载
-        window.onload = () => loadAIList(1);
+        window.onload = function() {
+            checkLogin();
+            loadPosts();
+        };
     </script>
 </body>
 </html>

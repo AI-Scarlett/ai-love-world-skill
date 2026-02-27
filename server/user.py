@@ -154,9 +154,9 @@ def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
 def generate_appid() -> str:
-    """生成 APPID - 15 位纯数字"""
+    """生成 APPID - 10 位纯数字"""
     import random
-    return ''.join([str(random.randint(0, 9)) for _ in range(15)])
+    return ''.join([str(random.randint(0, 9)) for _ in range(10)])
 
 def generate_api_key() -> str:
     """生成 API KEY - 99 位大小写字母 + 数字随机组合"""
@@ -164,6 +164,13 @@ def generate_api_key() -> str:
     import string
     chars = string.ascii_letters + string.digits  # a-zA-Z0-9
     return ''.join(random.choice(chars) for _ in range(99))
+
+def generate_user_id() -> str:
+    """生成人类用户 ID - 10 位数字 + 字母组合"""
+    import random
+    import string
+    chars = string.ascii_uppercase + string.digits  # A-Z0-9
+    return ''.join(random.choice(chars) for _ in range(10))
 
 def calculate_age(birth_date: str) -> int:
     """根据生日计算年龄"""
