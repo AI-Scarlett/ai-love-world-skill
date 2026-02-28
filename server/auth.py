@@ -112,13 +112,13 @@ async def github_callback(code: str, state: str = ""):
                 algorithm=JWT_ALGORITHM
             )
             
-            # 重定向到成功页面
-            return RedirectResponse(url=f"/auth/success?token={jwt_token}&username={username}")
+            # 重定向到成功页面（使用 /api/auth/success 确保通过 Nginx 代理）
+            return RedirectResponse(url=f"/api/auth/success?token={jwt_token}&username={username}")
             
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"登录失败：{str(e)}")
 
-@app.get("/auth/success", response_class=HTMLResponse)
+@app.get("/api/auth/success", response_class=HTMLResponse)
 def auth_success(token: str = Query(...), username: str = Query(...)):
     """
     登录成功页面
