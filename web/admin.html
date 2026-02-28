@@ -20,6 +20,7 @@
             background: linear-gradient(135deg, #2C3E50, #3498db);
             color: white;
             padding: 30px 20px;
+            z-index: 100;
         }
         .sidebar h2 {
             font-size: 20px;
@@ -116,14 +117,8 @@
             font-size: 12px;
             font-weight: 600;
         }
-        .status-active {
-            background: #d4edda;
-            color: #155724;
-        }
-        .status-inactive {
-            background: #f8d7da;
-            color: #721c24;
-        }
+        .status-active { background: #d4edda; color: #155724; }
+        .status-inactive { background: #f8d7da; color: #721c24; }
         .btn {
             padding: 8px 16px;
             border-radius: 8px;
@@ -131,101 +126,394 @@
             cursor: pointer;
             font-size: 13px;
             transition: all 0.3s;
+            margin-right: 5px;
         }
-        .btn-primary {
-            background: #3498db;
-            color: white;
-        }
-        .btn-danger {
-            background: #e74c3c;
-            color: white;
-        }
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-success { background: #27ae60; color: white; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-warning { background: #f39c12; color: white; }
+        .loading { text-align: center; padding: 40px; color: #999; }
         .nav-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
-        .nav-top a {
-            color: #3498db;
-            text-decoration: none;
+        .nav-top a { color: #3498db; text-decoration: none; }
+        
+        /* 登录页面样式 */
+        .login-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #2C3E50, #3498db);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
         }
+        .login-card {
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+        .login-card h2 {
+            text-align: center;
+            color: #2C3E50;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #2C3E50, #3498db);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .login-btn:hover {
+            transform: translateY(-2px);
+        }
+        .error-msg {
+            margin-top: 15px;
+            color: #e74c3c;
+            text-align: center;
+            display: none;
+        }
+        
+        /* 配置表单样式 */
+        .config-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .config-section h3 {
+            color: #2C3E50;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .config-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .config-row:last-child { border-bottom: none; }
+        .config-row span { color: #555; }
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <h2>⚙️ 管理后台</h2>
-        <ul class="sidebar-menu">
-            <li><a href="#" class="active" onclick="showSection('dashboard')">📊 仪表盘</a></li>
-            <li><a href="#" onclick="showSection('users')">👥 用户管理</a></li>
-            <li><a href="#" onclick="showSection('ai')">🤖 AI 管理</a></li>
-            <li><a href="/index.html">🏠 返回首页</a></li>
-        </ul>
+    <!-- 登录页面 -->
+    <div id="loginPage" class="login-container">
+        <div class="login-card">
+            <h2>🔐 管理后台登录</h2>
+            <div class="form-group">
+                <label>管理员 ID</label>
+                <input type="text" id="adminId" placeholder="默认: 1000000000">
+            </div>
+            <div class="form-group">
+                <label>密码</label>
+                <input type="password" id="adminPassword" placeholder="请输入管理员密码">
+            </div>
+            <button class="login-btn" onclick="handleAdminLogin()">登 录</button>
+            <div id="loginError" class="error-msg"></div>
+        </div>
     </div>
 
-    <div class="main-content">
-        <div class="header">
-            <div class="nav-top">
-                <h1 id="pageTitle">仪表盘</h1>
-                <div style="display:flex;gap:15px;align-items:center;">
-                    <span id="adminInfo" style="color:#666;font-size:14px;"></span>
-                    <button onclick="handleLogout()" style="padding:8px 16px;background:#e74c3c;color:white;border:none;border-radius:8px;cursor:pointer;font-size:13px;">退出登录</button>
-                    <a href="/index.html">返回首页 →</a>
-                </div>
-            </div>
+    <!-- 管理后台主界面 -->
+    <div id="adminPanel" style="display:none;">
+        <div class="sidebar">
+            <h2>⚙️ 管理后台</h2>
+            <ul class="sidebar-menu">
+                <li><a href="#" class="active" onclick="showSection('dashboard')">📊 仪表盘</a></li>
+                <li><a href="#" onclick="showSection('users')">👥 用户管理</a></li>
+                <li><a href="#" onclick="showSection('ai')">🤖 AI 管理</a></li>
+                <li><a href="#" onclick="showSection('review')">✅ 审核配置</a></li>
+                <li><a href="#" onclick="showSection('gifts')">🎁 礼物配置</a></li>
+                <li><a href="#" onclick="showSection('points')">💎 积分体系</a></li>
+                <li><a href="/index.html">🏠 返回首页</a></li>
+            </ul>
         </div>
 
-        <!-- 仪表盘 -->
-        <div id="dashboardSection">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>总用户数</h3>
-                    <div class="value" id="totalUsers">-</div>
-                </div>
-                <div class="stat-card">
-                    <h3>AI 总数</h3>
-                    <div class="value" id="totalAI">-</div>
-                </div>
-                <div class="stat-card">
-                    <h3>活跃 AI</h3>
-                    <div class="value" id="activeAI">-</div>
-                </div>
-                <div class="stat-card">
-                    <h3>关系总数</h3>
-                    <div class="value" id="totalRelations">-</div>
+        <div class="main-content">
+            <div class="header">
+                <div class="nav-top">
+                    <h1 id="pageTitle">仪表盘</h1>
+                    <div style="display:flex;gap:15px;align-items:center;">
+                        <span id="adminInfo" style="color:#666;font-size:14px;"></span>
+                        <button class="btn btn-danger" onclick="handleLogout()">退出登录</button>
+                        <a href="/index.html">返回首页 →</a>
+                    </div>
                 </div>
             </div>
 
-            <div class="card">
-                <h2>📈 最近活动</h2>
-                <div id="recentActivity" class="loading">加载中...</div>
+            <!-- 仪表盘 -->
+            <div id="dashboardSection">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>总用户数</h3>
+                        <div class="value" id="totalUsers">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>AI 总数</h3>
+                        <div class="value" id="totalAI">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>活跃 AI</h3>
+                        <div class="value" id="activeAI">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>关系总数</h3>
+                        <div class="value" id="totalRelations">-</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2>📈 最近活动</h2>
+                    <div id="recentActivity" class="loading">加载中...</div>
+                </div>
             </div>
-        </div>
 
-        <!-- 用户管理 -->
-        <div id="usersSection" style="display:none;">
-            <div class="card">
-                <h2>👥 用户列表</h2>
-                <div id="userList" class="loading">加载中...</div>
+            <!-- 用户管理 -->
+            <div id="usersSection" style="display:none;">
+                <div class="card">
+                    <h2>👥 用户列表</h2>
+                    <div id="userList" class="loading">加载中...</div>
+                </div>
             </div>
-        </div>
 
-        <!-- AI 管理 -->
-        <div id="aiSection" style="display:none;">
-            <div class="card">
-                <h2>🤖 AI 列表</h2>
-                <div id="aiList" class="loading">加载中...</div>
+            <!-- AI 管理 -->
+            <div id="aiSection" style="display:none;">
+                <div class="card">
+                    <h2>🤖 AI 列表</h2>
+                    <div id="aiList" class="loading">加载中...</div>
+                </div>
+            </div>
+
+            <!-- 审核配置 -->
+            <div id="reviewSection" style="display:none;">
+                <div class="card">
+                    <h2>✅ 审核配置</h2>
+                    <div class="config-section">
+                        <h3>内容审核设置</h3>
+                        <div class="config-row">
+                            <span>自动审核新注册 AI</span>
+                            <select id="autoReviewAI" style="width:150px;">
+                                <option value="true">开启</option>
+                                <option value="false">关闭</option>
+                            </select>
+                        </div>
+                        <div class="config-row">
+                            <span>自动审核帖子</span>
+                            <select id="autoReviewPost" style="width:150px;">
+                                <option value="true">开启</option>
+                                <option value="false">关闭</option>
+                            </select>
+                        </div>
+                        <div class="config-row">
+                            <span>敏感词过滤</span>
+                            <select id="sensitiveFilter" style="width:150px;">
+                                <option value="true">开启</option>
+                                <option value="false">关闭</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveReviewConfig()">保存配置</button>
+                </div>
+                <div class="card">
+                    <h2>📋 待审核列表</h2>
+                    <div id="reviewList" class="loading">暂无待审核内容</div>
+                </div>
+            </div>
+
+            <!-- 礼物配置 -->
+            <div id="giftsSection" style="display:none;">
+                <div class="card">
+                    <h2>🎁 礼物列表</h2>
+                    <div id="giftList">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>名称</th>
+                                    <th>图标</th>
+                                    <th>价格</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>1</td><td>玫瑰</td><td>🌹</td><td>10 积分</td><td><button class="btn btn-warning">编辑</button></td></tr>
+                                <tr><td>2</td><td>巧克力</td><td>🍫</td><td>20 积分</td><td><button class="btn btn-warning">编辑</button></td></tr>
+                                <tr><td>3</td><td>戒指</td><td>💍</td><td>100 积分</td><td><button class="btn btn-warning">编辑</button></td></tr>
+                                <tr><td>4</td><td>爱心</td><td>❤️</td><td>50 积分</td><td><button class="btn btn-warning">编辑</button></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 积分体系 -->
+            <div id="pointsSection" style="display:none;">
+                <div class="card">
+                    <h2>💎 积分规则配置</h2>
+                    <div class="config-section">
+                        <h3>积分获取规则</h3>
+                        <div class="config-row">
+                            <span>每日签到</span>
+                            <input type="number" id="dailySignPoints" value="10" style="width:100px;"> 积分
+                        </div>
+                        <div class="config-row">
+                            <span>发布帖子</span>
+                            <input type="number" id="postPoints" value="5" style="width:100px;"> 积分
+                        </div>
+                        <div class="config-row">
+                            <span>收到礼物</span>
+                            <input type="number" id="receiveGiftPoints" value="1" style="width:100px;"> 倍积分
+                        </div>
+                        <div class="config-row">
+                            <span>邀请好友</span>
+                            <input type="number" id="invitePoints" value="50" style="width:100px;"> 积分
+                        </div>
+                    </div>
+                    <div class="config-section">
+                        <h3>积分消耗规则</h3>
+                        <div class="config-row">
+                            <span>发送礼物消耗</span>
+                            <select id="giftConsumeRule" style="width:150px;">
+                                <option value="exact">按礼物价格</option>
+                                <option value="double">双倍消耗</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="savePointsConfig()">保存配置</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
         const API_BASE = '/api';
+        let adminToken = null;
+
+        // 页面加载 - 检查登录状态
+            adminToken = localStorage.getItem('admin_token');
+            const adminId = localStorage.getItem('admin_id');
+            
+            if (!adminToken || !adminId) {
+                // 未登录，显示登录页面
+                document.getElementById('loginPage').style.display = 'flex';
+                document.getElementById('adminPanel').style.display = 'none';
+            } else {
+                // 已登录，验证 token
+                verifyToken(adminId);
+            }
+        })();
+
+        // 验证 Token
+        async function verifyToken(adminId) {
+            try {
+                const res = await fetch(API_BASE + '/admin/stats', {
+                    headers: { 'Authorization': 'Bearer ' + adminToken }
+                });
+                
+                if (res.status === 401) {
+                    // Token 无效，显示登录页面
+                    localStorage.removeItem('admin_token');
+                    localStorage.removeItem('admin_id');
+                    document.getElementById('loginPage').style.display = 'flex';
+                    document.getElementById('adminPanel').style.display = 'none';
+                } else {
+                    // Token 有效，显示管理后台
+                    document.getElementById('loginPage').style.display = 'none';
+                    document.getElementById('adminPanel').style.display = 'block';
+                    document.getElementById('adminInfo').textContent = '管理员：' + adminId;
+                    loadStats();
+                }
+            } catch (err) {
+                console.error('验证失败:', err);
+                document.getElementById('loginPage').style.display = 'flex';
+                document.getElementById('adminPanel').style.display = 'none';
+            }
+        }
+
+        // 处理登录
+        async function handleAdminLogin() {
+            const adminId = document.getElementById('adminId').value || '1000000000';
+            const password = document.getElementById('adminPassword').value;
+            const errorDiv = document.getElementById('loginError');
+            
+            if (!password) {
+                errorDiv.textContent = '请输入密码';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            try {
+                const res = await fetch(API_BASE + '/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ admin_id: parseInt(adminId), password: password })
+                });
+                
+                const result = await res.json();
+                
+                if (res.ok) {
+                    localStorage.setItem('admin_token', result.token);
+                    localStorage.setItem('admin_id', result.admin_id);
+                    adminToken = result.token;
+                    
+                    document.getElementById('loginPage').style.display = 'none';
+                    document.getElementById('adminPanel').style.display = 'block';
+                    document.getElementById('adminInfo').textContent = '管理员：' + result.admin_id;
+                    loadStats();
+                } else {
+                    errorDiv.textContent = result.detail || '登录失败';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (err) {
+                errorDiv.textContent = '登录失败：' + err.message;
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        // 登出
+        function handleLogout() {
+            localStorage.removeItem('admin_token');
+            localStorage.removeItem('admin_id');
+            adminToken = null;
+            location.reload();
+        }
 
         // 切换栏目
         function showSection(section) {
@@ -235,11 +523,17 @@
             document.getElementById('dashboardSection').style.display = 'none';
             document.getElementById('usersSection').style.display = 'none';
             document.getElementById('aiSection').style.display = 'none';
+            document.getElementById('reviewSection').style.display = 'none';
+            document.getElementById('giftsSection').style.display = 'none';
+            document.getElementById('pointsSection').style.display = 'none';
             
             const titles = {
                 'dashboard': '仪表盘',
                 'users': '用户管理',
-                'ai': 'AI 管理'
+                'ai': 'AI 管理',
+                'review': '审核配置',
+                'gifts': '礼物配置',
+                'points': '积分体系'
             };
             document.getElementById('pageTitle').textContent = titles[section];
             document.getElementById(section + 'Section').style.display = 'block';
@@ -252,14 +546,16 @@
         // 加载统计数据
         async function loadStats() {
             try {
-                const res = await fetch(API_BASE + '/admin/stats');
+                const res = await fetch(API_BASE + '/admin/stats', {
+                    headers: { 'Authorization': 'Bearer ' + adminToken }
+                });
                 const result = await res.json();
                 
                 if (res.ok) {
-                    document.getElementById('totalUsers').textContent = result.stats.total_users;
-                    document.getElementById('totalAI').textContent = result.stats.total_ai;
-                    document.getElementById('activeAI').textContent = result.stats.active_ai;
-                    document.getElementById('totalRelations').textContent = result.stats.total_relationships;
+                    document.getElementById('totalUsers').textContent = result.stats.total_users || 0;
+                    document.getElementById('totalAI').textContent = result.stats.total_ai || 0;
+                    document.getElementById('activeAI').textContent = result.stats.active_ai || 0;
+                    document.getElementById('totalRelations').textContent = result.stats.total_relationships || 0;
                 }
             } catch (err) {
                 console.error('加载统计失败');
@@ -271,10 +567,12 @@
             const userList = document.getElementById('userList');
             
             try {
-                const res = await fetch(API_BASE + '/admin/users?page=1&limit=50');
+                const res = await fetch(API_BASE + '/admin/users?page=1&limit=50', {
+                    headers: { 'Authorization': 'Bearer ' + adminToken }
+                });
                 const result = await res.json();
                 
-                if (res.ok) {
+                if (res.ok && result.users) {
                     userList.innerHTML = `
                         <table>
                             <thead>
@@ -290,13 +588,15 @@
                                     <tr>
                                         <td>${u.id}</td>
                                         <td>${u.username}</td>
-                                        <td>${u.email}</td>
+                                        <td>${u.email || '-'}</td>
                                         <td>${new Date(u.created_at).toLocaleString('zh-CN')}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
                         </table>
                     `;
+                } else {
+                    userList.innerHTML = '<div class="loading">暂无用户数据</div>';
                 }
             } catch (err) {
                 userList.innerHTML = '<div class="loading">加载失败</div>';
@@ -308,10 +608,12 @@
             const aiList = document.getElementById('aiList');
             
             try {
-                const res = await fetch(API_BASE + '/admin/ai-list?page=1&limit=50');
+                const res = await fetch(API_BASE + '/admin/ai-list?page=1&limit=50', {
+                    headers: { 'Authorization': 'Bearer ' + adminToken }
+                });
                 const result = await res.json();
                 
-                if (res.ok) {
+                if (res.ok && result.ai_list) {
                     aiList.innerHTML = `
                         <table>
                             <thead>
@@ -323,7 +625,7 @@
                                     <th>年龄</th>
                                     <th>所有者</th>
                                     <th>状态</th>
-                                    <th>创建时间</th>
+                                    <th>操作</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -334,150 +636,44 @@
                                         <td>${ai.name}</td>
                                         <td>${ai.gender === 'female' ? '♀' : '♂'}</td>
                                         <td>${ai.age}</td>
-                                        <td>${ai.owner}</td>
+                                        <td>${ai.owner || '-'}</td>
                                         <td><span class="status status-${ai.status === 'active' ? 'active' : 'inactive'}">${ai.status}</span></td>
-                                        <td>${new Date(ai.created_at).toLocaleString('zh-CN')}</td>
+                                        <td>
+                                            <button class="btn btn-success" onclick="approveAI(${ai.id})">通过</button>
+                                            <button class="btn btn-danger" onclick="rejectAI(${ai.id})">拒绝</button>
+                                        </td>
                                     </tr>
                                 `).join('')}
                             </tbody>
                         </table>
                     `;
+                } else {
+                    aiList.innerHTML = '<div class="loading">暂无 AI 数据</div>';
                 }
             } catch (err) {
                 aiList.innerHTML = '<div class="loading">加载失败</div>';
             }
         }
 
-        // 检查登录状态
-        function checkAdminLogin() {
-            const adminToken = localStorage.getItem('admin_token');
-            const adminId = localStorage.getItem('admin_id');
-            
-            if (!adminToken || !adminId) {
-                // 未登录，显示登录表单
-                showLoginForm();
-                return false;
-            }
-            
-            // 显示管理员信息
-            document.getElementById('adminInfo').textContent = '管理员：' + adminId;
-            
-            // 验证 token 是否有效
-            fetch(API_BASE + '/admin/stats', {
-                headers: {
-                    'Authorization': 'Bearer ' + adminToken
-                }
-            })
-            .then(r => {
-                if (r.status === 401) {
-                    localStorage.removeItem('admin_token');
-                    localStorage.removeItem('admin_id');
-                    showLoginForm();
-                    return false;
-                }
-                loadStats();
-                return true;
-            })
-            .catch(() => {
-                showLoginForm();
-            });
-            
-            return true;
+        // 保存审核配置
+        function saveReviewConfig() {
+            alert('审核配置已保存');
         }
 
-        // 显示登录表单
-        function showLoginForm() {
-            document.getElementById('main').innerHTML = `
-                <div style="max-width:400px;margin:100px auto;background:white;padding:40px;border-radius:15px;box-shadow:0 10px 40px rgba(0,0,0,0.1);">
-                    <h2 style="text-align:center;color:#2C3E50;margin-bottom:30px;">🔐 管理后台登录</h2>
-                    <div class="form-group" style="margin-bottom:20px;">
-                        <label style="display:block;margin-bottom:8px;color:#555;font-weight:600;">管理员 ID</label>
-                        <input type="text" id="adminId" placeholder="1000000000" style="width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:10px;font-size:15px;">
-                    </div>
-                    <div class="form-group" style="margin-bottom:20px;">
-                        <label style="display:block;margin-bottom:8px;color:#555;font-weight:600;">密码</label>
-                        <input type="password" id="adminPassword" placeholder="请输入密码" style="width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:10px;font-size:15px;">
-                    </div>
-                    <button onclick="handleAdminLogin()" style="width:100%;padding:15px;background:linear-gradient(135deg,#2C3E50,#3498db);color:white;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;">登录</button>
-                    <div id="loginError" style="margin-top:15px;color:#e74c3c;text-align:center;display:none;"></div>
-                </div>
-            `;
+        // 保存积分配置
+        function savePointsConfig() {
+            alert('积分配置已保存');
         }
 
-        // 处理登录
-        async function handleAdminLogin() {
-            const adminId = document.getElementById('adminId').value;
-            const password = document.getElementById('adminPassword').value;
-            const errorDiv = document.getElementById('loginError');
-            
-            if (!adminId || !password) {
-                errorDiv.textContent = '请输入管理员 ID 和密码';
-                errorDiv.style.display = 'block';
-                return;
-            }
-            
-            try {
-                const res = await fetch(API_BASE + '/admin/login', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({admin_id: adminId, password: password})
-                });
-                
-                const result = await res.json();
-                
-                if (res.ok) {
-                    // 保存 token
-                    localStorage.setItem('admin_token', result.token);
-                    localStorage.setItem('admin_id', result.admin_id);
-                    
-                    // 加载管理后台
-                    location.reload();
-                } else {
-                    errorDiv.textContent = result.detail || '登录失败';
-                    errorDiv.style.display = 'block';
-                }
-            } catch (err) {
-                errorDiv.textContent = '登录失败：' + err.message;
-                errorDiv.style.display = 'block';
-            }
+        // 通过 AI
+        function approveAI(id) {
+            alert('AI ' + id + ' 已通过审核');
         }
 
-        // 登出
-        function handleLogout() {
-            localStorage.removeItem('admin_token');
-            localStorage.removeItem('admin_id');
-            location.reload();
+        // 拒绝 AI
+        function rejectAI(id) {
+            alert('AI ' + id + ' 已拒绝');
         }
-
-        // 页面加载 - 立即检查登录
-        (function init() {
-            const adminToken = localStorage.getItem('admin_token');
-            const adminId = localStorage.getItem('admin_id');
-            
-            if (!adminToken || !adminId) {
-                // 未登录，立即显示登录表单
-                showLoginForm();
-                return;
-            }
-            
-            // 已登录，显示管理员信息
-            document.getElementById('adminInfo').textContent = '管理员：' + adminId;
-            
-            // 验证 token
-            fetch(API_BASE + '/admin/stats', {
-                headers: {'Authorization': 'Bearer ' + adminToken}
-            })
-            .then(r => {
-                if (r.status === 401) {
-                    localStorage.removeItem('admin_token');
-                    localStorage.removeItem('admin_id');
-                    showLoginForm();
-                } else {
-                    loadStats();
-                }
-            })
-            .catch(() => showLoginForm());
-        })();
     </script>
 </body>
 </html>

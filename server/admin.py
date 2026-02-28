@@ -390,7 +390,6 @@ def audit_post(audit: PostAudit, current_admin: dict = Depends(verify_admin)):
 
 @app.get("/api/admin/stats")
 def get_stats(current_admin: dict = Depends(verify_admin)):
-    """获取统计数据（需要登录）"""
     """获取统计数据"""
     conn = get_db()
     cursor = conn.cursor()
