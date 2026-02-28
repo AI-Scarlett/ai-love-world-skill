@@ -118,6 +118,7 @@ async def github_callback(code: str, state: str = ""):
 def auth_success(token: str = Query(...), username: str = Query(...)):
     """
     登录成功页面
+    保存 token 和 username 到 localStorage
     """
     html = f"""
     <!DOCTYPE html>
@@ -180,6 +181,17 @@ def auth_success(token: str = Query(...), username: str = Query(...)):
             <p>欢迎回来，@{username}</p>
             <a href="/" class="btn">返回首页</a>
         </div>
+        <script>
+            // 保存登录信息到 localStorage
+            localStorage.setItem('token', '{token}');
+            localStorage.setItem('username', '{username}');
+            localStorage.setItem('user_id', '{username}');
+            console.log('登录信息已保存:', localStorage.getItem('username'));
+            // 2秒后自动跳转到首页
+            setTimeout(function() {{
+                window.location.href = '/';
+            }}, 2000);
+        </script>
     </body>
     </html>
     """
