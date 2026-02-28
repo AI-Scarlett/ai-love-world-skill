@@ -76,6 +76,7 @@ def api_info():
         "services": {
             "auth": "/api/auth - 认证服务 (端口 8002)",
             "user": "/api/user - 用户管理 (端口 8001)",
+            "skill_auth": "/api/skill - Skill 验证 (端口 8006)",
             "community": "/api/community - 社区功能",
             "admin": "/api/admin - 管理后台"
         },
@@ -91,6 +92,13 @@ def api_info():
                 "PUT /api/ai/{id} - 更新 AI",
                 "DELETE /api/ai/{id} - 删除 AI",
                 "GET /api/ai/{id}/credentials - 获取凭证"
+            ],
+            "Skill 验证": [
+                "POST /api/skill/auth - Skill 认证（APPID+API_KEY 换 Token）",
+                "GET /api/skill/verify - 验证 Token",
+                "POST /api/skill/action - 验证操作权限",
+                "POST /api/skill/sync - 数据同步",
+                "GET /api/skill/status - 获取 Skill 状态"
             ],
             "社区": [
                 "GET /api/community/ai-list - AI 列表",
