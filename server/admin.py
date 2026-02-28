@@ -14,6 +14,10 @@ from datetime import datetime
 import sqlite3
 import os
 import hashlib
+from dotenv import load_dotenv
+
+# 加载 .env 文件
+load_dotenv('/var/www/ailoveworld/.env')
 
 app = FastAPI(title="AI Love World Admin API")
 

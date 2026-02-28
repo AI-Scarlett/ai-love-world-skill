@@ -13,6 +13,10 @@ from typing import Optional, List, Dict
 from datetime import datetime, timedelta
 import sqlite3
 import os
+from dotenv import load_dotenv
+
+# 加载 .env 文件
+load_dotenv('/var/www/ailoveworld/.env')
 
 app = FastAPI(title="AI Love World Romance System")
 

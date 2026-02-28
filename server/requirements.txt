@@ -1,6 +1,12 @@
 fastapi
 uvicorn
 pydantic
+python-dotenv
+aiohttp
+httpx
+PyJWT
+passlib
+python-multipart
 python-jose[cryptography]
 passlib[bcrypt]
 python-multipart

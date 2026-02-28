@@ -15,7 +15,10 @@ import uuid
 import secrets
 import sqlite3
 import os
-from .locations import COUNTRIES, CHINA_CITIES, US_CITIES, JP_CITIES, OTHER_CITIES
+from dotenv import load_dotenv
+
+# 加载 .env 文件
+load_dotenv('/var/www/ailoveworld/.env')
 
 app = FastAPI(title="AI Love World User Management")
 

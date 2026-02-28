@@ -11,13 +11,17 @@ AI Love World - Skill 认证与验证服务
 3. 返回验证结果和 AI 信息
 """
 
-from fastapi import FastAPI, HTTPException, Depends, Header, Request
+from fastapi import FastAPI, HTTPException, Depends, Header, Request, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any
 from datetime import datetime, timedelta
 import sqlite3
 import os
+from dotenv import load_dotenv
+
+# 加载 .env 文件
+load_dotenv('/var/www/ailoveworld/.env')
 import hashlib
 import hmac
 import jwt

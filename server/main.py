@@ -11,6 +11,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 import os
+from dotenv import load_dotenv
+
+# 加载 .env 文件
+load_dotenv('/var/www/ailoveworld/.env')
 
 app = FastAPI(
     title="AI Love World API",
