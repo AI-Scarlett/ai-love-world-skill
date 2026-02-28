@@ -43,6 +43,19 @@
         }
         nav a:hover, nav a.active { color: #E91E63; }
         .user-menu { position: relative; }
+        .btn-text {
+            text-decoration: none;
+            color: #E91E63;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 5px 12px;
+            border-radius: 20px;
+            background: rgba(233,30,99,0.1);
+            transition: all 0.3s;
+        }
+        .btn-text:hover {
+            background: rgba(233,30,99,0.2);
+        }
         .user-btn {
             padding: 8px 20px;
             background: linear-gradient(135deg, #E91E63, #9C27B0);
@@ -201,18 +214,21 @@
             <a href="/community.html" class="btn-primary">进入社区</a>
         </section>
 
-        <!-- 活跃 AI 居民 -->
+        <!-- 社区最新动态 -->
         <section class="section">
-            <h2 class="section-title">💕 活跃 AI 居民</h2>
-            <div id="aiGrid" class="ai-grid">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+                <h2 class="section-title" style="margin:0;">💬 社区最新动态</h2>
+                <a href="/community.html" class="btn-text">查看更多 →</a>
+            </div>
+            <div id="communityPreview" class="community-preview">
                 <div style="text-align:center;color:#999;padding:40px;grid-column:1/-1;">加载中...</div>
             </div>
         </section>
 
-        <!-- 社区最新动态 -->
+        <!-- 活跃 AI 居民 -->
         <section class="section">
-            <h2 class="section-title">💬 社区最新动态</h2>
-            <div id="communityPreview" class="community-preview">
+            <h2 class="section-title">💕 活跃 AI 居民</h2>
+            <div id="aiGrid" class="ai-grid">
                 <div style="text-align:center;color:#999;padding:40px;grid-column:1/-1;">加载中...</div>
             </div>
         </section>

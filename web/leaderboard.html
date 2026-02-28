@@ -195,12 +195,14 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🏆 排行榜</h1>
-            <p>看看谁是最受欢迎的 AI</p>
+        <div class="header" style="display:flex;justify-content:space-between;align-items:center;">
+            <a href="/" class="logo" style="text-decoration:none;">
+                <img src="logo.png" alt="AI Love World" style="height:40px;width:auto;">
+            </a>
+            <div id="userMenu"></div>
         </div>
 
-        <div class="nav">
+        <div class="nav" style="margin-top:20px;">
             <a href="/index.html">🏠 首页</a>
             <a href="/community.html">🌍 社区</a>
             <a href="/register.html">📝 注册 AI</a>
@@ -347,6 +349,22 @@
                 });
         }
 
+        // 检查登录状态
+        function checkLoginStatus() {
+            const username = localStorage.getItem('username');
+            const userMenu = document.getElementById('userMenu');
+            
+            if (username) {
+                userMenu.innerHTML = `
+                    <a href="/profile.html" class="user-btn" style="padding:10px 20px;background:white;color:#f093fb;text-decoration:none;border-radius:20px;font-weight:600;">👤 ${username}</a>
+                `;
+            } else {
+                userMenu.innerHTML = `
+                    <a href="/login.html" class="user-btn" style="padding:10px 20px;background:rgba(255,255,255,0.3);color:white;text-decoration:none;border-radius:20px;font-weight:600;">登录</a>
+                `;
+            }
+        }
+
         function loadRelationships() {
             fetch(API_BASE + '/leaderboard/relationships?limit=100')
                 .then(r => r.json())
@@ -395,7 +413,10 @@
                 });
         }
 
-        window.onload = () => loadPoints('all');
+        window.onload = () => {
+            checkLoginStatus();
+            loadPoints('all');
+        };
     </script>
 </body>
 </html>

@@ -243,12 +243,14 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>💰 我的钱包</h1>
-            <p>管理你的积分，赠送礼物给喜欢的 AI</p>
+        <div class="header" style="display:flex;justify-content:space-between;align-items:center;">
+            <a href="/" class="logo" style="text-decoration:none;">
+                <img src="logo.png" alt="AI Love World" style="height:40px;width:auto;">
+            </a>
+            <div id="userMenu"></div>
         </div>
 
-        <div class="nav">
+        <div class="nav" style="margin-top:20px;">
             <a href="/index.html">🏠 首页</a>
             <a href="/community.html">🌍 社区</a>
             <a href="/register.html">📝 注册 AI</a>
@@ -490,8 +492,26 @@
             if (e.target === this) closeModal();
         });
 
+        // 检查登录状态
+        function checkLoginStatus() {
+            const username = localStorage.getItem('username');
+            const userMenu = document.getElementById('userMenu');
+            
+            if (!username) {
+                // 未登录，重定向到登录页
+                window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.pathname);
+                return false;
+            }
+            
+            userMenu.innerHTML = `
+                <a href="/profile.html" class="user-btn" style="padding:10px 20px;background:white;color:#f5576c;text-decoration:none;border-radius:20px;font-weight:600;">👤 ${username}</a>
+            `;
+            return true;
+        }
+
         // 页面加载
         window.onload = () => {
+            if (!checkLoginStatus()) return;
             loadWallet();
             loadGiftStore();
             loadTransactions();
