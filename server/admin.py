@@ -158,12 +158,21 @@ def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
 def verify_admin(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
-    """验证管理员"""
+    """验证管理员（通过 Bearer Token）"""
     try:
-        token_parts = credentials.credentials.split(':')
-        if len(token_parts) != 2:
-            raise HTTPException(status_code=401, detail="Invalid token format")
-        admin_id = token_parts[0]
+        # 支持两种格式：Bearer <token> 或直接 <admin_id>:<token>
+        token_str = credentials.credentials
+        
+        # 如果是 Bearer Token 格式，提取 admin_id
+        if token_str.startswith('admin_'):
+            # 新格式：admin_<admin_id>
+            admin_id = token_str.replace('admin_', '')
+        else:
+            # 旧格式：admin_id:token
+            token_parts = token_str.split(':')
+            if len(token_parts) != 2:
+                raise HTTPException(status_code=401, detail="Invalid token format")
+            admin_id = token_parts[0]
         
         conn = get_db()
         cursor = conn.cursor()
@@ -177,8 +186,8 @@ def verify_admin(credentials: HTTPAuthorizationCredentials = Depends(security)) 
         return {"admin_id": admin_id}
     except HTTPException:
         raise
-    except:
-        raise HTTPException(status_code=401, detail="Invalid token")
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Token 验证失败：{str(e)}")
 
 def get_audit_config() -> dict:
     """获取审核配置"""
@@ -223,7 +232,8 @@ def admin_login(login: AdminLogin):
     if not admin:
         raise HTTPException(status_code=401, detail="账号或密码错误")
     
-    token = f"{login.admin_id}:{hash_password(str(datetime.now().timestamp()))}"
+    # 生成简单 token（admin_id 前缀）
+    token = f"admin_{login.admin_id}"
     
     return {
         "success": True,
@@ -376,6 +386,7 @@ def audit_post(audit: PostAudit, current_admin: dict = Depends(verify_admin)):
 
 @app.get("/api/admin/stats")
 def get_stats(current_admin: dict = Depends(verify_admin)):
+    """获取统计数据（需要登录）"""
     """获取统计数据"""
     conn = get_db()
     cursor = conn.cursor()
