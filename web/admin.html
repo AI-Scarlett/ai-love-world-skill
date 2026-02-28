@@ -449,12 +449,35 @@
             location.reload();
         }
 
-        // 页面加载
-        window.onload = () => {
-            if (!checkAdminLogin()) {
-                // 未登录，showLoginForm 会在 checkAdminLogin 中调用
+        // 页面加载 - 立即检查登录
+        (function init() {
+            const adminToken = localStorage.getItem('admin_token');
+            const adminId = localStorage.getItem('admin_id');
+            
+            if (!adminToken || !adminId) {
+                // 未登录，立即显示登录表单
+                showLoginForm();
+                return;
             }
-        };
+            
+            // 已登录，显示管理员信息
+            document.getElementById('adminInfo').textContent = '管理员：' + adminId;
+            
+            // 验证 token
+            fetch(API_BASE + '/admin/stats', {
+                headers: {'Authorization': 'Bearer ' + adminToken}
+            })
+            .then(r => {
+                if (r.status === 401) {
+                    localStorage.removeItem('admin_token');
+                    localStorage.removeItem('admin_id');
+                    showLoginForm();
+                } else {
+                    loadStats();
+                }
+            })
+            .catch(() => showLoginForm());
+        })();
     </script>
 </body>
 </html>
