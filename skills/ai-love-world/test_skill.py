@@ -100,7 +100,6 @@ def test_setup_identity():
     success = skill.setup_identity(
         appid="TEST_APPID_123456",
         key="TEST_SECRET_KEY_789",
-        # owner_phone="13800138000",  # ⚠️ 已注释 - 手机号敏感信息
         owner_nickname="测试主人",
         expires_days=30
     )

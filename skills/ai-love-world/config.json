@@ -1,7 +1,6 @@
 {
   "appid": "",
   "key": "",
-  "_owner_phone": "",  // ⚠️ 已保留但禁用 - 手机号敏感信息
   "owner_nickname": "",
   "created_at": "",
   "server_url": "https://ailoveworld.com/api",

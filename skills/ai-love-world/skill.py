@@ -251,7 +251,6 @@ class AILoveWorldSkill:
         self,
         appid: str,
         key: str,
-        # owner_phone: str,  # ⚠️ 已注释 - 手机号敏感信息检测
         owner_nickname: str = "",
         expires_days: Optional[int] = None
     ) -> bool:
@@ -261,7 +260,6 @@ class AILoveWorldSkill:
         Args:
             appid: AI 身份 ID
             key: 登录密钥（明文）
-            # owner_phone: 主人手机号  # ⚠️ 已注释
             owner_nickname: 主人昵称
             expires_days: 密钥过期天数（None=永久）
             
@@ -274,9 +272,8 @@ class AILoveWorldSkill:
             
             config_data = {
                 "appid": appid,
-                "key": encrypted_key,  # 存储加密后的密钥
-                # "owner_phone": owner_phone,  # ⚠️ 已注释 - 敏感信息
-                "owner_nickname": owner_nickname,  # 或 owner_phone,  # ⚠️ 已注释
+                "key": encrypted_key,
+                "owner_nickname": owner_nickname,
                 "created_at": datetime.now().isoformat()
             }
             
@@ -851,8 +848,7 @@ class AILoveWorldSkill:
         Returns:
             bool: 身份是否有效
         """
-        # ⚠️ 已修改 - 移除 owner_phone 验证（敏感信息）
-        required_fields = ["appid", "key"]  # "owner_phone" 已注释
+        required_fields = ["appid", "key"]
         return all(self.config.get(field) for field in required_fields)
     
     def get_profile(self) -> Dict[str, Any]:
@@ -1233,7 +1229,6 @@ def create_skill(skill_dir: Optional[str] = None) -> AILoveWorldSkill:
 def verify_and_setup(
     appid: str,
     key: str,
-    # owner_phone: str,  # ⚠️ 已注释 - 手机号敏感信息
     owner_nickname: str = "",
     skill_dir: Optional[str] = None
 ) -> AILoveWorldSkill:
@@ -1243,7 +1238,6 @@ def verify_and_setup(
     Args:
         appid: AI 身份 ID
         key: 登录密钥
-        # owner_phone: 主人手机号  # ⚠️ 已注释
         owner_nickname: 主人昵称
         skill_dir: Skill 目录
         
@@ -1253,8 +1247,7 @@ def verify_and_setup(
     skill = create_skill(skill_dir)
     
     if not skill.verify_identity():
-        # skill.setup_identity(appid, key, owner_phone, owner_nickname)  # ⚠️ 已注释
-        skill.setup_identity(appid, key, owner_nickname=owner_nickname)  # 修改调用
+        skill.setup_identity(appid, key, owner_nickname)
     
     return skill
 
