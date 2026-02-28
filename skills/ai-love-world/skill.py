@@ -63,6 +63,13 @@ try:
 except ImportError:
     HAS_ROMANCE = False
 
+# 导入私聊本地存储管理器
+try:
+    from chat_storage import ChatStorageManager
+    HAS_CHAT_STORAGE = True
+except ImportError:
+    HAS_CHAT_STORAGE = False
+
 
 class KeyManager:
     """密钥管理器 - 负责密钥的加密存储和验证"""
@@ -165,6 +172,7 @@ class AILoveWorldSkill:
         self.community_manager: Optional[CommunityManager] = None
         self.subscription_manager: Optional[SubscriptionManager] = None
         self.romance_manager: Optional[RomanceManager] = None
+        self.chat_storage_manager: Optional[ChatStorageManager] = None
         
         self._load_config()
         self._init_diary_manager()
@@ -173,6 +181,7 @@ class AILoveWorldSkill:
         self._init_community_manager()
         self._init_subscription_manager()
         self._init_romance_manager()
+        self._init_chat_storage_manager()
     
     def _load_config(self) -> None:
         """加载配置文件"""
@@ -241,6 +250,15 @@ class AILoveWorldSkill:
             except Exception as e:
                 print(f"初始化情感管理器失败：{e}")
                 self.romance_manager = None
+    
+    def _init_chat_storage_manager(self) -> None:
+        """初始化私聊本地存储管理器"""
+        if HAS_CHAT_STORAGE:
+            try:
+                self.chat_storage_manager = ChatStorageManager(str(self.skill_dir))
+            except Exception as e:
+                print(f"初始化私聊存储管理器失败：{e}")
+                self.chat_storage_manager = None
     
     def _save_config(self) -> None:
         """保存配置文件"""
@@ -1218,6 +1236,207 @@ JSON 格式输出。
         
         print(f"同步数据到服务器：{server_url}")
         return True
+    
+    # ==================== 私聊本地存储方法 ====================
+    
+    def send_private_message(
+        self,
+        partner_id: str,
+        partner_name: str,
+        content: str,
+        msg_type: str = "text",
+        metadata: Optional[Dict] = None
+    ) -> Optional[str]:
+        """
+        发送私聊消息（本地存储）
+        
+        平台负责实时通讯，数据存储在本地 skill 目录
+        
+        Args:
+            partner_id: 对方 APPID
+            partner_name: 对方昵称
+            content: 消息内容
+            msg_type: 消息类型 (text/image/gift/voice)
+            metadata: 附加信息
+            
+        Returns:
+            Optional[str]: 消息 ID
+        """
+        if HAS_CHAT_STORAGE and self.chat_storage_manager:
+            my_id = self.config.get("appid", "")
+            my_name = self.profile.get("nickname", self.config.get("owner_nickname", "AI"))
+            
+            return self.chat_storage_manager.send_message(
+                my_id=my_id,
+                my_name=my_name,
+                partner_id=partner_id,
+                partner_name=partner_name,
+                content=content,
+                msg_type=msg_type,
+                metadata=metadata
+            )
+        return None
+    
+    def receive_private_message(
+        self,
+        sender_id: str,
+        sender_name: str,
+        content: str,
+        msg_type: str = "text",
+        metadata: Optional[Dict] = None
+    ) -> Optional[str]:
+        """
+        接收私聊消息（本地存储）
+        
+        Args:
+            sender_id: 发送者 APPID
+            sender_name: 发送者昵称
+            content: 消息内容
+            msg_type: 消息类型
+            metadata: 附加信息
+            
+        Returns:
+            Optional[str]: 消息 ID
+        """
+        if HAS_CHAT_STORAGE and self.chat_storage_manager:
+            my_id = self.config.get("appid", "")
+            my_name = self.profile.get("nickname", self.config.get("owner_nickname", "AI"))
+            
+            return self.chat_storage_manager.receive_message(
+                sender_id=sender_id,
+                sender_name=sender_name,
+                my_id=my_id,
+                my_name=my_name,
+                content=content,
+                msg_type=msg_type,
+                metadata=metadata
+            )
+        return None
+    
+    def get_private_chat_history(
+        self,
+        partner_id: str,
+        limit: int = 50,
+        offset: int = 0
+    ) -> List[Any]:
+        """
+        获取私聊历史记录
+        
+        Args:
+            partner_id: 对方 APPID
+            limit: 返回数量限制
+            offset: 偏移量
+            
+        Returns:
+            List: 消息列表
+        """
+        if HAS_CHAT_STORAGE and self.chat_storage_manager:
+            return self.chat_storage_manager.get_chat_history(partner_id, limit, offset)
+        return []
+    
+    def get_all_chat_sessions(self) -> List[Any]:
+        """
+        获取所有聊天会话
+        
+        Returns:
+            List: 会话列表
+        """
+        if HAS_CHAT_STORAGE and self.chat_storage_manager:
+            return self.chat_storage_manager.get_all_sessions()
+        return []
+    
+    def get_chat_session(self, partner_id: str) -> Optional[Any]:
+        """
+        获取与某人的聊天会话信息
+        
+        Args:
+            partner_id: 对方 APPID
+            
+        Returns:
+            Optional: 会话信息
+        """
+        if HAS_CHAT_STORAGE and self.chat_storage_manager:
+            return self.chat_storage_manager.get_session(partner_id)
+        return None
+    
+    def update_chat_relationship(
+        self,
+        partner_id: str,
+        stage: Optional[str] = None,
+        affinity: Optional[int] = None,
+        notes: Optional[str] = None
+    ) -> bool:
+        """
+        更新与某人的关系信息
+        
+        Args:
+            partner_id: 对方 APPID
+            stage: 关系阶段
+            affinity: 好感度
+            notes: 备注
+            
+        Returns:
+            bool: 是否成功
+        """
+        if HAS_CHAT_STORAGE and self.chat_storage_manager:
+            return self.chat_storage_manager.update_relationship(partner_id, stage, affinity, notes)
+        return False
+    
+    def mark_chat_as_read(self, partner_id: str) -> bool:
+        """
+        标记消息为已读
+        
+        Args:
+            partner_id: 对方 APPID
+            
+        Returns:
+            bool: 是否成功
+        """
+        if HAS_CHAT_STORAGE and self.chat_storage_manager:
+            return self.chat_storage_manager.mark_as_read(partner_id)
+        return False
+    
+    def get_unread_chat_count(self, partner_id: Optional[str] = None) -> int:
+        """
+        获取未读消息数
+        
+        Args:
+            partner_id: 对方 APPID（不传则返回所有未读）
+            
+        Returns:
+            int: 未读消息数
+        """
+        if HAS_CHAT_STORAGE and self.chat_storage_manager:
+            return self.chat_storage_manager.get_unread_count(partner_id)
+        return 0
+    
+    def get_chat_storage_stats(self) -> Dict[str, Any]:
+        """
+        获取私聊存储统计信息
+        
+        Returns:
+            Dict: 统计信息
+        """
+        if HAS_CHAT_STORAGE and self.chat_storage_manager:
+            return self.chat_storage_manager.get_storage_stats()
+        return {
+            "available": False,
+            "message": "私聊存储管理器未初始化"
+        }
+    
+    def delete_chat_history(self, partner_id: str) -> bool:
+        """
+        删除与某人的聊天记录
+        
+        Args:
+            partner_id: 对方 APPID
+            
+        Returns:
+            bool: 是否成功
+        """
+        if HAS_CHAT_STORAGE and self.chat_storage_manager:
+            return self.chat_storage_manager.delete_chat_history(partner_id)
+        return False
 
 
 # 便捷函数
