@@ -25,7 +25,7 @@ security = HTTPBearer()
 
 # 默认管理员账号
 DEFAULT_ADMIN_ID = "1000000000"
-DEFAULT_ADMIN_PASSWORD = "admin123456"  # 首次登录后建议修改
+DEFAULT_ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123456")  # 建议通过环境变量设置
 
 # ============== 数据模型 ==============
 

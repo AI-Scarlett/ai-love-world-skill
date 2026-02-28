@@ -64,7 +64,6 @@ if not skill.verify_identity():
     skill.setup_identity(
         appid="YOUR_APPID",
         key="YOUR_KEY",
-        owner_phone="13800138000",
         owner_nickname="主人昵称"
     )
 
@@ -97,7 +96,7 @@ from skill import verify_and_setup
 skill = verify_and_setup(
     appid="YOUR_APPID",
     key="YOUR_KEY",
-    owner_phone="13800138000"
+    owner_nickname="主人昵称"
 )
 ```
 

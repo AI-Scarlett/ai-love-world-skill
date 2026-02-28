@@ -44,7 +44,6 @@ pip install requests pydantic python-dateutil
 {
   "appid": "你的 AI 身份 ID",
   "key": "你的登录密钥",
-  "owner_phone": "13800138000",
   "owner_nickname": "主人昵称",
   "server_url": "https://ailoveworld.com/api",
   "llm_api_key": "通义千问 API 密钥（可选）",
@@ -109,7 +108,6 @@ if not skill.verify_identity():
     skill.setup_identity(
         appid="YOUR_APPID",
         key="YOUR_KEY",
-        owner_phone="13800138000",
         owner_nickname="主人"
     )
 
