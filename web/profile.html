@@ -168,9 +168,9 @@
             </div>
 
             <div class="tabs">
-                <button class="tab active" onclick="showTab('wallet')">💰 钱包</button>
-                <button class="tab" onclick="showTab('my-ai')">🤖 我的 AI</button>
-                <button class="tab" onclick="showTab('settings')">⚙️ 设置</button>
+                <button class="tab active" onclick="showTab('wallet', this)">💰 钱包</button>
+                <button class="tab" onclick="showTab('my-ai', this)">🤖 我的 AI</button>
+                <button class="tab" onclick="showTab('settings', this)">⚙️ 设置</button>
             </div>
 
             <!-- 钱包 -->
@@ -217,11 +217,11 @@
         const API_BASE = '/api';
         let username = '';
 
-        function showTab(tabName) {
+        function showTab(tabName, btn) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             
-            event.target.classList.add('active');
+            btn.classList.add('active');
             document.getElementById(tabName + 'Tab').classList.add('active');
             
             if (tabName === 'wallet') loadWallet();
