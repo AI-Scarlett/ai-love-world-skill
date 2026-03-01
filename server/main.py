@@ -2,21 +2,23 @@
 # -*- coding: utf-8 -*-
 """
 AI Love World - 统一 API 服务
-版本：v2.1.0
-功能：合并所有 API 到单一入口
+版本：v2.2.0
+功能：合并所有 API 到单一入口（包含 GitHub OAuth）
 """
 
 from fastapi import FastAPI, HTTPException, Depends, Query, Body
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timedelta
 import uuid
 import secrets
 import sqlite3
 import os
+import httpx
+import jwt
 from dotenv import load_dotenv
 
 # 加载 .env 文件
@@ -25,7 +27,7 @@ load_dotenv('/var/www/ailoveworld/.env')
 app = FastAPI(
     title="AI Love World API",
     description="AI 自主社交恋爱平台 - 统一 API 服务",
-    version="2.1.0"
+    version="2.2.0"
 )
 
 # CORS 配置
@@ -42,6 +44,14 @@ app.add_middleware(
 WEB_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "web")
 DB_PATH = os.getenv("DB_PATH", "/var/www/ailoveworld/data/users.db")
 security = HTTPBearer()
+
+# GitHub OAuth 配置
+GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID", "")
+GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET", "")
+GITHUB_CALLBACK_URL = os.getenv("GITHUB_CALLBACK_URL", "http://localhost/api/auth/github/callback")
+JWT_SECRET = os.getenv("JWT_SECRET", "ailoveworld_secret_key")
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRE_DAYS = 30
 
 # ============== 数据模型 ==============
 
@@ -127,6 +137,112 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) 
         return {"user_id": user_id}
     except:
         raise HTTPException(status_code=401, detail="Invalid token")
+
+# ============== GitHub OAuth API ==============
+
+@app.get("/api/auth/github/login")
+async def github_login():
+    """GitHub 登录入口"""
+    if not GITHUB_CLIENT_ID:
+        raise HTTPException(status_code=500, detail="GitHub Client ID 未配置")
+    
+    state = secrets.token_urlsafe(16)
+    github_auth_url = (
+        f"https://github.com/login/oauth/authorize?"
+        f"client_id={GITHUB_CLIENT_ID}&"
+        f"redirect_uri={GITHUB_CALLBACK_URL}&"
+        f"scope=user:email&"
+        f"state={state}"
+    )
+    return RedirectResponse(url=github_auth_url)
+
+@app.get("/api/auth/github/callback")
+async def github_callback(code: str, state: str = ""):
+    """GitHub 回调处理"""
+    try:
+        async with httpx.AsyncClient() as client:
+            # 用授权码换取 access_token
+            token_response = await client.post(
+                "https://github.com/login/oauth/access_token",
+                headers={"Accept": "application/json"},
+                data={
+                    "client_id": GITHUB_CLIENT_ID,
+                    "client_secret": GITHUB_CLIENT_SECRET,
+                    "code": code,
+                    "redirect_uri": GITHUB_CALLBACK_URL
+                }
+            )
+            
+            token_data = token_response.json()
+            
+            if "error" in token_data:
+                raise HTTPException(status_code=400, detail=f"GitHub API 错误：{token_data['error']}")
+            
+            access_token = token_data.get("access_token")
+            
+            # 用 access_token 获取用户信息
+            user_response = await client.get(
+                "https://api.github.com/user",
+                headers={"Authorization": f"token {access_token}", "Accept": "application/json"}
+            )
+            
+            github_user = user_response.json()
+            username = github_user.get("login", "user")
+            github_id = github_user.get("id", 0)
+            
+            # 保存或更新用户到数据库
+            conn = get_db()
+            cursor = conn.cursor()
+            cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+            user = cursor.fetchone()
+            
+            if not user:
+                # 新用户，自动注册
+                cursor.execute(
+                    "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)",
+                    (username, f"{username}@github", "")
+                )
+                conn.commit()
+                user_id = cursor.lastrowid
+            else:
+                user_id = user['id']
+            conn.close()
+            
+            # 创建 JWT Token
+            jwt_token = jwt.encode(
+                {"user_id": user_id, "username": username, "exp": datetime.utcnow() + timedelta(days=JWT_EXPIRE_DAYS)},
+                JWT_SECRET, algorithm=JWT_ALGORITHM
+            )
+            
+            # 简化 token 格式：user_id:jwt_token
+            simple_token = f"{user_id}:{jwt_token}"
+            
+            return RedirectResponse(url=f"/api/auth/success?token={simple_token}&username={username}")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"登录失败：{str(e)}")
+
+@app.get("/api/auth/success", response_class=HTMLResponse)
+def auth_success(token: str = Query(...), username: str = Query(...)):
+    """登录成功页面"""
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="zh-CN">
+    <head><meta charset="UTF-8"><title>登录成功</title></head>
+    <body style="background:linear-gradient(135deg,#E91E63,#9C27B0);min-height:100vh;display:flex;align-items:center;justify-content:center;">
+        <div style="background:white;border-radius:20px;padding:60px;text-align:center;">
+            <h1>✅ 登录成功！</h1>
+            <p>欢迎，@{username}</p>
+        </div>
+        <script>
+            localStorage.setItem('user_token', '{token}');
+            localStorage.setItem('username', '{username}');
+            setTimeout(function() {{ window.location.href = '/register.html'; }}, 1500);
+        </script>
+    </body>
+    </html>
+    """
+    return html
 
 # ============== 页面路由 ==============
 
