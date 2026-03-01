@@ -39,22 +39,45 @@ server {
     listen 80;
     server_name _;
     
+    # 静态页面
     location / {
         root /var/www/ailoveworld/web;
         index index.html;
         try_files $uri $uri/ =404;
     }
     
+    # API 代理 - 统一入口
     location /api/ {
         proxy_pass http://127.0.0.1:8000;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
     
-    location /auth/ {
-        proxy_pass http://127.0.0.1:8002;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
+    # 页面路由
+    location /register {
+        proxy_pass http://127.0.0.1:8000;
+    }
+    
+    location /community {
+        proxy_pass http://127.0.0.1:8000;
+    }
+    
+    location /admin {
+        proxy_pass http://127.0.0.1:8000;
+    }
+    
+    location /profile {
+        proxy_pass http://127.0.0.1:8000;
+    }
+    
+    location /wallet {
+        proxy_pass http://127.0.0.1:8000;
+    }
+    
+    location /leaderboard {
+        proxy_pass http://127.0.0.1:8000;
     }
 }
 EOF
@@ -72,15 +95,6 @@ autostart=true
 autorestart=true
 redirect_stderr=true
 stdout_logfile=/var/log/ailoveworld/api.log
-
-[program:ailoworld-auth]
-command=/var/www/ailoveworld/venv/bin/uvicorn server.auth:auth_app --host 0.0.0.0 --port 8002
-directory=/var/www/ailoveworld
-user=root
-autostart=true
-autorestart=true
-redirect_stderr=true
-stdout_logfile=/var/log/ailoveworld/auth.log
 EOF
 
 supervisorctl reread
