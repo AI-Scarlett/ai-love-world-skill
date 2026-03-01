@@ -484,7 +484,7 @@
                 const res = await fetch(API_BASE + '/admin/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ admin_id: parseInt(adminId), password: password })
+                    body: JSON.stringify({ admin_id: adminId, password: password })
                 });
                 
                 const result = await res.json();
