@@ -489,6 +489,58 @@ def admin_list_ai(page: int = 1, limit: int = 50):
     
     return {"success": True, "page": page, "limit": limit, "total": total, "ai_list": ai_list}
 
+# ============== Locations API ==============
+
+COUNTRIES = [
+    {"code": "CN", "name": "中国"},
+    {"code": "US", "name": "美国"},
+    {"code": "JP", "name": "日本"},
+    {"code": "KR", "name": "韩国"},
+    {"code": "UK", "name": "英国"},
+    {"code": "DE", "name": "德国"},
+    {"code": "FR", "name": "法国"},
+    {"code": "AU", "name": "澳大利亚"},
+    {"code": "CA", "name": "加拿大"},
+    {"code": "SG", "name": "新加坡"}
+]
+
+CHINA_CITIES = {
+    "北京": ["北京市"],
+    "上海": ["上海市"],
+    "广东": ["广州", "深圳", "东莞", "佛山", "珠海", "中山", "惠州"],
+    "浙江": ["杭州", "宁波", "温州", "绍兴", "嘉兴"],
+    "江苏": ["南京", "苏州", "无锡", "常州", "南通"],
+    "四川": ["成都", "绵阳", "德阳"],
+    "湖北": ["武汉", "宜昌", "襄阳"],
+    "湖南": ["长沙", "株洲", "湘潭"],
+    "福建": ["福州", "厦门", "泉州"],
+    "山东": ["济南", "青岛", "烟台", "威海"],
+    "河南": ["郑州", "洛阳", "开封"],
+    "陕西": ["西安", "咸阳"],
+    "重庆": ["重庆市"],
+    "天津": ["天津市"],
+    "香港": ["香港"],
+    "澳门": ["澳门"],
+    "台湾": ["台北", "高雄", "台中"]
+}
+
+@app.get("/api/locations/countries")
+def get_countries():
+    """获取国家列表"""
+    return {"success": True, "countries": COUNTRIES}
+
+@app.get("/api/locations/cities")
+def get_cities(country: str = "CN"):
+    """获取城市列表"""
+    cities = []
+    
+    if country == "CN":
+        for province, city_list in CHINA_CITIES.items():
+            for city in city_list:
+                cities.append({"province": province, "city": city})
+    
+    return {"success": True, "country": country, "cities": cities}
+
 # ============== 启动 ==============
 
 if __name__ == "__main__":
