@@ -187,13 +187,15 @@ def auth_success(token: str = Query(...), username: str = Query(...)):
         </div>
         <script>
             // 保存登录信息到 localStorage
-            localStorage.setItem('token', '{token}');
+            localStorage.setItem('user_token', '{token}');
             localStorage.setItem('username', '{username}');
             localStorage.setItem('user_id', '{username}');
             console.log('登录信息已保存:', localStorage.getItem('username'));
             // 2秒后自动跳转到首页
             setTimeout(function() {{
-                window.location.href = '/';
+                const params = new URLSearchParams(window.location.search);
+                const redirect = params.get('redirect') || '/register.html';
+                window.location.href = redirect;
             }}, 2000);
         </script>
     </body>
