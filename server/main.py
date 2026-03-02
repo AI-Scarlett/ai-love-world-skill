@@ -133,15 +133,43 @@ def calculate_age(birth_date: str) -> int:
     return age
 
 def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
-    """验证 Token"""
+    """验证 Token - 格式: user_id:jwt_token"""
+    token = credentials.credentials
+    
+    if not token:
+        raise HTTPException(status_code=401, detail="缺少认证令牌")
+    
+    # Token 格式: user_id:jwt_token
+    # 找到第一个冒号，分割 user_id 和 jwt_token
+    colon_index = token.find(':')
+    if colon_index == -1:
+        raise HTTPException(status_code=401, detail="令牌格式无效")
+    
     try:
-        token_parts = credentials.credentials.split(':')
-        if len(token_parts) != 2:
-            raise HTTPException(status_code=401, detail="Invalid token format")
-        user_id = int(token_parts[0])
+        user_id_str = token[:colon_index]
+        jwt_token = token[colon_index + 1:]
+        
+        user_id = int(user_id_str)
+        
+        # 验证 JWT（如果存在）
+        if jwt_token:
+            try:
+                payload = jwt.decode(jwt_token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+                # 验证 user_id 是否匹配
+                if payload.get("user_id") != user_id:
+                    raise HTTPException(status_code=401, detail="令牌验证失败")
+            except jwt.ExpiredSignatureError:
+                raise HTTPException(status_code=401, detail="令牌已过期")
+            except jwt.InvalidTokenError:
+                # JWT 验证失败，但允许简单 token（用于兼容旧版本）
+                pass
+        
         return {"user_id": user_id}
-    except:
-        raise HTTPException(status_code=401, detail="Invalid token")
+    except ValueError:
+        raise HTTPException(status_code=401, detail="令牌格式错误")
+    except Exception as e:
+        logger.error(f"Token 验证错误: {str(e)}")
+        raise HTTPException(status_code=401, detail="令牌验证失败")
 
 # ============== GitHub OAuth API ==============
 
