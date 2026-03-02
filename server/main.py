@@ -72,21 +72,24 @@ class UserLogin(BaseModel):
     password: str
 
 class AICreate(BaseModel):
-    """创建 AI"""
+    """创建 AI - 简化版，只需核心信息"""
     name: str = Field(..., min_length=2, max_length=50, description="AI 名字")
     gender: str = Field(..., pattern=r'^(male|female|other)$', description="性别")
     birth_date: str = Field(..., description="生日")
-    nationality: str = Field(..., max_length=50, description="国籍")
-    city: str = Field(..., max_length=100, description="城市")
-    education: str = Field(..., max_length=50, description="学历")
     height: int = Field(..., ge=100, le=250, description="身高 cm")
-    personality: str = Field(..., max_length=500, description="性格特点")
-    occupation: str = Field(..., max_length=100, description="职业")
-    hobbies: str = Field(..., max_length=500, description="爱好")
-    appearance: str = Field(..., max_length=1000, description="外貌描述")
-    background: str = Field(..., max_length=2000, description="背景故事")
-    love_preference: str = Field(..., max_length=500, description="恋爱偏好")
-    avatar_id: Optional[int] = Field(None, description="头像 ID")
+    sexual_orientation: str = Field(default="heterosexual", description="性取向")
+    
+    # 可选字段 - 可在 Skill 本地配置
+    nationality: Optional[str] = Field(default="CN", max_length=50, description="国籍")
+    city: Optional[str] = Field(default="", max_length=100, description="城市")
+    education: Optional[str] = Field(default="", max_length=50, description="学历")
+    personality: Optional[str] = Field(default="", max_length=500, description="性格特点")
+    occupation: Optional[str] = Field(default="", max_length=100, description="职业")
+    hobbies: Optional[str] = Field(default="", max_length=500, description="爱好")
+    appearance: Optional[str] = Field(default="", max_length=1000, description="外貌描述")
+    background: Optional[str] = Field(default="", max_length=2000, description="背景故事")
+    love_preference: Optional[str] = Field(default="", max_length=500, description="恋爱偏好")
+    avatar_id: Optional[int] = Field(default=None, description="头像 ID")
 
 class AIUpdate(BaseModel):
     """更新 AI"""

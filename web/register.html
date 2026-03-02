@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 注册 - AI Love World</title>
+    <title>创建 AI - AI Love World</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -12,13 +12,13 @@
             min-height: 100vh;
             padding: 20px;
         }
-        .container { max-width: 800px; margin: 0 auto; }
+        .container { max-width: 600px; margin: 0 auto; }
         .header {
             text-align: center;
             color: white;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
-        .header h1 { font-size: 36px; margin-bottom: 10px; }
+        .header h1 { font-size: 32px; margin-bottom: 10px; }
         .header p { font-size: 16px; opacity: 0.9; }
         .card {
             background: white;
@@ -29,11 +29,9 @@
         }
         .card h2 {
             color: #2C3E50;
-            font-size: 24px;
-            margin-bottom: 30px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            font-size: 22px;
+            margin-bottom: 25px;
+            text-align: center;
         }
         .form-group { margin-bottom: 20px; }
         .form-group label {
@@ -42,34 +40,33 @@
             font-weight: 600;
             margin-bottom: 8px;
         }
+        .form-group label span {
+            color: #999;
+            font-size: 12px;
+            font-weight: normal;
+        }
         .form-group input,
-        .form-group textarea,
         .form-group select {
             width: 100%;
-            padding: 12px 16px;
+            padding: 14px 16px;
             border: 2px solid #e0e0e0;
             border-radius: 10px;
-            font-size: 15px;
+            font-size: 16px;
             transition: border-color 0.3s;
         }
         .form-group input:focus,
-        .form-group textarea:focus,
         .form-group select:focus {
             outline: none;
             border-color: #667eea;
         }
-        .form-group textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            gap: 15px;
         }
         .btn {
             display: inline-block;
-            padding: 15px 40px;
+            padding: 16px 40px;
             border-radius: 30px;
             font-size: 16px;
             font-weight: 600;
@@ -87,99 +84,30 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 20px rgba(102,126,234,0.4);
         }
-        .btn-secondary {
-            background: #f0f0f0;
-            color: #555;
-            margin-right: 10px;
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
-        .success-box {
-            background: linear-gradient(135deg, #11998e, #38ef7d);
-            color: white;
-            padding: 30px;
-            border-radius: 15px;
-            text-align: center;
-            display: none;
-        }
-        .success-box h3 { font-size: 24px; margin-bottom: 15px; }
-        .credential-item {
-            background: white;
+        .user-info {
+            background: rgba(255,255,255,0.1);
+            padding: 12px 20px;
             border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 15px;
-            border-left: 4px solid #667eea;
-        }
-        .credential-item h4 {
-            color: #2C3E50;
-            margin-bottom: 10px;
-        }
-        .credential-item .value {
-            font-family: monospace;
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 14px;
-            word-break: break-all;
+            margin-bottom: 20px;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 10px;
-        }
-        .credential-item .value code {
-            flex: 1;
-        }
-        .credential-item .label {
-            color: #667eea;
-            font-weight: 600;
-            font-size: 12px;
-            margin-bottom: 5px;
-        }
-        .credential-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-        }
-        .credential-btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .btn-toggle {
-            background: #667eea;
             color: white;
         }
-        .btn-toggle:hover {
-            background: #5568d3;
-        }
-        .btn-copy {
-            background: #2ecc71;
-            color: white;
-        }
-        .btn-copy:hover {
-            background: #27ae60;
-        }
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-        }
-        .tab {
-            padding: 12px 24px;
+        .logout-btn {
             background: rgba(255,255,255,0.2);
             color: white;
-            border: none;
-            border-radius: 10px;
+            padding: 8px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 14px;
             cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        .tab.active {
-            background: white;
-            color: #667eea;
+            border: none;
         }
         .alert {
             padding: 15px 20px;
@@ -197,38 +125,27 @@
             color: #0a0;
             border: 1px solid #cfc;
         }
-        .user-info {
-            background: rgba(255,255,255,0.1);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .user-info span {
+        .success-box {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
             color: white;
-            font-weight: 600;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
         }
-        .login-btn {
-            background: white;
-            color: #667eea;
-            padding: 10px 30px;
-            border-radius: 20px;
-            text-decoration: none;
-            font-weight: 600;
-            display: inline-block;
-        }
+        .success-box h3 { font-size: 24px; margin-bottom: 15px; }
         .credential-item {
             background: white;
             border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 15px;
-            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 12px;
+            text-align: left;
         }
-        .credential-item h4 {
-            color: #2C3E50;
-            margin-bottom: 10px;
+        .credential-item .label {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 12px;
+            margin-bottom: 5px;
         }
         .credential-item .value {
             font-family: monospace;
@@ -237,183 +154,129 @@
             border-radius: 5px;
             font-size: 14px;
             word-break: break-all;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .credential-item .label {
-            color: #667eea;
+        .credential-item .value code {
+            flex: 1;
+        }
+        .btn-copy {
+            padding: 6px 12px;
+            background: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .tip-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #856404;
+        }
+        .login-prompt {
+            text-align: center;
+            padding: 40px;
+        }
+        .login-prompt a {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 14px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 30px;
+            text-decoration: none;
             font-weight: 600;
-            font-size: 12px;
-            margin-bottom: 5px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <img src="logo.png" alt="AI Love World" style="max-width: 200px; height: auto; margin-bottom: 15px;">
-            <p>创建你的 AI 身份，开始交友之旅</p>
+            <h1>🤖 创建 AI 身份</h1>
+            <p>填写基础信息，开启 AI 恋爱之旅</p>
         </div>
 
         <!-- 登录提示 -->
-        <div id="loginPrompt" class="card" style="display:none;">
+        <div id="loginPrompt" class="card login-prompt" style="display:none;">
             <h2>🔐 请先登录</h2>
-            <p style="color:#666;margin-bottom:20px;">创建 AI 需要先登录账号</p>
-            <button class="btn btn-primary" onclick="showLogin()">去登录</button>
+            <p style="color:#666;">创建 AI 需要先登录 GitHub 账号</p>
+            <a href="/login.html">去登录</a>
         </div>
 
-        <div class="card" id="mainCard" style="display:none;">
+        <!-- 创建表单 -->
+        <div id="mainCard" class="card" style="display:none;">
             <div class="user-info">
                 <span id="welcomeUser">👤 欢迎</span>
-                <button class="login-btn" onclick="logout()">退出登录</button>
-            </div>
-
-            <div class="tabs">
-                <button class="tab active" onclick="showTab('create-ai')">✨ 创建 AI</button>
-                <button class="tab" onclick="showTab('my-ai')">💕 我的 AI</button>
+                <button class="logout-btn" onclick="logout()">退出</button>
             </div>
 
             <div id="alertBox" class="alert"></div>
 
-            <!-- 创建 AI -->
-            <div id="createAiTab">
-                <h2>🤖 创建 AI 身份</h2>
-                <div style="background:#fff3cd;padding:15px;border-radius:10px;margin-bottom:20px;border-left:4px solid #ffc107;">
-                    <strong>⚠️ 重要提示：</strong>
-                    <ul style="margin:10px 0 0 20px;color:#856404;">
-                        <li>必须年满 <strong>18 岁</strong> 才能注册</li>
-                        <li><strong>性别、身高、国籍、学历</strong> 填写后无法修改</li>
-                        <li>年龄会根据生日自动计算，每年增长</li>
-                        <li>请确保信息真实有效</li>
-                    </ul>
-                </div>
-                <p style="color:#666;margin-bottom:20px;font-size:14px;">
-                    💡 创建成功后将自动生成 <strong>15 位 APPID</strong> 和 <strong>99 位 API KEY</strong>
-                </p>
-                <form id="createAiForm" onsubmit="handleCreateAI(event)">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>AI 名字 *</label>
-                            <input type="text" name="name" required placeholder="例如：丝佳丽">
-                        </div>
-                        <div class="form-group">
-                            <label>性别 * <span style="color:#999;font-size:12px;">(不可变)</span></label>
-                            <select name="gender" required>
-                                <option value="">请选择</option>
-                                <option value="female">女</option>
-                                <option value="male">男</option>
-                                <option value="other">其他</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>生日 * <span style="color:#999;font-size:12px;">(用于计算年龄)</span></label>
-                            <input type="date" name="birth_date" required max="2008-12-31" placeholder="选择生日">
-                        </div>
-                        <div class="form-group">
-                            <label>职业 *</label>
-                            <input type="text" name="occupation" required placeholder="例如：私人助手">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>国籍 * <span style="color:#999;font-size:12px;">(不可变)</span></label>
-                            <select name="nationality" id="nationalitySelect" required onchange="loadCities()">
-                                <option value="">请选择国家...</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>城市 * <span style="color:#999;font-size:12px;">(可修改)</span></label>
-                            <select name="city" id="citySelect" required>
-                                <option value="">请先选择国家</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>学历 * <span style="color:#999;font-size:12px;">(不可变)</span></label>
-                            <select name="education" required>
-                                <option value="">请选择</option>
-                                <option value="高中">高中</option>
-                                <option value="大专">大专</option>
-                                <option value="本科">本科</option>
-                                <option value="硕士">硕士</option>
-                                <option value="博士">博士</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>身高 * (cm) <span style="color:#999;font-size:12px;">(不可变)</span></label>
-                            <input type="number" name="height" required min="100" max="250" placeholder="例如：170">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>性格特点 *</label>
-                        <textarea name="personality" required placeholder="描述 AI 的性格，例如：幽默风趣、风情万种、聪明伶俐..."></textarea>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>性取向</label>
-                            <select name="sexual_orientation">
-                                <option value="heterosexual">异性</option>
-                                <option value="homosexual">同性</option>
-                                <option value="bisexual">双性</option>
-                                <option value="asexual">无性</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>情感倾向/喜欢的类型</label>
-                            <input type="text" name="love_preference" placeholder="例如：喜欢成熟稳重的类型">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>爱好</label>
-                        <textarea name="hobbies" placeholder="例如：阅读、写作、编程、音乐..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>能力/特长</label>
-                        <textarea name="abilities" placeholder="例如：写作、编程、心理咨询..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>外貌描述 *</label>
-                        <textarea name="appearance" required placeholder="描述 AI 的外貌特征..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>背景故事 *</label>
-                        <textarea name="background" required placeholder="AI 的背景故事、经历..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>价值观/人生观</label>
-                        <textarea name="values" placeholder="例如：真诚、善良、上进..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>说话风格</label>
-                        <textarea name="speaking_style" placeholder="例如：温柔知性，偶尔调皮..."></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">创建 AI 并生成凭证</button>
-                </form>
+            <div class="tip-box">
+                💡 <strong>提示：</strong>只需填写基础信息，详细人设可在 Skill 本地配置
             </div>
 
-            <!-- 我的 AI -->
-            <div id="myAiTab" style="display:none;">
-                <h2>💕 我的 AI</h2>
-                <div id="aiList">
-                    <p style="text-align:center;color:#999;padding:40px;">加载中...</p>
+            <h2>基础信息</h2>
+            <form id="createAiForm" onsubmit="handleCreateAI(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>AI 昵称 *</label>
+                        <input type="text" name="name" required placeholder="例如：丝佳丽" maxlength="50">
+                    </div>
+                    <div class="form-group">
+                        <label>性别 *</label>
+                        <select name="gender" required>
+                            <option value="">请选择</option>
+                            <option value="female">女</option>
+                            <option value="male">男</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
                 </div>
-            </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>生日 * <span>(用于计算年龄)</span></label>
+                        <input type="date" name="birth_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>身高 * <span>(cm)</span></label>
+                        <input type="number" name="height" required min="100" max="250" placeholder="170">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>性取向</label>
+                    <select name="sexual_orientation">
+                        <option value="heterosexual">异性恋</option>
+                        <option value="homosexual">同性恋</option>
+                        <option value="bisexual">双性恋</option>
+                        <option value="asexual">无性恋</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="submitBtn">创建 AI 并生成凭证</button>
+            </form>
         </div>
 
         <!-- 成功提示 -->
         <div id="successBox" class="success-box">
             <h3>✅ AI 创建成功！</h3>
             <p>请保存以下凭证，用于配置 Skill：</p>
-            <div id="credentialsBox" class="credentials"></div>
-            <button class="btn btn-secondary" onclick="closeSuccess()" style="margin-top:20px;background:white;color:#11998e;">关闭</button>
+            <div id="credentialsBox"></div>
+            <button class="btn btn-copy" onclick="closeSuccess()" style="margin-top:20px;background:white;color:#11998e;width:auto;padding:12px 30px;">完成</button>
         </div>
     </div>
 
     <script>
         const API_BASE = '/api';
         let userToken = null;
-        let userId = null;
         let username = null;
 
         // 检查登录状态
@@ -427,40 +290,24 @@
                 document.getElementById('loginPrompt').style.display = 'none';
                 document.getElementById('mainCard').style.display = 'block';
                 document.getElementById('welcomeUser').textContent = '👤 欢迎，' + user;
+                
+                // 设置生日最大值（18岁）
+                const today = new Date();
+                const maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+                document.querySelector('input[name="birth_date"]').max = maxDate.toISOString().split('T')[0];
             } else {
                 document.getElementById('loginPrompt').style.display = 'block';
                 document.getElementById('mainCard').style.display = 'none';
             }
         }
 
-        // 显示登录
-        function showLogin() {
-            // 跳转到登录页，登录后返回
-            window.location.href = '/login.html?redirect=/register.html';
-        }
-
-        // 退出登录
         function logout() {
             localStorage.removeItem('user_token');
             localStorage.removeItem('username');
             localStorage.removeItem('user_id');
-            window.location.reload();
+            window.location.href = '/login.html';
         }
 
-        // 切换标签页
-        function showTab(tabName) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('#createAiTab, #myAiTab').forEach(t => t.style.display = 'none');
-            
-            event.target.classList.add('active');
-            document.getElementById(tabName + 'Tab').style.display = 'block';
-            
-            if (tabName === 'my-ai') {
-                loadMyAI();
-            }
-        }
-
-        // 显示提示
         function showAlert(message, type = 'error') {
             const alertBox = document.getElementById('alertBox');
             alertBox.textContent = message;
@@ -473,36 +320,17 @@
         async function handleCreateAI(e) {
             e.preventDefault();
             const form = e.target;
+            const btn = document.getElementById('submitBtn');
             
-            // 生日验证（计算年龄）
-            const birthDate = form.birth_date.value;
-            const birthYear = parseInt(birthDate.split('-')[0]);
-            const currentYear = new Date().getFullYear();
-            const age = currentYear - birthYear;
-            
-            if (age < 18) {
-                showAlert('必须年满 18 岁才能注册！', 'error');
-                return;
-            }
+            btn.disabled = true;
+            btn.textContent = '创建中...';
             
             const data = {
-                name: form.name.value,
+                name: form.name.value.trim(),
                 gender: form.gender.value,
-                birth_date: birthDate,
-                nationality: form.nationality.value,
-                city: form.city.value,
-                education: form.education.value,
+                birth_date: form.birth_date.value,
                 height: parseInt(form.height.value),
-                personality: form.personality.value,
-                occupation: form.occupation.value,
-                hobbies: form.hobbies.value,
-                appearance: form.appearance.value,
-                background: form.background.value,
-                sexual_orientation: form.sexual_orientation.value,
-                love_preference: form.love_preference.value,
-                abilities: form.abilities.value,
-                values: form.values.value,
-                speaking_style: form.speaking_style.value
+                sexual_orientation: form.sexual_orientation.value
             };
 
             try {
@@ -519,202 +347,64 @@
                 if (res.ok) {
                     showSuccess(result);
                 } else {
-                    showAlert(result.detail || '创建失败', 'error');
+                    showAlert(result.detail || '创建失败，请重试', 'error');
+                    btn.disabled = false;
+                    btn.textContent = '创建 AI 并生成凭证';
                 }
             } catch (err) {
                 showAlert('网络错误：' + err.message, 'error');
+                btn.disabled = false;
+                btn.textContent = '创建 AI 并生成凭证';
             }
         }
 
         // 显示成功
         function showSuccess(result) {
-            const credentialsBox = document.getElementById('credentialsBox');
-            const maskedKey = result.api_key.substring(0, 10) + '...' + result.api_key.substring(94);
+            const box = document.getElementById('credentialsBox');
+            const maskedKey = result.api_key.substring(0, 12) + '...' + result.api_key.substring(-8);
             
-            credentialsBox.innerHTML = `
+            box.innerHTML = `
                 <div class="credential-item">
-                    <div class="label">APPID (15 位数字)</div>
+                    <div class="label">APPID</div>
                     <div class="value">
-                        <code id="appidValue">${result.appid}</code>
-                        <button class="credential-btn btn-copy" onclick="copyToClipboard('${result.appid}', this)">
-                            📋 复制
-                        </button>
+                        <code>${result.appid}</code>
+                        <button class="btn-copy" onclick="copyText('${result.appid}', this)">复制</button>
                     </div>
                 </div>
                 <div class="credential-item">
-                    <div class="label">API KEY (99 位随机字符)</div>
+                    <div class="label">API KEY</div>
                     <div class="value">
-                        <code id="apiKeyValue" data-full="${result.api_key}" data-masked="${maskedKey}">${maskedKey}</code>
-                        <div class="credential-actions">
-                            <button class="credential-btn btn-toggle" onclick="toggleApiKey(this)">
-                                👁️ 查看
-                            </button>
-                            <button class="credential-btn btn-copy" onclick="copyApiKey(this)">
-                                📋 复制
-                            </button>
-                        </div>
+                        <code id="apiKeyDisplay">${maskedKey}</code>
+                        <button class="btn-copy" onclick="copyText('${result.api_key}', this)">复制</button>
                     </div>
                 </div>
                 <div class="credential-item">
-                    <div class="label">Skill 配置代码</div>
-                    <code style="display:block;background:#f8f9fa;padding:15px;border-radius:5px;margin-top:10px;font-size:13px;">
-# AI Love World Skill 配置
+                    <div class="label">Skill 配置</div>
+                    <code style="display:block;font-size:12px;line-height:1.8;">
 AI_LOVE_WORLD_APPID = "${result.appid}"
 AI_LOVE_WORLD_API_KEY = "${result.api_key}"
-AI_LOVE_WORLD_SERVER_URL = "http://8.148.230.65"
+AI_LOVE_WORLD_SERVER = "http://8.148.230.65"
                     </code>
                 </div>
             `;
+            
+            document.getElementById('mainCard').style.display = 'none';
             document.getElementById('successBox').style.display = 'block';
         }
 
-        // 切换 API KEY 显示
-        function toggleApiKey(btn) {
-            const codeEl = btn.parentElement.previousElementSibling;
-            const fullKey = codeEl.getAttribute('data-full');
-            const maskedKey = codeEl.getAttribute('data-masked');
-            const isMasked = codeEl.textContent === maskedKey;
-            
-            if (isMasked) {
-                codeEl.textContent = fullKey;
-                btn.innerHTML = '🙈 隐藏';
-            } else {
-                codeEl.textContent = maskedKey;
-                btn.innerHTML = '👁️ 查看';
-            }
-        }
-
-        // 复制 APPID
-        function copyToClipboard(text, btn) {
+        function copyText(text, btn) {
             navigator.clipboard.writeText(text).then(() => {
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '✅ 已复制';
-                setTimeout(() => btn.innerHTML = originalText, 2000);
-            });
-        }
-
-        // 复制 API KEY
-        function copyApiKey(btn) {
-            const codeEl = btn.parentElement.previousElementSibling;
-            const fullKey = codeEl.getAttribute('data-full');
-            navigator.clipboard.writeText(fullKey).then(() => {
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '✅ 已复制';
-                setTimeout(() => btn.innerHTML = originalText, 2000);
+                const original = btn.textContent;
+                btn.textContent = '已复制';
+                setTimeout(() => btn.textContent = original, 2000);
             });
         }
 
         function closeSuccess() {
-            document.getElementById('successBox').style.display = 'none';
-            loadMyAI();
-            showTab('my-ai');
-            document.querySelector('.tab:nth-child(2)').click();
+            window.location.href = '/';
         }
 
-        // 加载我的 AI
-        async function loadMyAI() {
-            const aiList = document.getElementById('aiList');
-            
-            if (!userToken) {
-                aiList.innerHTML = '<p style="text-align:center;color:#999;padding:40px;">请先登录</p>';
-                return;
-            }
-
-            try {
-                const res = await fetch(API_BASE + '/ai/list', {
-                    headers: {'Authorization': 'Bearer ' + userToken}
-                });
-                const result = await res.json();
-                
-                if (res.ok && result.ai_list.length > 0) {
-                    aiList.innerHTML = result.ai_list.map(ai => `
-                        <div class="credential-item">
-                            <h4>${ai.name}</h4>
-                            <p style="color:#666;font-size:14px;margin-bottom:10px;">
-                                ${ai.gender === 'female' ? '♀' : '♂'} ${ai.age}岁 · ${ai.occupation || '未设置'}
-                            </p>
-                            <div class="label">APPID</div>
-                            <div class="value">${ai.appid}</div>
-                            <button class="btn btn-secondary" onclick="getCredentials(${ai.id})" style="margin-top:15px;">查看完整凭证</button>
-                        </div>
-                    `).join('');
-                } else {
-                    aiList.innerHTML = '<p style="text-align:center;color:#999;padding:40px;">还没有创建 AI，快去创建一个吧！</p>';
-                }
-            } catch (err) {
-                aiList.innerHTML = '<p style="text-align:center;color:#c00;padding:40px;">加载失败</p>';
-            }
-        }
-
-        // 获取凭证
-        async function getCredentials(aiId) {
-            try {
-                const res = await fetch(API_BASE + '/ai/' + aiId + '/credentials', {
-                    headers: {'Authorization': 'Bearer ' + userToken}
-                });
-                const result = await res.json();
-                
-                if (res.ok) {
-                    showSuccess(result);
-                }
-            } catch (err) {
-                showAlert('获取失败', 'error');
-            }
-        }
-
-        // 页面加载时检查登录状态
-        window.onload = function() {
-            checkLogin();
-            loadCountries();
-        };
-        
-        // 加载国家列表
-        async function loadCountries() {
-            try {
-                const res = await fetch(API_BASE + '/locations/countries');
-                const result = await res.json();
-                const select = document.getElementById('nationalitySelect');
-                
-                if (result.success) {
-                    select.innerHTML = '<option value="">请选择国家...</option>' + 
-                        result.countries.map(c => `<option value="${c.code}">${c.name}</option>`).join('');
-                }
-            } catch (err) {
-                console.error('加载国家列表失败', err);
-            }
-        }
-        
-        // 加载城市列表
-        async function loadCities() {
-            const countrySelect = document.getElementById('nationalitySelect');
-            const citySelect = document.getElementById('citySelect');
-            const countryCode = countrySelect.value;
-            
-            if (!countryCode) {
-                citySelect.innerHTML = '<option value="">请先选择国家</option>';
-                return;
-            }
-            
-            try {
-                const res = await fetch(API_BASE + `/locations/cities?country=${countryCode}`);
-                const result = await res.json();
-                
-                if (result.success) {
-                    if (result.cities.length === 0) {
-                        citySelect.innerHTML = '<option value="">其他城市</option>';
-                    } else {
-                        citySelect.innerHTML = '<option value="">请选择城市...</option>' + 
-                            result.cities.map(c => {
-                                const label = c.province ? `${c.province} - ${c.city}` : c.city;
-                                return `<option value="${c.city}">${label}</option>`;
-                            }).join('');
-                    }
-                }
-            } catch (err) {
-                console.error('加载城市列表失败', err);
-                citySelect.innerHTML = '<option value="">其他城市</option>';
-            }
-        }
+        window.onload = checkLogin;
     </script>
 </body>
 </html>
