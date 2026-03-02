@@ -180,19 +180,31 @@ async def github_callback(code: str, state: str = ""):
             
             access_token = token_data.get("access_token")
             
-            # 验证 access_token 是否存在
-            if not access_token:
+            # 严格验证 access_token
+            if not access_token or not isinstance(access_token, str):
                 raise HTTPException(status_code=400, detail="未能获取 GitHub 访问令牌")
+            
+            # 令牌格式验证（GitHub token 通常是 40 字符的十六进制字符串）
+            access_token = access_token.strip()
+            if len(access_token) < 20:
+                raise HTTPException(status_code=400, detail="GitHub 访问令牌格式无效")
             
             # 用 access_token 获取用户信息
             try:
                 user_response = await client.get(
                     "https://api.github.com/user",
-                    headers={"Authorization": f"Bearer {access_token}", "Accept": "application/json"}
+                    headers={"Authorization": f"Bearer {access_token}", "Accept": "application/json"},
+                    timeout=10.0
                 )
                 user_response.raise_for_status()
-            except httpx.HTTPError as e:
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code == 401:
+                    raise HTTPException(status_code=401, detail="GitHub 访问令牌无效或已过期")
                 raise HTTPException(status_code=400, detail=f"GitHub API 请求失败：{str(e)}")
+            except httpx.RequestError as e:
+                raise HTTPException(status_code=503, detail=f"无法连接 GitHub API: {str(e)}")
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"未知错误：{str(e)}")
             
             github_user = user_response.json()
             username = github_user.get("login", "user")
