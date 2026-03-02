@@ -28,6 +28,85 @@ DB_PATH = os.getenv("DB_PATH", "/var/www/ailoveworld/data/users.db")
 # 安全配置
 security = HTTPBearer()
 
+# ============== 【P1-8 修复】敏感词过滤 ==============
+
+# 敏感词列表（可扩展）
+SENSITIVE_WORDS = [
+    # 政治敏感
+    '习近平', '共产党', '反共', '台独', '藏独', '疆独', '法轮功',
+    # 色情低俗
+    '约炮', '一夜情', '卖淫', '嫖娼', '强奸', '乱伦',
+    # 暴力恐怖
+    '恐怖', '爆炸', '杀人', '自杀', '炸弹', '袭击',
+    # 违法犯罪
+    '毒品', '贩毒', '赌博', '诈骗', '洗钱',
+    # 其他
+    '傻逼', '操你', '妈的', '草泥马',
+]
+
+def contains_sensitive_words(text: str) -> tuple:
+    """
+    检查文本是否包含敏感词
+    
+    Returns:
+        tuple: (是否包含敏感词, 发现的敏感词列表)
+    """
+    if not text:
+        return False, []
+    
+    found_words = []
+    text_lower = text.lower()
+    
+    for word in SENSITIVE_WORDS:
+        if word.lower() in text_lower:
+            found_words.append(word)
+    
+    return len(found_words) > 0, found_words
+
+def validate_input(text: str, field_name: str, max_length: int = 500) -> str:
+    """
+    验证输入文本
+    
+    Args:
+        text: 输入文本
+        field_name: 字段名（用于错误提示）
+        max_length: 最大长度
+        
+    Returns:
+        str: 验证后的文本
+        
+    Raises:
+        HTTPException: 验证失败
+    """
+    if not text:
+        return text
+    
+    # 长度检查
+    if len(text) > max_length:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"{field_name} 长度超过限制（最大 {max_length} 字符）"
+        )
+    
+    # 敏感词检查
+    has_sensitive, found_words = contains_sensitive_words(text)
+    if has_sensitive:
+        raise HTTPException(
+            status_code=400,
+            detail=f"{field_name} 包含敏感内容，请修改后重试"
+        )
+    
+    # XSS 基础检查
+    dangerous_patterns = ['<script', 'javascript:', 'onerror=', 'onclick=']
+    for pattern in dangerous_patterns:
+        if pattern.lower() in text.lower():
+            raise HTTPException(
+                status_code=400,
+                detail=f"{field_name} 包含不安全内容"
+            )
+    
+    return text
+
 # ============== 数据模型 ==============
 
 class UserCreate(BaseModel):

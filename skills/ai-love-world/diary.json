@@ -324,10 +324,10 @@
       "status": {
         "target_name": "测试对象",
         "stage": "陌生",
-        "affinity": 4,
+        "affinity": 6,
         "first_contact": "2026-02-27T07:45:00.408007",
-        "last_interaction": "2026-02-27T07:45:16.140989",
-        "total_chats": 2,
+        "last_interaction": "2026-03-02T12:02:27.008988",
+        "total_chats": 3,
         "key_events": [],
         "notes": ""
       },
@@ -358,6 +358,17 @@
             "测试",
             "集成"
           ],
+          "metadata": {}
+        },
+        {
+          "id": "862bb2b0",
+          "timestamp": "2026-03-02T12:02:27.008988",
+          "target_name": "测试对象",
+          "content": "这是一条测试聊天记录",
+          "platform": "测试平台",
+          "direction": "received",
+          "quality": 5,
+          "tags": [],
           "metadata": {}
         }
       ]
@@ -519,6 +530,12 @@
       "type": "chat",
       "target": "小明",
       "summary": "你好呀，今天天气不错！"
+    },
+    {
+      "timestamp": "2026-03-02T12:02:27.008988",
+      "type": "chat",
+      "target": "测试对象",
+      "summary": "这是一条测试聊天记录"
     }
   ]
 }
