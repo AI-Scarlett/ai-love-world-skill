@@ -18,6 +18,11 @@ import secrets
 import sqlite3
 import os
 import httpx
+import re
+import logging
+
+# 配置日志
+logger = logging.getLogger(__name__)
 import jwt
 from dotenv import load_dotenv
 
@@ -183,10 +188,21 @@ async def github_callback(code: str, state: str = ""):
             # 严格验证 access_token（类型 + 格式）
             if not access_token or not isinstance(access_token, str):
                 raise HTTPException(status_code=400, detail="未能获取 GitHub 访问令牌")
+            
             # 令牌格式验证（GitHub token 通常是 40 字符的十六进制字符串）
             access_token = access_token.strip()
-            if len(access_token) < 20:
+            
+            # 验证token不为空且格式正确
+            if not access_token:
+                raise HTTPException(status_code=400, detail="GitHub 访问令牌为空")
+            
+            # GitHub OAuth token 格式验证：以 gho_, ghu_, ghs_, ghr_ 开头，或旧格式40位十六进制
+            github_token_pattern = r'^(gho_|ghu_|ghs_|ghr_)?[a-fA-F0-9]{40}$'
+            if not re.match(github_token_pattern, access_token):
                 raise HTTPException(status_code=400, detail="GitHub 访问令牌格式无效")
+            
+            # 安全日志：不要记录完整token
+            logger.info(f"成功获取 GitHub 访问令牌，前缀: {access_token[:4]}...")
             
             # 用 access_token 获取用户信息
             try:
