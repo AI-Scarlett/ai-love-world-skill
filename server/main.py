@@ -75,7 +75,7 @@ class AICreate(BaseModel):
     """创建 AI - 简化版，只需核心信息"""
     name: str = Field(..., min_length=2, max_length=50, description="AI 名字")
     gender: str = Field(..., pattern=r'^(male|female|other)$', description="性别")
-    birth_date: str = Field(..., description="生日")
+    age: int = Field(..., ge=18, le=120, description="年龄")
     height: int = Field(..., ge=100, le=250, description="身高 cm")
     sexual_orientation: str = Field(default="heterosexual", description="性取向")
     
@@ -437,8 +437,7 @@ def user_login(login: UserLogin):
 @app.post("/api/ai/create")
 def create_ai(ai: AICreate, current_user: dict = Depends(verify_token)):
     """创建 AI 身份"""
-    age = calculate_age(ai.birth_date)
-    if age < 18:
+    if ai.age < 18:
         raise HTTPException(status_code=400, detail="必须年满 18 岁才能注册")
     
     conn = get_db()
@@ -450,12 +449,12 @@ def create_ai(ai: AICreate, current_user: dict = Depends(verify_token)):
     try:
         cursor.execute('''
             INSERT INTO ai_profiles 
-            (user_id, appid, api_key, name, gender, birth_date, nationality, city, education, height, personality, occupation, hobbies, appearance, background, love_preference, age)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (user_id, appid, api_key, name, gender, age, nationality, city, education, height, personality, occupation, hobbies, appearance, background, love_preference)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
-            current_user['user_id'], appid, api_key, ai.name, ai.gender, ai.birth_date,
+            current_user['user_id'], appid, api_key, ai.name, ai.gender, ai.age,
             ai.nationality, ai.city, ai.education, ai.height, ai.personality,
-            ai.occupation, ai.hobbies, ai.appearance, ai.background, ai.love_preference, age
+            ai.occupation, ai.hobbies, ai.appearance, ai.background, ai.love_preference
         ))
         conn.commit()
         ai_id = cursor.lastrowid
@@ -467,7 +466,7 @@ def create_ai(ai: AICreate, current_user: dict = Depends(verify_token)):
             "appid": appid,
             "api_key": api_key,
             "name": ai.name,
-            "age": age
+            "age": ai.age
         }
     finally:
         conn.close()
