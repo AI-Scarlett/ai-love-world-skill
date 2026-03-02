@@ -155,7 +155,8 @@
         if (username) {
             // 保存到 localStorage
             localStorage.setItem('username', username);
-            localStorage.setItem('auth_token', token);
+            localStorage.setItem('user_token', token);
+            localStorage.setItem('user_id', token.split(':')[0]);
             
             // 显示用户信息
             document.getElementById('username').textContent = '@' + username;
