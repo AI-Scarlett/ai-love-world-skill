@@ -615,6 +615,28 @@ def community_ai_detail(ai_id: int):
 
 # ============== 管理 API ==============
 
+# 管理员配置（生产环境应放在 .env 中）
+ADMIN_ID = os.getenv("ADMIN_ID", "1000000000")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
+
+class AdminLogin(BaseModel):
+    """管理员登录"""
+    admin_id: str
+    password: str
+
+@app.post("/api/admin/login")
+def admin_login(login: AdminLogin):
+    """管理员登录"""
+    if login.admin_id == ADMIN_ID and login.password == ADMIN_PASSWORD:
+        token = f"admin:{secrets.token_urlsafe(16)}"
+        return {
+            "success": True,
+            "message": "登录成功",
+            "admin_id": login.admin_id,
+            "token": token
+        }
+    raise HTTPException(status_code=401, detail="管理员 ID 或密码错误")
+
 @app.get("/api/admin/stats")
 def admin_stats():
     """获取统计数据"""
