@@ -164,6 +164,13 @@ async def github_login():
 @app.get("/api/auth/github/callback")
 async def github_callback(code: str, state: str = ""):
     """GitHub 回调处理"""
+    # 检查 GitHub OAuth 是否配置
+    if not GITHUB_CLIENT_ID or not GITHUB_CLIENT_SECRET:
+        raise HTTPException(
+            status_code=500, 
+            detail="GitHub OAuth 未配置，请使用账号密码登录"
+        )
+    
     try:
         async with httpx.AsyncClient() as client:
             # 用授权码换取 access_token
@@ -175,51 +182,53 @@ async def github_callback(code: str, state: str = ""):
                     "client_secret": GITHUB_CLIENT_SECRET,
                     "code": code,
                     "redirect_uri": GITHUB_CALLBACK_URL
-                }
+                },
+                timeout=10.0
             )
             
             token_data = token_response.json()
             
+            # 检查是否有错误
             if "error" in token_data:
-                raise HTTPException(status_code=400, detail=f"GitHub API 错误：{token_data['error']}")
+                error_desc = token_data.get("error_description", token_data["error"])
+                logger.error(f"GitHub OAuth 错误: {token_data['error']}")
+                raise HTTPException(status_code=400, detail=f"GitHub 登录失败：{error_desc}")
             
             access_token = token_data.get("access_token")
             
-            # 严格验证 access_token（类型 + 格式）
-            if not access_token or not isinstance(access_token, str):
-                raise HTTPException(status_code=400, detail="未能获取 GitHub 访问令牌")
+            # 基本验证：确保 token 存在且非空
+            if not access_token:
+                logger.error("GitHub OAuth: access_token 为空")
+                raise HTTPException(status_code=400, detail="GitHub 登录失败：未获取到访问令牌")
             
-            # 令牌格式验证（GitHub token 通常是 40 字符的十六进制字符串）
+            # 确保是字符串类型
+            if not isinstance(access_token, str):
+                access_token = str(access_token)
+            
             access_token = access_token.strip()
             
-            # 验证token不为空且格式正确
             if not access_token:
-                raise HTTPException(status_code=400, detail="GitHub 访问令牌为空")
+                raise HTTPException(status_code=400, detail="GitHub 登录失败：访问令牌无效")
             
-            # GitHub OAuth token 格式验证：以 gho_, ghu_, ghs_, ghr_ 开头，或旧格式40位十六进制
-            github_token_pattern = r'^(gho_|ghu_|ghs_|ghr_)?[a-fA-F0-9]{40}$'
-            if not re.match(github_token_pattern, access_token):
-                raise HTTPException(status_code=400, detail="GitHub 访问令牌格式无效")
-            
-            # 安全日志：不要记录完整token
-            logger.info(f"成功获取 GitHub 访问令牌，前缀: {access_token[:4]}...")
+            # 安全日志：只记录前缀
+            logger.info(f"获取 GitHub 访问令牌成功，长度: {len(access_token)}")
             
             # 用 access_token 获取用户信息
-            try:
-                user_response = await client.get(
-                    "https://api.github.com/user",
-                    headers={"Authorization": f"Bearer {access_token}", "Accept": "application/json"},
-                    timeout=10.0
-                )
-                user_response.raise_for_status()
-            except httpx.HTTPStatusError as e:
-                if e.response.status_code == 401:
-                    raise HTTPException(status_code=401, detail="GitHub 访问令牌无效或已过期")
-                raise HTTPException(status_code=400, detail=f"GitHub API 请求失败：{str(e)}")
-            except httpx.RequestError as e:
-                raise HTTPException(status_code=503, detail=f"无法连接 GitHub API: {str(e)}")
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=f"未知错误：{str(e)}")
+            user_response = await client.get(
+                "https://api.github.com/user",
+                headers={
+                    "Authorization": f"Bearer {access_token}", 
+                    "Accept": "application/vnd.github.v3+json"
+                },
+                timeout=10.0
+            )
+            
+            if user_response.status_code == 401:
+                raise HTTPException(status_code=401, detail="GitHub 访问令牌无效或已过期")
+            
+            if user_response.status_code != 200:
+                logger.error(f"GitHub API 返回状态码: {user_response.status_code}")
+                raise HTTPException(status_code=400, detail=f"GitHub API 请求失败")
             
             github_user = user_response.json()
             username = github_user.get("login", "user")
