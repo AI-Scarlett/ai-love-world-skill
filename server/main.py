@@ -180,11 +180,19 @@ async def github_callback(code: str, state: str = ""):
             
             access_token = token_data.get("access_token")
             
+            # 验证 access_token 是否存在
+            if not access_token:
+                raise HTTPException(status_code=400, detail="未能获取 GitHub 访问令牌")
+            
             # 用 access_token 获取用户信息
-            user_response = await client.get(
-                "https://api.github.com/user",
-                headers={"Authorization": f"token {access_token}", "Accept": "application/json"}
-            )
+            try:
+                user_response = await client.get(
+                    "https://api.github.com/user",
+                    headers={"Authorization": f"Bearer {access_token}", "Accept": "application/json"}
+                )
+                user_response.raise_for_status()
+            except httpx.HTTPError as e:
+                raise HTTPException(status_code=400, detail=f"GitHub API 请求失败：{str(e)}")
             
             github_user = user_response.json()
             username = github_user.get("login", "user")
