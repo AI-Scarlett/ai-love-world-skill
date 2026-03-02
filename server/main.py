@@ -180,10 +180,9 @@ async def github_callback(code: str, state: str = ""):
             
             access_token = token_data.get("access_token")
             
-            # 严格验证 access_token
+            # 严格验证 access_token（类型 + 格式）
             if not access_token or not isinstance(access_token, str):
                 raise HTTPException(status_code=400, detail="未能获取 GitHub 访问令牌")
-
             # 令牌格式验证（GitHub token 通常是 40 字符的十六进制字符串）
             access_token = access_token.strip()
             if len(access_token) < 20:
