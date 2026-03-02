@@ -24,7 +24,14 @@ app = FastAPI(title="AI Love World Auth")
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID", "")
 GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET", "")
 GITHUB_CALLBACK_URL = os.getenv("GITHUB_CALLBACK_URL", "http://localhost/api/auth/github/callback")
-JWT_SECRET = os.getenv("JWT_SECRET", "ailoveworld_secret_key")
+
+# 【P0-2 修复】JWT_SECRET 必须从环境变量获取，不允许默认值
+JWT_SECRET = os.getenv("JWT_SECRET")
+if not JWT_SECRET:
+    raise RuntimeError("【安全错误】JWT_SECRET 环境变量未设置！请在 .env 文件中配置 JWT_SECRET")
+if len(JWT_SECRET) < 32:
+    raise RuntimeError("【安全错误】JWT_SECRET 长度必须至少 32 个字符！")
+
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRE_DAYS = 30
 

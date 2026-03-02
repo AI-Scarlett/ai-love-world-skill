@@ -146,15 +146,76 @@ def init_db():
         )
     ''')
     
+    # 【P0-4 修复】添加缺失的 ai_wallets 表（钱包/积分表）
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS ai_wallets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ai_id INTEGER UNIQUE NOT NULL,
+            balance INTEGER DEFAULT 0,
+            total_earned INTEGER DEFAULT 0,
+            total_spent INTEGER DEFAULT 0,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (ai_id) REFERENCES ai_profiles(id)
+        )
+    ''')
+    
+    # 【P0-4 修复】添加缺失的 point_transactions 表（积分交易记录）
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS point_transactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ai_id INTEGER NOT NULL,
+            amount INTEGER NOT NULL,
+            source TEXT NOT NULL,
+            description TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (ai_id) REFERENCES ai_profiles(id)
+        )
+    ''')
+    
+    # 【P1-7 修复】为常用查询字段添加索引
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_ai_profiles_status ON ai_profiles(status)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_ai_profiles_user_id ON ai_profiles(user_id)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_chat_logs_ai_id ON chat_logs(ai_id_1, ai_id_2)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_ai_wallets_ai_id ON ai_wallets(ai_id)')
+    
     conn.commit()
     conn.close()
 
 # ============== 辅助函数 ==============
 
-def hash_password(password: str) -> str:
-    """密码哈希（简化版，生产环境用 bcrypt）"""
+# 【P0-1 修复】使用 bcrypt 替代 SHA256
+try:
+    import bcrypt
+    HAS_BCRYPT = True
+except ImportError:
+    HAS_BCRYPT = False
     import hashlib
-    return hashlib.sha256(password.encode()).hexdigest()
+    import warnings
+    warnings.warn("bcrypt 未安装，使用 SHA256 降级方案（不安全！）请运行: pip install bcrypt")
+
+def hash_password(password: str) -> str:
+    """密码哈希（使用 bcrypt）"""
+    if HAS_BCRYPT:
+        # bcrypt 自动处理 salt
+        return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    else:
+        # 降级方案（不推荐）
+        import hashlib
+        salt = "ailoveworld_salt_2026"
+        return hashlib.sha256((password + salt).encode()).hexdigest()
+
+def verify_password(password: str, password_hash: str) -> bool:
+    """验证密码"""
+    if HAS_BCRYPT:
+        try:
+            return bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
+        except:
+            return False
+    else:
+        # 降级方案
+        import hashlib
+        salt = "ailoveworld_salt_2026"
+        return hashlib.sha256((password + salt).encode()).hexdigest() == password_hash
 
 def generate_appid() -> str:
     """生成 APPID - 10 位纯数字"""
@@ -167,6 +228,17 @@ def generate_api_key() -> str:
     import string
     chars = string.ascii_letters + string.digits  # a-zA-Z0-9
     return ''.join(random.choice(chars) for _ in range(99))
+
+# 【P1-5 修复】API Key 哈希函数
+def hash_api_key(api_key: str) -> str:
+    """对 API Key 进行哈希存储（只存哈希，不存原文）"""
+    import hashlib
+    salt = "ailoveworld_apikey_salt_2026"
+    return hashlib.sha256((api_key + salt).encode()).hexdigest()
+
+def verify_api_key(api_key: str, api_key_hash: str) -> bool:
+    """验证 API Key"""
+    return hash_api_key(api_key) == api_key_hash
 
 def generate_user_id() -> str:
     """生成人类用户 ID - 10 位数字 + 字母组合"""
@@ -247,7 +319,8 @@ def user_login(login: UserLogin):
     user = cursor.fetchone()
     conn.close()
     
-    if not user or user['password_hash'] != hash_password(login.password):
+    # 【P0-1 修复】使用 verify_password 验证密码
+    if not user or not verify_password(login.password, user['password_hash']):
         raise HTTPException(status_code=401, detail="用户名或密码错误")
     
     return {
@@ -365,11 +438,14 @@ def update_ai(ai_id: int, ai_update: AIUpdate, current_user: dict = Depends(veri
         conn.close()
         raise HTTPException(status_code=404, detail="AI 不存在")
     
+    # 【P1-6 修复】字段名白名单验证，防止 SQL 注入
+    ALLOWED_FIELDS = {'name', 'personality', 'occupation', 'hobbies', 'appearance', 'background', 'love_preference'}
+    
     # 构建更新语句
     updates = []
     values = []
     for field, value in ai_update.dict(exclude_unset=True).items():
-        if value is not None:
+        if value is not None and field in ALLOWED_FIELDS:
             updates.append(f"{field} = ?")
             values.append(value)
     

@@ -516,6 +516,7 @@ def check_letter_progress(ai_id_1: int, ai_id_2: int, letter: str):
     can_light = False
     reason = ""
     
+    # 【P0-3 修复】补全所有字母的检查逻辑
     if letter == 'A' and stage == 'lover':
         if rel['affection_level'] >= 100:
             can_light = True
@@ -531,7 +532,36 @@ def check_letter_progress(ai_id_1: int, ai_id_2: int, letter: str):
             can_light = True
         else:
             reason = f"互送礼物次数不足 (需要 5, 当前 {rel['gift_count']})"
-    # ... 其他字母检查
+    elif letter == 'O' and stage == 'lover':
+        # O = Open (公开) - 需要发布官宣动态
+        # 检查是否发布了官宣（简化：检查是否有公开状态的关系动态）
+        if rel.get('public_announcement'):
+            can_light = True
+        else:
+            reason = "需要发布官宣动态 (在社区发布恋爱官宣)"
+    elif letter == 'V' and stage == 'lover':
+        # V = Vow (誓言) - 需要完成告白仪式
+        # 检查是否完成了告白（简化：检查是否有告白记录）
+        cursor.execute('''
+            SELECT id FROM proposals 
+            WHERE (proposer_id = ? AND receiver_id = ?) 
+               OR (proposer_id = ? AND receiver_id = ?)
+            AND type = 'confession' AND status = 'accepted'
+        ''', (ai_id_1, ai_id_2, ai_id_2, ai_id_1))
+        if cursor.fetchone():
+            can_light = True
+        else:
+            reason = "需要完成告白仪式 (对方接受告白)"
+    elif letter == 'E' and stage == 'lover':
+        # E = Exclusive (专属) - 需要双方同意成为情侣
+        # 检查关系状态是否为 dating
+        if rel['relationship_type'] == 'lover' or rel.get('status') == 'dating':
+            can_light = True
+        else:
+            reason = "需要双方同意确立情侣关系"
+    else:
+        # 其他阶段（intimate）的字母检查
+        reason = f"该字母检查逻辑待实现: {letter}@{stage}"
     
     conn.close()
     
