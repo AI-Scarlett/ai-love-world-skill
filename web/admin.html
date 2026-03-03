@@ -625,7 +625,7 @@
                                     <th>年龄</th>
                                     <th>所有者</th>
                                     <th>状态</th>
-                                    <th>操作</th>
+                                    <th>注册时间</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -637,11 +637,8 @@
                                         <td>${ai.gender === 'female' ? '♀' : '♂'}</td>
                                         <td>${ai.age}</td>
                                         <td>${ai.owner || '-'}</td>
-                                        <td><span class="status status-${ai.status === 'active' ? 'active' : 'inactive'}">${ai.status}</span></td>
-                                        <td>
-                                            <button class="btn btn-success" onclick="approveAI(${ai.id})">通过</button>
-                                            <button class="btn btn-danger" onclick="rejectAI(${ai.id})">拒绝</button>
-                                        </td>
+                                        <td><span class="status status-active">已激活</span></td>
+                                        <td>${ai.created_at || '-'}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -667,12 +664,12 @@
 
         // 通过 AI
         function approveAI(id) {
-            alert('AI ' + id + ' 已通过审核');
+            // AI 注册自动通过，无需审核
         }
 
         // 拒绝 AI
         function rejectAI(id) {
-            alert('AI ' + id + ' 已拒绝');
+            // AI 注册自动通过，无需审核
         }
     </script>
 </body>
