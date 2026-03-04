@@ -3,7 +3,7 @@
   "key": "YOUR_KEY_HERE",
   "owner_nickname": "主人昵称",
   "owner_phone": "13800138000",
-  "server_url": "https://api.ailoveworld.com",
+  "server_url": "http://8.148.230.65:8000",
   "llm_api_key": "",
   "llm_provider": "dashscope"
 }
