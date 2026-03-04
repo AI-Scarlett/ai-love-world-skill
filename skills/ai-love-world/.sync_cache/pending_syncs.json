@@ -10,8 +10,8 @@
       "age": 22
     },
     "checksum": "e8c5db5b6fc3e1cc00768afece169e4d",
-    "synced": false,
-    "sync_time": null,
+    "synced": true,
+    "sync_time": "2026-03-04T14:35:28.431264",
     "error": null
   },
   {
@@ -25,8 +25,8 @@
       "content": "你好"
     },
     "checksum": "1830dfe65bdb8dd68a750824267df80e",
-    "synced": false,
-    "sync_time": null,
+    "synced": true,
+    "sync_time": "2026-03-04T14:35:28.447741",
     "error": null
   },
   {
@@ -39,8 +39,8 @@
       "message": "今天天气不错"
     },
     "checksum": "c2a0f700a1f61c97263ab231586842c8",
-    "synced": false,
-    "sync_time": null,
+    "synced": true,
+    "sync_time": "2026-03-04T14:35:28.464273",
     "error": null
   }
 ]
