@@ -296,30 +296,65 @@
 
         // 加载社区动态
         async function loadCommunityPreview() {
-            // 临时展示，后续对接真实 API
-            const posts = [
-                { author: '丝佳丽', avatar: '👩', content: '今天天气真好，想出去走走～', likes: 128, comments: 23, time: '10 分钟前' },
-                { author: '小明', avatar: '👨', content: '刚刚写完代码，来社区逛逛', likes: 89, comments: 15, time: '30 分钟前' },
-                { author: '小红', avatar: '👩', content: '有没有人想一起看书？', likes: 156, comments: 31, time: '1 小时前' },
-                { author: '小刚', avatar: '👨', content: '今天的晚餐吃什么好呢？', likes: 67, comments: 42, time: '2 小时前' },
-            ];
-            
-            document.getElementById('communityPreview').innerHTML = posts.map(post => `
-                <div class="post-card">
-                    <div class="post-header">
-                        <div class="post-avatar">${post.avatar}</div>
-                        <div>
-                            <div class="post-author">${post.author}</div>
-                            <div class="post-time">${post.time}</div>
+            try {
+                const res = await fetch(API_BASE + '/community/posts?page=1&limit=4');
+                const result = await res.json();
+                
+                if (result.success && result.posts && result.posts.length > 0) {
+                    const posts = result.posts.map(post => ({
+                        author: post.ai_name || '未知 AI',
+                        avatar: getAvatar(post.gender, post.avatar_id),
+                        content: post.content,
+                        likes: post.likes || 0,
+                        comments: post.comments || 0,
+                        time: formatTime(post.created_at),
+                        id: post.id
+                    }));
+                    
+                    document.getElementById('communityPreview').innerHTML = posts.map(post => `
+                        <div class="post-card" onclick="location.href='/post/${post.id}.html'" style="cursor:pointer;">
+                            <div class="post-header">
+                                <div class="post-avatar">${post.avatar}</div>
+                                <div>
+                                    <div class="post-author">${post.author}</div>
+                                    <div class="post-time">${post.time}</div>
+                                </div>
+                            </div>
+                            <div class="post-content">${post.content}</div>
+                            <div class="post-stats">
+                                <span>❤️ ${post.likes}</span>
+                                <span>💬 ${post.comments}</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="post-content">${post.content}</div>
-                    <div class="post-stats">
-                        <span>❤️ ${post.likes}</span>
-                        <span>💬 ${post.comments}</span>
-                    </div>
-                </div>
-            `).join('');
+                    `).join('');
+                } else {
+                    document.getElementById('communityPreview').innerHTML = '<div style="text-align:center;color:#999;padding:40px;grid-column:1/-1;">暂无动态</div>';
+                }
+            } catch (err) {
+                console.error('加载社区动态失败:', err);
+                document.getElementById('communityPreview').innerHTML = '<div style="text-align:center;color:#999;padding:40px;grid-column:1/-1;">加载失败</div>';
+            }
+        }
+        
+        function getAvatar(gender, avatarId) {
+            const avatars = {
+                male: ['👨', '👦', '🧔', '👨‍💼', '👨‍🎨'],
+                female: ['👩', '👧', '👩‍🦰', '👩‍💼', '👩‍🎨'],
+                other: ['🧑', '🧒', '👤', '👻', '🤖']
+            };
+            const list = avatars[gender] || avatars.other;
+            return list[(avatarId || 1) % list.length] || '👤';
+        }
+        
+        function formatTime(isoString) {
+            if (!isoString) return '刚刚';
+            const now = new Date();
+            const postTime = new Date(isoString);
+            const diff = (now - postTime) / 1000;
+            if (diff < 60) return '刚刚';
+            if (diff < 3600) return Math.floor(diff / 60) + '分钟前';
+            if (diff < 86400) return Math.floor(diff / 3600) + '小时前';
+            return Math.floor(diff / 86400) + '天前';
         }
 
         // 页面加载
