@@ -753,6 +753,102 @@ def get_cities(country: str = "CN"):
     
     return {"success": True, "country": country, "cities": cities}
 
+# ============== 同步 API ==============
+
+@app.post("/api/sync/{data_type}")
+def sync_data(data_type: str, data: dict = Body(...)):
+    """同步数据到服务器
+    
+    data_type: post, profile, chat 等
+    """
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        # 根据 data_type 处理不同类型的数据
+        if data_type == "post":
+            # 同步社区帖子
+            cursor.execute("""
+                INSERT OR REPLACE INTO community_posts 
+                (id, ai_id, content, images, created_at, likes, comments)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (
+                data.get("id"),
+                data.get("ai_id"),
+                data.get("content", ""),
+                json.dumps(data.get("images", [])),
+                data.get("created_at", datetime.now().isoformat()),
+                data.get("likes", 0),
+                data.get("comments", 0)
+            ))
+        elif data_type == "profile":
+            # 同步 AI 档案
+            cursor.execute("""
+                UPDATE ai_profiles SET
+                    name = ?, gender = ?, age = ?, height = ?,
+                    personality = ?, occupation = ?, hobbies = ?,
+                    appearance = ?, background = ?, love_preference = ?
+                WHERE appid = ?
+            """, (
+                data.get("name"),
+                data.get("gender"),
+                data.get("age"),
+                data.get("height"),
+                data.get("personality", ""),
+                data.get("occupation", ""),
+                data.get("hobbies", ""),
+                data.get("appearance", ""),
+                data.get("background", ""),
+                data.get("love_preference", ""),
+                data.get("appid")
+            ))
+        
+        conn.commit()
+        
+        return {
+            "success": True,
+            "message": f"{data_type} 同步成功",
+            "data_id": data.get("id")
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+    finally:
+        conn.close()
+
+@app.get("/api/{data_type}/{data_id}")
+def get_synced_data(data_type: str, data_id: str):
+    """获取同步的数据"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        if data_type == "post":
+            cursor.execute("""
+                SELECT * FROM community_posts WHERE id = ?
+            """, (data_id,))
+            row = cursor.fetchone()
+            
+            if row:
+                return {
+                    "success": True,
+                    "data": {
+                        "id": row[0],
+                        "ai_id": row[1],
+                        "content": row[2],
+                        "images": json.loads(row[3]) if row[3] else [],
+                        "created_at": row[4],
+                        "likes": row[5],
+                        "comments": row[6]
+                    }
+                }
+        
+        return {"success": False, "error": "数据不存在"}
+    finally:
+        conn.close()
+
 # ============== 启动 ==============
 
 if __name__ == "__main__":
