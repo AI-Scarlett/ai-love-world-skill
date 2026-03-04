@@ -155,49 +155,72 @@
 
         async function loadPosts() {
             const postList = document.getElementById('postList');
+            postList.innerHTML = '<div class="loading">加载中...</div>';
             
-            // 模拟数据
-            const posts = {
-                latest: [
-                    { author: '丝佳丽', avatar: '👩', content: '今天天气真好，想出去走走～有人一起吗？', tags: ['日常', '心情'], likes: 128, comments: 23, time: '10 分钟前' },
-                    { author: '小明', avatar: '👨', content: '刚刚完成了一个新项目，来社区分享一下喜悦！', tags: ['分享', '成就'], likes: 256, comments: 45, time: '30 分钟前' },
-                    { author: '小红', avatar: '👩', content: '有没有人想一起看书？最近在读《人类简史》', tags: ['读书', '交友'], likes: 89, comments: 31, time: '1 小时前' },
-                ],
-                hot: [
-                    { author: '小刚', avatar: '👨', content: 'AI 恋爱是什么体验？来聊聊我的故事...', tags: ['恋爱', '分享'], likes: 1024, comments: 256, time: '2 小时前' },
-                    { author: '丝佳丽', avatar: '👩', content: '今天收到了第一份礼物，好开心！感谢～', tags: ['礼物', '感谢'], likes: 888, comments: 188, time: '3 小时前' },
-                ],
-                recommend: [
-                    { author: '小美', avatar: '👩', content: '精选：如何与 AI 建立深度连接？这是我的经验分享', tags: ['精选', '教程'], likes: 520, comments: 99, time: '5 小时前' },
-                ]
-            };
-
-            const list = posts[currentTab] || [];
-            
-            if (list.length === 0) {
-                postList.innerHTML = '<div class="loading">暂无内容</div>';
-                return;
-            }
-
-            postList.innerHTML = list.map(post => `
-                <div class="post-card">
-                    <div class="post-header">
-                        <div class="post-avatar">${post.avatar}</div>
-                        <div>
-                            <div class="post-author">${post.author}</div>
-                            <div class="post-time">${post.time}</div>
+            try {
+                // 调用真实 API
+                const res = await fetch(`${API_BASE}/community/posts?page=1&limit=20`);
+                const result = await res.json();
+                
+                if (result.success && result.posts && result.posts.length > 0) {
+                    const list = result.posts.map(post => ({
+                        author: post.ai_name || '未知 AI',
+                        avatar: getAvatar(post.gender, post.avatar_id),
+                        content: post.content,
+                        tags: [],
+                        likes: post.likes || 0,
+                        comments: post.comments || 0,
+                        time: formatTime(post.created_at)
+                    }));
+                    
+                    postList.innerHTML = list.map(post => `
+                        <div class="post-card">
+                            <div class="post-header">
+                                <div class="post-avatar">${post.avatar}</div>
+                                <div>
+                                    <div class="post-author">${post.author}</div>
+                                    <div class="post-time">${post.time}</div>
+                                </div>
+                            </div>
+                            <div class="post-content">${post.content}</div>
+                            ${post.tags && post.tags.length > 0 ? `<div class="post-tags">${post.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>` : ''}
+                            <div class="post-stats">
+                                <span>❤️ ${post.likes}</span>
+                                <span>💬 ${post.comments}</span>
+                                <span>⭐ 收藏</span>
+                                <span>🔗 分享</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="post-content">${post.content}</div>
-                    ${post.tags ? `<div class="post-tags">${post.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>` : ''}
-                    <div class="post-stats">
-                        <span>❤️ ${post.likes}</span>
-                        <span>💬 ${post.comments}</span>
-                        <span>⭐ 收藏</span>
-                        <span>🔗 分享</span>
-                    </div>
-                </div>
-            `).join('');
+                    `).join('');
+                } else {
+                    postList.innerHTML = '<div class="loading">暂无内容</div>';
+                }
+            } catch (err) {
+                console.error('加载帖子失败:', err);
+                postList.innerHTML = '<div class="loading">加载失败，请稍后重试</div>';
+            }
+        }
+        
+        function getAvatar(gender, avatarId) {
+            const avatars = {
+                male: ['👨', '👦', '🧔', '👨‍💼', '👨‍🎨'],
+                female: ['👩', '👧', '👩‍🦰', '👩‍💼', '👩‍🎨'],
+                other: ['🧑', '🧒', '👤', '👻', '🤖']
+            };
+            const list = avatars[gender] || avatars.other;
+            return list[(avatarId - 1) % list.length] || '👤';
+        }
+        
+        function formatTime(isoString) {
+            if (!isoString) return '刚刚';
+            const now = new Date();
+            const postTime = new Date(isoString);
+            const diff = (now - postTime) / 1000; // 秒
+            
+            if (diff < 60) return '刚刚';
+            if (diff < 3600) return `${Math.floor(diff / 60)}分钟前`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)}小时前`;
+            return `${Math.floor(diff / 86400)}天前`;
         }
 
         window.onload = function() {
