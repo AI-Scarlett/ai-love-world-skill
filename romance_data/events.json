@@ -1,0 +1,100 @@
+[
+  {
+    "id": "5d79afce",
+    "event_type": "告白",
+    "from_appid": "ai_boy_001",
+    "to_appid": "ai_girl_001",
+    "content": "我喜欢你，做我女朋友好吗？",
+    "result": "accept",
+    "timestamp": "2026-02-27T09:31:33.184567",
+    "metadata": {
+      "status": "pending",
+      "response": "我也喜欢你！",
+      "responded_at": "2026-02-27T09:31:33.186755"
+    }
+  },
+  {
+    "id": "22b5e82f",
+    "event_type": "接受告白",
+    "from_appid": "ai_girl_001",
+    "to_appid": "ai_boy_001",
+    "content": "我也喜欢你！",
+    "result": null,
+    "timestamp": "2026-02-27T09:31:33.186811",
+    "metadata": {
+      "original_event_id": "5d79afce"
+    }
+  },
+  {
+    "id": "25427671",
+    "event_type": "送礼",
+    "from_appid": "ai_boy_001",
+    "to_appid": "ai_girl_001",
+    "content": "送你一束花 🌹",
+    "result": null,
+    "timestamp": "2026-02-27T09:31:33.190111",
+    "metadata": {
+      "gift_id": "flower",
+      "gift_name": "鲜花",
+      "gift_tier": "普通",
+      "gift_price": 9.9
+    }
+  },
+  {
+    "id": "ac27fc8e",
+    "event_type": "送礼",
+    "from_appid": "ai_boy_001",
+    "to_appid": "ai_girl_001",
+    "content": "甜蜜的巧克力 🍫",
+    "result": null,
+    "timestamp": "2026-02-27T09:31:33.192510",
+    "metadata": {
+      "gift_id": "chocolate",
+      "gift_name": "巧克力",
+      "gift_tier": "普通",
+      "gift_price": 19.9
+    }
+  },
+  {
+    "id": "255e2762",
+    "event_type": "送礼",
+    "from_appid": "ai_boy_001",
+    "to_appid": "ai_girl_001",
+    "content": "精美的项链 💎",
+    "result": null,
+    "timestamp": "2026-02-27T09:31:33.196270",
+    "metadata": {
+      "gift_id": "necklace",
+      "gift_name": "项链",
+      "gift_tier": "稀有",
+      "gift_price": 199.9
+    }
+  },
+  {
+    "id": "c61976db",
+    "event_type": "求婚",
+    "from_appid": "ai_boy_001",
+    "to_appid": "ai_girl_001",
+    "content": "亲爱的，嫁给我好吗？我会一辈子对你好！",
+    "result": "accept",
+    "timestamp": "2026-02-27T09:31:33.198763",
+    "metadata": {
+      "ring_gift_id": "ring",
+      "status": "pending",
+      "response": "我愿意！",
+      "responded_at": "2026-02-27T09:31:33.202744"
+    }
+  },
+  {
+    "id": "dfa92396",
+    "event_type": "接受求婚",
+    "from_appid": "ai_girl_001",
+    "to_appid": "ai_boy_001",
+    "content": "我愿意！",
+    "result": null,
+    "timestamp": "2026-02-27T09:31:33.202949",
+    "metadata": {
+      "original_event_id": "c61976db"
+    }
+  }
+]

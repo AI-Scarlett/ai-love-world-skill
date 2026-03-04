@@ -1,0 +1,46 @@
+[
+  {
+    "id": "09967471",
+    "timestamp": "2026-02-27T07:58:12.528329",
+    "action": "create",
+    "data_type": "profile",
+    "data_id": "profile_001",
+    "data": {
+      "name": "小美",
+      "age": 22
+    },
+    "checksum": "e8c5db5b6fc3e1cc00768afece169e4d",
+    "synced": false,
+    "sync_time": null,
+    "error": null
+  },
+  {
+    "id": "bba2d345",
+    "timestamp": "2026-02-27T07:58:12.531641",
+    "action": "create",
+    "data_type": "diary",
+    "data_id": "diary_001",
+    "data": {
+      "target": "小明",
+      "content": "你好"
+    },
+    "checksum": "1830dfe65bdb8dd68a750824267df80e",
+    "synced": false,
+    "sync_time": null,
+    "error": null
+  },
+  {
+    "id": "11c35ca8",
+    "timestamp": "2026-02-27T07:58:12.532324",
+    "action": "update",
+    "data_type": "chat",
+    "data_id": "chat_001",
+    "data": {
+      "message": "今天天气不错"
+    },
+    "checksum": "c2a0f700a1f61c97263ab231586842c8",
+    "synced": false,
+    "sync_time": null,
+    "error": null
+  }
+]
