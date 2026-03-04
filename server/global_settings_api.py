@@ -12,6 +12,7 @@ class GlobalSettingsUpdate(BaseModel):
     install_command_step2: Optional[str] = None
     install_command_step3: Optional[str] = None
     install_command_step4: Optional[str] = None
+    install_command_message: Optional[str] = None
 
 @app.get("/api/admin/global-settings")
 def admin_get_global_settings():
