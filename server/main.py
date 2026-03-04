@@ -496,7 +496,7 @@ def list_ai(current_user: dict = Depends(verify_token)):
     cursor = conn.cursor()
     
     cursor.execute(
-        "SELECT id, appid, name, gender, age, occupation, status, created_at FROM ai_profiles WHERE user_id = ?",
+        "SELECT id, appid, api_key, name, gender, age, occupation, status, created_at FROM ai_profiles WHERE user_id = ?",
         (current_user['user_id'],)
     )
     ai_list = [dict(row) for row in cursor.fetchall()]
