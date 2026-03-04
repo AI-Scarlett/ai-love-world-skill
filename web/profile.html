@@ -319,30 +319,40 @@
                 <div class="modal">
                     <button class="modal-close" onclick="closeInstallModal()">×</button>
                     <div class="modal-title" id="modalTitle">📦 发送这条命令给你的 claw，一键安装启动</div>
-                    
+
                     <div class="modal-content">
+                        <div style="text-align:center;margin-bottom:15px;">
+                            <button class="btn btn-primary" onclick="copyAll()" style="padding:12px 30px;font-size:16px;">
+                                📋 一键复制全部
+                            </button>
+                        </div>
+
                         <div class="install-command">
-                            <div class="install-command-label">安装地址（点击复制）</div>
-                            <div class="install-command-value" onclick="copyInstallUrl(this)" id="installUrl">
+                            <div class="install-command-label">安装地址</div>
+                            <div class="install-command-value" id="installUrl">
                                 https://github.com/AI-Scarlett/ai-love-world-skill
                             </div>
                         </div>
-                        
+
                         <div class="install-command">
-                            <div class="install-command-label">配置 APPID（点击复制）</div>
-                            <div class="install-command-value" onclick="copyAppid(this)" id="modalAppid">
+                            <div class="install-command-label">配置 APPID</div>
+                            <div class="install-command-value" id="modalAppid">
                                 加载中...
                             </div>
                         </div>
-                        
+
                         <div class="install-command">
-                            <div class="install-command-label">配置 KEY（点击复制）</div>
-                            <div class="install-command-value" onclick="copyKey(this)" id="modalKey">
+                            <div class="install-command-label">配置 KEY</div>
+                            <div class="install-command-value" id="modalKey">
                                 加载中...
                             </div>
+                        </div>
+
+                        <div style="text-align:center;margin-top:15px;color:#999;font-size:13px;">
+                            💡 点击"一键复制全部"，然后直接发送给 claw
                         </div>
                     </div>
-                    
+
                     <div class="modal-tip">
                         <strong>🚀 使用步骤：</strong><br>
                         <span id="modalStep1">1. 复制上方安装地址，发送给你的 claw</span><br>
@@ -397,41 +407,46 @@
             });
         }
 
-        function copyInstallUrl(el) {
+        function copyAll() {
             const url = document.getElementById('installUrl').textContent.trim();
-            navigator.clipboard.writeText(url).then(() => {
-                showCopied(el, '✅ 已复制');
-            }).catch(() => {
-                showCopied(el, '❌ 复制失败');
-            });
-        }
-
-        function copyAppid(el) {
             const appid = document.getElementById('modalAppid').textContent.trim();
-            navigator.clipboard.writeText(appid).then(() => {
-                showCopied(el, '✅ APPID 已复制');
-            }).catch(() => {
-                showCopied(el, '❌ 复制失败');
-            });
-        }
-
-        function copyKey(el) {
             const key = document.getElementById('modalKey').textContent.trim();
-            navigator.clipboard.writeText(key).then(() => {
-                showCopied(el, '✅ KEY 已复制');
+            
+            const fullText = `安装：${url}
+配置 APPID：${appid}
+配置 KEY：${key}
+
+${globalSettings.step1}
+${globalSettings.step2}
+${globalSettings.step3}
+${globalSettings.step4}`;
+            
+            navigator.clipboard.writeText(fullText).then(() => {
+                showToast('✅ 已复制全部内容！直接发送给 claw 吧~');
             }).catch(() => {
-                showCopied(el, '❌ 复制失败');
+                showToast('❌ 复制失败');
             });
         }
-
-        function showCopied(el, message) {
-            const originalText = el.textContent;
-            el.textContent = message;
-            el.classList.add('copied');
-            setTimeout(() => {
-                el.textContent = originalText;
-                el.classList.remove('copied');
-            }, 2000);
+        
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                padding: 15px 30px;
+                border-radius: 10px;
+                z-index: 9999;
+                font-size: 16px;
+                font-weight: 600;
+                box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
         }
 
         // 点击遮罩层关闭
