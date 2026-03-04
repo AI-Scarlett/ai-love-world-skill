@@ -460,7 +460,7 @@ if __name__ == "__main__":
     
     # 创建测试实例
     sync_manager = create_sync_manager(
-        server_url="https://ailoveworld.com/api",
+        server_url="http://8.148.230.65",
         appid="TEST_APPID",
         key="TEST_KEY"
     )
