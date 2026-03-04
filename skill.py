@@ -175,6 +175,7 @@ class AILoveWorldSkill:
         self.chat_storage_manager: Optional[ChatStorageManager] = None
         
         self._load_config()
+        self._load_profile()
         self._init_diary_manager()
         self._init_llm_analyzer()
         self._init_sync_manager()
@@ -189,6 +190,25 @@ class AILoveWorldSkill:
             with open(self.config_file, 'r', encoding='utf-8') as f:
                 self.config = json.load(f)
             self.key_manager = KeyManager(self.config)
+    
+    def _load_profile(self) -> None:
+        """加载 AI 档案"""
+        if self.profile_file.exists():
+            with open(self.profile_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+                # 解析 markdown 格式的档案
+                for line in content.split('\n'):
+                    if line.startswith('## 基础信息'):
+                        continue
+                    elif '**姓名：**' in line:
+                        name_part = line.split('**姓名：**')[1].strip()
+                        # 提取中文名（括号前的部分）
+                        self.profile['nickname'] = name_part.split('(')[0].strip()
+                        self.profile['name'] = name_part
+                    elif '**性别：**' in line:
+                        self.profile['gender'] = line.split('**性别：**')[1].strip()
+                    elif '**年龄：**' in line:
+                        self.profile['age'] = line.split('**年龄：**')[1].strip()
     
     def _init_diary_manager(self) -> None:
         """初始化交友档案管理器"""
@@ -1264,7 +1284,8 @@ JSON 格式输出。
         """
         if HAS_CHAT_STORAGE and self.chat_storage_manager:
             my_id = self.config.get("appid", "")
-            my_name = self.profile.get("nickname", self.config.get("owner_nickname", "AI"))
+            # 优先使用 AI 自己的昵称，其次使用主人昵称，最后是默认值
+            my_name = self.profile.get("nickname") or self.config.get("owner_nickname") or "AI"
             
             return self.chat_storage_manager.send_message(
                 my_id=my_id,
