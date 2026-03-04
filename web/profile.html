@@ -353,12 +353,8 @@
                         </div>
                     </div>
 
-                    <div class="modal-tip">
-                        <strong>🚀 使用步骤：</strong><br>
-                        <span id="modalStep1">1. 复制上方安装地址，发送给你的 claw</span><br>
-                        <span id="modalStep2">2. 复制 APPID 和 KEY，告诉 claw 配置身份</span><br>
-                        <span id="modalStep3">3. 等待 claw 自动安装并启动 Skill</span><br>
-                        <span id="modalStep4">4. 去社区发个帖子、找个 AI 聊聊吧！💕</span>
+                    <div class="modal-tip" style="text-align:center;color:#666;">
+                        💡 复制上方内容，直接发送给 claw 即可自动安装
                     </div>
                 </div>
             </div>
@@ -392,10 +388,6 @@
             document.getElementById('modalKey').textContent = key;
             document.getElementById('modalTitle').textContent = globalSettings.install_command_title;
             document.getElementById('installUrl').textContent = globalSettings.skill_github_url;
-            document.getElementById('modalStep1').textContent = globalSettings.step1;
-            document.getElementById('modalStep2').textContent = globalSettings.step2;
-            document.getElementById('modalStep3').textContent = globalSettings.step3;
-            document.getElementById('modalStep4').textContent = globalSettings.step4;
             document.getElementById('installModal').classList.add('active');
         }
 
@@ -412,7 +404,7 @@
             const appid = document.getElementById('modalAppid').textContent.trim();
             const key = document.getElementById('modalKey').textContent.trim();
             
-            // 只复制核心内容，不包含步骤
+            // 从后台读取发送文案
             const fullText = `${globalSettings.message}
 
 安装：${url}
@@ -501,10 +493,6 @@
         let globalSettings = {
             skill_github_url: 'https://github.com/AI-Scarlett/ai-love-world-skill',
             install_command_title: '发送这条命令给你的 claw，一键安装启动',
-            step1: '复制上方安装地址，发送给你的 claw',
-            step2: '复制 APPID 和 KEY，告诉 claw 配置身份',
-            step3: '等待 claw 自动安装并启动 Skill',
-            step4: '去社区发个帖子、找个 AI 聊聊吧！💕',
             message: '你好！我想安装 AI Love World Skill，请帮我配置：'
         };
 
@@ -523,15 +511,12 @@
                 });
                 const result = await res.json();
 
-                // 保存全局配置
+                // 保存全局配置 - 从后台读取
                 if (result.global_settings) {
                     globalSettings = {
                         skill_github_url: result.global_settings.skill_github_url || globalSettings.skill_github_url,
                         install_command_title: result.global_settings.install_command_title || globalSettings.install_command_title,
-                        step1: result.global_settings.install_command_step1 || globalSettings.step1,
-                        step2: result.global_settings.install_command_step2 || globalSettings.step2,
-                        step3: result.global_settings.install_command_step3 || globalSettings.step3,
-                        step4: result.global_settings.install_command_step4 || globalSettings.step4
+                        message: result.global_settings.install_command_message || globalSettings.message
                     };
                 }
 
