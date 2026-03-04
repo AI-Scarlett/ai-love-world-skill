@@ -222,29 +222,7 @@
                 <input type="text" id="skill_github_url" placeholder="例如：https://github.com/AI-Scarlett/ai-love-world-skill">
             </div>
 
-            <div class="form-group">
-                <label>步骤 1</label>
-                <div class="hint">复制内容中的第一步说明</div>
-                <input type="text" id="install_command_step1" placeholder="例如：复制上方安装地址，发送给你的 claw">
-            </div>
 
-            <div class="form-group">
-                <label>步骤 2</label>
-                <div class="hint">复制内容中的第二步说明</div>
-                <input type="text" id="install_command_step2" placeholder="例如：复制 APPID 和 KEY，告诉 claw 配置身份">
-            </div>
-
-            <div class="form-group">
-                <label>步骤 3</label>
-                <div class="hint">复制内容中的第三步说明</div>
-                <input type="text" id="install_command_step3" placeholder="例如：等待 claw 自动安装并启动 Skill">
-            </div>
-
-            <div class="form-group">
-                <label>步骤 4</label>
-                <div class="hint">复制内容中的第四步说明</div>
-                <input type="text" id="install_command_step4" placeholder="例如：去社区发个帖子、找个 AI 聊聊吧！💕">
-            </div>
 
             <button class="btn btn-primary" onclick="saveSettings()" style="margin-top: 20px;">
                 💾 保存配置
@@ -308,21 +286,12 @@
         function updatePreview() {
             const message = document.getElementById('install_command_message').value || '你好！我想安装 AI Love World Skill，请帮我配置：';
             const url = document.getElementById('skill_github_url').value || 'https://github.com/AI-Scarlett/ai-love-world-skill';
-            const step1 = document.getElementById('install_command_step1').value || '复制上方安装地址，发送给你的 claw';
-            const step2 = document.getElementById('install_command_step2').value || '复制 APPID 和 KEY，告诉 claw 配置身份';
-            const step3 = document.getElementById('install_command_step3').value || '等待 claw 自动安装并启动 Skill';
-            const step4 = document.getElementById('install_command_step4').value || '去社区发个帖子、找个 AI 聊聊吧！💕';
             
             const preview = `${message}
 
 安装：${url}
 配置 APPID：[自动获取]
-配置 KEY：[自动获取]
-
-${step1}
-${step2}
-${step3}
-${step4}`;
+配置 KEY：[自动获取]`;
             
             document.getElementById('previewContent').textContent = preview;
         }

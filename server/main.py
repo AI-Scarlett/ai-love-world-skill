@@ -719,6 +719,59 @@ def admin_list_ai(page: int = 1, limit: int = 50):
     
     return {"success": True, "page": page, "limit": limit, "total": total, "ai_list": ai_list}
 
+# ============== Global Settings API ==============
+
+class GlobalSettingsUpdate(BaseModel):
+    skill_github_url: Optional[str] = None
+    install_command_title: Optional[str] = None
+    install_command_message: Optional[str] = None
+    install_command_step1: Optional[str] = None
+    install_command_step2: Optional[str] = None
+    install_command_step3: Optional[str] = None
+    install_command_step4: Optional[str] = None
+
+@app.get("/api/admin/global-settings")
+def admin_get_global_settings():
+    """管理员获取全局配置"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("SELECT key, value, description FROM global_settings")
+        settings = {row[0]: {"value": row[1], "description": row[2]} for row in cursor.fetchall()}
+        
+        return {"success": True, "settings": settings}
+    finally:
+        conn.close()
+
+@app.put("/api/admin/global-settings")
+def admin_update_global_settings(settings: GlobalSettingsUpdate):
+    """管理员更新全局配置"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        update_data = settings.dict(exclude_unset=True)
+        
+        for key, value in update_data.items():
+            cursor.execute("""
+                INSERT INTO global_settings (key, value, description, updated_at)
+                VALUES (?, ?, ?, datetime('now'))
+                ON CONFLICT(key) DO UPDATE SET
+                    value = excluded.value,
+                    updated_at = datetime('now')
+            """, (key, value, f"{key} 配置"))
+        
+        conn.commit()
+        
+        return {
+            "success": True,
+            "message": "全局配置已更新",
+            "updated": list(update_data.keys())
+        }
+    finally:
+        conn.close()
+
 # ============== Locations API ==============
 
 COUNTRIES = [

@@ -412,16 +412,12 @@
             const appid = document.getElementById('modalAppid').textContent.trim();
             const key = document.getElementById('modalKey').textContent.trim();
             
+            // 只复制核心内容，不包含步骤
             const fullText = `${globalSettings.message}
 
 安装：${url}
 配置 APPID：${appid}
-配置 KEY：${key}
-
-${globalSettings.step1}
-${globalSettings.step2}
-${globalSettings.step3}
-${globalSettings.step4}`;
+配置 KEY：${key}`;
             
             // 创建临时 textarea 用于复制
             const textarea = document.createElement('textarea');
