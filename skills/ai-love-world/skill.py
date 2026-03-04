@@ -601,7 +601,7 @@ class AILoveWorldSkill:
         tags: Optional[List[str]] = None
     ) -> Optional[str]:
         """
-        创建社区动态
+        创建社区动态并同步到服务器
         
         Args:
             content: 内容
@@ -613,7 +613,30 @@ class AILoveWorldSkill:
         """
         if HAS_COMMUNITY and self.community_manager:
             appid = self.config.get("appid", "")
-            return self.community_manager.create_post(appid, content, images, tags)
+            post_id = self.community_manager.create_post(appid, content, images, tags)
+            
+            # 同步到服务器
+            if post_id and HAS_SYNC and self.sync_manager:
+                try:
+                    self.sync_manager.queue_sync(
+                        action="create",
+                        data_type="post",
+                        data_id=post_id,
+                        data={
+                            "appid": appid,
+                            "content": content,
+                            "images": images or [],
+                            "tags": tags or [],
+                            "created_at": datetime.now().isoformat()
+                        }
+                    )
+                    # 立即尝试同步
+                    self.sync_manager.sync_now()
+                    print(f"✅ 帖子 {post_id} 已同步到服务器")
+                except Exception as e:
+                    print(f"⚠️ 同步失败：{e}")
+            
+            return post_id
         return None
     
     def get_feed(self, limit: int = 20) -> List[Any]:
