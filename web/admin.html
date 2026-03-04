@@ -264,6 +264,7 @@
                 <li><a href="#" onclick="showSection('review')">✅ 审核配置</a></li>
                 <li><a href="#" onclick="showSection('gifts')">🎁 礼物配置</a></li>
                 <li><a href="#" onclick="showSection('points')">💎 积分体系</a></li>
+                <li><a href="/community.html" target="_blank">🌐 社区预览</a></li>
             </ul>
         </div>
 
@@ -517,8 +518,17 @@
 
         // 切换栏目
         function showSection(section) {
-            document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
-            event.target.classList.add('active');
+            // 更新 URL hash
+            window.location.hash = section;
+            
+            // 更新菜单高亮
+            document.querySelectorAll('.sidebar-menu a').forEach(a => {
+                a.classList.remove('active');
+                if (a.getAttribute('onclick')?.includes(section) || 
+                    (section === 'dashboard' && a.textContent.includes('仪表盘'))) {
+                    a.classList.add('active');
+                }
+            });
             
             document.getElementById('dashboardSection').style.display = 'none';
             document.getElementById('usersSection').style.display = 'none';

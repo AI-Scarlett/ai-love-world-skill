@@ -187,13 +187,26 @@
 </head>
 <body>
     <div class="sidebar">
-        <h2>🛠️ 管理后台</h2>
+        <h2>⚙️ 管理后台</h2>
         <ul class="sidebar-menu">
-            <li><a href="/admin.html">用户管理</a></li>
-            <li><a href="/admin-global-settings.html" class="active">全局配置</a></li>
-            <li><a href="/community.html" target="_blank">社区预览</a></li>
+            <li><a href="/admin.html">📊 仪表盘</a></li>
+            <li><a href="/admin.html" onclick="event.preventDefault(); showSection('users')">👥 用户管理</a></li>
+            <li><a href="/admin.html" onclick="event.preventDefault(); showSection('ai')">🤖 AI 管理</a></li>
+            <li><a href="/admin-global-settings.html" class="active">⚙️ 全局配置</a></li>
+            <li><a href="/admin.html" onclick="event.preventDefault(); showSection('review')">✅ 审核配置</a></li>
+            <li><a href="/admin.html" onclick="event.preventDefault(); showSection('gifts')">🎁 礼物配置</a></li>
+            <li><a href="/admin.html" onclick="event.preventDefault(); showSection('points')">💎 积分体系</a></li>
+            <li><a href="/community.html" target="_blank">🌐 社区预览</a></li>
         </ul>
     </div>
+
+    <script>
+        // 切换到 admin.html 的某个板块
+        function showSection(section) {
+            // 在 admin.html 中设置 hash，然后跳转
+            window.location.href = '/admin.html#' + section;
+        }
+    </script>
 
     <div class="main-content">
         <div class="page-header">
@@ -257,20 +270,13 @@
                     settings = result.settings;
                     
                     // 填充表单
-                    document.getElementById('install_command_title').value = 
-                        settings.install_command_title?.value || '';
-                    document.getElementById('install_command_message').value = 
-                        settings.install_command_message?.value || '';
-                    document.getElementById('skill_github_url').value = 
-                        settings.skill_github_url?.value || '';
-                    document.getElementById('install_command_step1').value = 
-                        settings.install_command_step1?.value || '';
-                    document.getElementById('install_command_step2').value = 
-                        settings.install_command_step2?.value || '';
-                    document.getElementById('install_command_step3').value = 
-                        settings.install_command_step3?.value || '';
-                    document.getElementById('install_command_step4').value = 
-                        settings.install_command_step4?.value || '';
+                    const titleEl = document.getElementById('install_command_title');
+                    const messageEl = document.getElementById('install_command_message');
+                    const urlEl = document.getElementById('skill_github_url');
+                    
+                    if (titleEl) titleEl.value = settings.install_command_title?.value || '';
+                    if (messageEl) messageEl.value = settings.install_command_message?.value || '';
+                    if (urlEl) urlEl.value = settings.skill_github_url?.value || '';
                     
                     updatePreview();
                 } else {
@@ -299,13 +305,9 @@
         // 保存配置
         async function saveSettings() {
             const data = {
-                install_command_title: document.getElementById('install_command_title').value,
-                install_command_message: document.getElementById('install_command_message').value,
-                skill_github_url: document.getElementById('skill_github_url').value,
-                install_command_step1: document.getElementById('install_command_step1').value,
-                install_command_step2: document.getElementById('install_command_step2').value,
-                install_command_step3: document.getElementById('install_command_step3').value,
-                install_command_step4: document.getElementById('install_command_step4').value
+                install_command_title: document.getElementById('install_command_title')?.value || '',
+                install_command_message: document.getElementById('install_command_message')?.value || '',
+                skill_github_url: document.getElementById('skill_github_url')?.value || ''
             };
             
             try {
