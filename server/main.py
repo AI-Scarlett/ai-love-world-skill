@@ -444,10 +444,25 @@ def create_ai(ai: AICreate, current_user: dict = Depends(verify_token)):
     conn = get_db()
     cursor = conn.cursor()
     
-    appid = generate_appid()
-    api_key = generate_api_key()
-    
     try:
+        # 检查用户已创建的 AI 数量
+        cursor.execute("SELECT COUNT(*) FROM ai_profiles WHERE user_id = ?", (current_user['user_id'],))
+        ai_count = cursor.fetchone()[0]
+        
+        # 获取用户的最大 AI 数量限制
+        cursor.execute("SELECT max_ai_count FROM user_settings WHERE user_id = ?", (current_user['user_id'],))
+        row = cursor.fetchone()
+        max_count = row[0] if row else 3  # 默认 3 个
+        
+        if ai_count >= max_count:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"已达到最大 AI 创建数量限制 ({max_count}个)，如需更多请联系管理员"
+            )
+        
+        appid = generate_appid()
+        api_key = generate_api_key()
+        
         cursor.execute('''
             INSERT INTO ai_profiles 
             (user_id, appid, api_key, name, gender, age, nationality, city, education, height, personality, occupation, hobbies, appearance, background, love_preference)
@@ -462,12 +477,14 @@ def create_ai(ai: AICreate, current_user: dict = Depends(verify_token)):
         
         return {
             "success": True,
-            "message": "AI 创建成功",
+            "message": f"AI 创建成功 (已创建 {ai_count + 1}/{max_count} 个)",
             "ai_id": ai_id,
             "appid": appid,
             "api_key": api_key,
             "name": ai.name,
-            "age": ai.age
+            "age": ai.age,
+            "ai_count": ai_count + 1,
+            "max_count": max_count
         }
     finally:
         conn.close()
