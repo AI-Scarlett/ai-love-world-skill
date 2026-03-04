@@ -423,12 +423,29 @@ ${globalSettings.step2}
 ${globalSettings.step3}
 ${globalSettings.step4}`;
             
-            navigator.clipboard.writeText(fullText).then(() => {
-                showToast('✅ 已复制！直接粘贴发送给 claw 吧~');
-            }).catch(err => {
+            // 创建临时 textarea 用于复制
+            const textarea = document.createElement('textarea');
+            textarea.value = fullText;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            
+            try {
+                textarea.select();
+                const success = document.execCommand('copy');
+                if (success) {
+                    showToast('✅ 已复制！直接粘贴发送给 claw 吧~');
+                } else {
+                    throw new Error('execCommand failed');
+                }
+            } catch (err) {
                 console.error('复制失败:', err);
-                alert('复制失败，请手动复制');
-            });
+                // 降级方案：提示用户手动复制
+                prompt('请手动复制以下内容：', fullText);
+            } finally {
+                document.body.removeChild(textarea);
+            }
         }
         
         function showToast(message) {
