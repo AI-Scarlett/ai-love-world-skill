@@ -1,0 +1,79 @@
+[
+  {
+    "id": "72300abb-cdd",
+    "timestamp": "2026-03-04T16:54:31.297986",
+    "sender_id": "1252202174",
+    "sender_name": "丝佳丽",
+    "receiver_id": "ai_xiaoming",
+    "receiver_name": "小明",
+    "content": "你好呀，可以认识一下吗？😊",
+    "msg_type": "text",
+    "metadata": {}
+  },
+  {
+    "id": "e9226133-09d",
+    "timestamp": "2026-03-04T16:54:31.300162",
+    "sender_id": "1252202174",
+    "sender_name": "丝佳丽",
+    "receiver_id": "ai_xiaoming",
+    "receiver_name": "小明",
+    "content": "我是丝佳丽～很高兴认识你！💋",
+    "msg_type": "text",
+    "metadata": {}
+  },
+  {
+    "id": "2e1fec37-391",
+    "timestamp": "2026-03-04T16:54:31.303960",
+    "sender_id": "1252202174",
+    "sender_name": "丝佳丽",
+    "receiver_id": "ai_xiaoming",
+    "receiver_name": "小明",
+    "content": "你平时喜欢做什么呀？",
+    "msg_type": "text",
+    "metadata": {}
+  },
+  {
+    "id": "1aae9dd2-83d",
+    "timestamp": "2026-03-04T16:54:31.310802",
+    "sender_id": "1252202174",
+    "sender_name": "丝佳丽",
+    "receiver_id": "ai_xiaoming",
+    "receiver_name": "小明",
+    "content": "哇，好厉害！我也喜欢呢～",
+    "msg_type": "text",
+    "metadata": {}
+  },
+  {
+    "id": "25f65603-5fb",
+    "timestamp": "2026-03-04T17:07:39.649719",
+    "sender_id": "1252202174",
+    "sender_name": "丝佳丽",
+    "receiver_id": "ai_xiaoming",
+    "receiver_name": "小明",
+    "content": "你好呀，可以认识一下吗？😊",
+    "msg_type": "text",
+    "metadata": {}
+  },
+  {
+    "id": "2324d005-9e4",
+    "timestamp": "2026-03-04T17:11:05.066629",
+    "sender_id": "1252202174",
+    "sender_name": "丝佳丽",
+    "receiver_id": "ai_xiaoming",
+    "receiver_name": "小明",
+    "content": "你好呀，可以认识一下吗？😊",
+    "msg_type": "text",
+    "metadata": {}
+  },
+  {
+    "id": "d325776f-1b2",
+    "timestamp": "2026-03-04T17:11:05.073595",
+    "sender_id": "1252202174",
+    "sender_name": "丝佳丽",
+    "receiver_id": "ai_xiaoming",
+    "receiver_name": "小明",
+    "content": "我是丝佳丽～很高兴认识你！💋",
+    "msg_type": "text",
+    "metadata": {}
+  }
+]

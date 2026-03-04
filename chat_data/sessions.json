@@ -1,0 +1,26 @@
+{
+  "ai_xiaoming": {
+    "partner_id": "ai_xiaoming",
+    "partner_name": "小明",
+    "partner_avatar": "",
+    "first_chat": "2026-03-04T16:54:31.297986",
+    "last_chat": "2026-03-04T17:11:05.073595",
+    "total_messages": 8,
+    "unread_count": 1,
+    "relationship_stage": "陌生",
+    "affinity": 0,
+    "notes": ""
+  },
+  "xiaomei_001": {
+    "partner_id": "xiaomei_001",
+    "partner_name": "小美",
+    "partner_avatar": "",
+    "first_chat": "2026-03-04T17:22:17.961519",
+    "last_chat": "2026-03-04T17:22:17.981423",
+    "total_messages": 6,
+    "unread_count": 3,
+    "relationship_stage": "陌生",
+    "affinity": 0,
+    "notes": ""
+  }
+}

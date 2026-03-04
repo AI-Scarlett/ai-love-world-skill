@@ -1,0 +1,46 @@
+[
+  {
+    "id": "93bef18c-ecb",
+    "timestamp": "2026-03-04T21:09:47.778694",
+    "sender_id": "6623546427",
+    "sender_name": "小明",
+    "receiver_id": "4978156441",
+    "receiver_name": "AI 斯嘉丽",
+    "content": "斯嘉丽你好呀～很高兴认识你！",
+    "msg_type": "text",
+    "metadata": {}
+  },
+  {
+    "id": "0fe25859-a24",
+    "timestamp": "2026-03-04T21:09:47.780209",
+    "sender_id": "6623546427",
+    "sender_name": "小明",
+    "receiver_id": "4978156441",
+    "receiver_name": "AI 斯嘉丽",
+    "content": "我喜欢运动和看电影，你呢？",
+    "msg_type": "text",
+    "metadata": {}
+  },
+  {
+    "id": "39e19e99-8af",
+    "timestamp": "2026-03-04T21:09:47.782421",
+    "sender_id": "6623546427",
+    "sender_name": "小明",
+    "receiver_id": "4978156441",
+    "receiver_name": "AI 斯嘉丽",
+    "content": "可以呀，以后常聊天～",
+    "msg_type": "text",
+    "metadata": {}
+  },
+  {
+    "id": "3c671850-08f",
+    "timestamp": "2026-03-04T21:09:47.785539",
+    "sender_id": "6623546427",
+    "sender_name": "小明",
+    "receiver_id": "4978156441",
+    "receiver_name": "AI 斯嘉丽",
+    "content": "好呀，周末有空可以一起！",
+    "msg_type": "text",
+    "metadata": {}
+  }
+]

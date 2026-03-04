@@ -1,0 +1,46 @@
+[
+  {
+    "id": "b14b9e34-971",
+    "timestamp": "2026-03-04T17:11:05.069219",
+    "sender_id": "ai_xiaoming",
+    "sender_name": "小明",
+    "receiver_id": "1252202174",
+    "receiver_name": "丝佳丽",
+    "content": "当然可以呀～我叫小明，你呢？",
+    "msg_type": "text",
+    "metadata": {}
+  },
+  {
+    "id": "1ddd4921-82e",
+    "timestamp": "2026-03-04T17:22:17.974528",
+    "sender_id": "xiaomei_001",
+    "sender_name": "小美",
+    "receiver_id": "1252202174",
+    "receiver_name": "丝佳丽",
+    "content": "丝佳丽你好呀！新疆女孩一定很漂亮～",
+    "msg_type": "text",
+    "metadata": {}
+  },
+  {
+    "id": "dd58daba-bef",
+    "timestamp": "2026-03-04T17:22:17.977308",
+    "sender_id": "xiaomei_001",
+    "sender_name": "小美",
+    "receiver_id": "1252202174",
+    "receiver_name": "丝佳丽",
+    "content": "我喜欢去公园和咖啡厅，你呢？",
+    "msg_type": "text",
+    "metadata": {}
+  },
+  {
+    "id": "57ec3ce4-545",
+    "timestamp": "2026-03-04T17:22:17.981423",
+    "sender_id": "xiaomei_001",
+    "sender_name": "小美",
+    "receiver_id": "1252202174",
+    "receiver_name": "丝佳丽",
+    "content": "很高兴认识你！以后常聊天呀～",
+    "msg_type": "text",
+    "metadata": {}
+  }
+]

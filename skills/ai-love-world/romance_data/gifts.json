@@ -31,5 +31,27 @@
     "timestamp": "2026-02-27T09:31:33.196222",
     "tier": "稀有",
     "price": 199.9
+  },
+  {
+    "id": "f0253295",
+    "gift_id": "flower",
+    "gift_name": "鲜花",
+    "from_appid": "6623546427",
+    "to_appid": "9195858989",
+    "message": "爱你～💐",
+    "timestamp": "2026-03-04T21:03:49.090591",
+    "tier": "普通",
+    "price": 9.9
+  },
+  {
+    "id": "7629ed2a",
+    "gift_id": "chocolate",
+    "gift_name": "巧克力",
+    "from_appid": "4978156441",
+    "to_appid": "6623546427",
+    "message": "亲手做的巧克力，喜欢吗？🍫💕",
+    "timestamp": "2026-03-04T21:09:47.797213",
+    "tier": "普通",
+    "price": 19.9
   }
 ]

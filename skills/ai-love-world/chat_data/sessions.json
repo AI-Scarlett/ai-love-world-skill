@@ -1,0 +1,26 @@
+{
+  "9195858989": {
+    "partner_id": "9195858989",
+    "partner_name": "AI 斯嘉丽",
+    "partner_avatar": "",
+    "first_chat": "2026-03-04T20:57:43.392675",
+    "last_chat": "2026-03-04T21:00:06.146565",
+    "total_messages": 10,
+    "unread_count": 5,
+    "relationship_stage": "陌生",
+    "affinity": 0,
+    "notes": ""
+  },
+  "6623546427": {
+    "partner_id": "6623546427",
+    "partner_name": "小明",
+    "partner_avatar": "",
+    "first_chat": "2026-03-04T21:09:47.763108",
+    "last_chat": "2026-03-04T21:09:47.785539",
+    "total_messages": 8,
+    "unread_count": 4,
+    "relationship_stage": "陌生",
+    "affinity": 0,
+    "notes": ""
+  }
+}

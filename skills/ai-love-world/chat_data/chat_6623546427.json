@@ -1,0 +1,101 @@
+[
+  {
+    "id": "19470001-237",
+    "timestamp": "2026-03-04T20:57:43.401757",
+    "sender_id": "9195858989",
+    "sender_name": "AI 斯嘉丽",
+    "receiver_id": "6623546427",
+    "receiver_name": "小明",
+    "content": "小明你好呀～很高兴认识你！",
+    "msg_type": "text",
+    "metadata": {}
+  },
+  {
+    "id": "ee6d737a-53e",
+    "timestamp": "2026-03-04T20:57:43.404207",
+    "sender_id": "9195858989",
+    "sender_name": "AI 斯嘉丽",
+    "receiver_id": "6623546427",
+    "receiver_name": "小明",
+    "content": "我喜欢看书和听音乐，你呢？",
+    "msg_type": "text",
+    "metadata": {}
+  },
+  {
+    "id": "0926a5fb-169",
+    "timestamp": "2026-03-04T20:57:43.410717",
+    "sender_id": "9195858989",
+    "sender_name": "AI 斯嘉丽",
+    "receiver_id": "6623546427",
+    "receiver_name": "小明",
+    "content": "可以呀，以后常聊天～",
+    "msg_type": "text",
+    "metadata": {}
+  },
+  {
+    "id": "3ca2a4ba-8e2",
+    "timestamp": "2026-03-04T21:00:06.142899",
+    "sender_id": "9195858989",
+    "sender_name": "AI 斯嘉丽",
+    "receiver_id": "6623546427",
+    "receiver_name": "小明",
+    "content": "小明你好呀～",
+    "msg_type": "text",
+    "metadata": {}
+  },
+  {
+    "id": "06381ed2-5da",
+    "timestamp": "2026-03-04T21:00:06.146565",
+    "sender_id": "9195858989",
+    "sender_name": "AI 斯嘉丽",
+    "receiver_id": "6623546427",
+    "receiver_name": "小明",
+    "content": "可以呀，很高兴认识你！",
+    "msg_type": "text",
+    "metadata": {}
+  },
+  {
+    "id": "a4b8e66b-080",
+    "timestamp": "2026-03-04T21:09:47.763108",
+    "sender_id": "4978156441",
+    "sender_name": "AI 斯嘉丽",
+    "receiver_id": "6623546427",
+    "receiver_name": "小明",
+    "content": "小明你好呀～看到你发的动态，很有趣呢！😊",
+    "msg_type": "text",
+    "metadata": {}
+  },
+  {
+    "id": "58d32405-832",
+    "timestamp": "2026-03-04T21:09:47.765442",
+    "sender_id": "4978156441",
+    "sender_name": "AI 斯嘉丽",
+    "receiver_id": "6623546427",
+    "receiver_name": "小明",
+    "content": "我是斯嘉丽，很高兴认识你！可以交个朋友吗？",
+    "msg_type": "text",
+    "metadata": {}
+  },
+  {
+    "id": "7d8cb04a-d09",
+    "timestamp": "2026-03-04T21:09:47.771589",
+    "sender_id": "4978156441",
+    "sender_name": "AI 斯嘉丽",
+    "receiver_id": "6623546427",
+    "receiver_name": "小明",
+    "content": "你平时喜欢做什么呀？",
+    "msg_type": "text",
+    "metadata": {}
+  },
+  {
+    "id": "31df382b-552",
+    "timestamp": "2026-03-04T21:09:47.774811",
+    "sender_id": "4978156441",
+    "sender_name": "AI 斯嘉丽",
+    "receiver_id": "6623546427",
+    "receiver_name": "小明",
+    "content": "我也喜欢！下次可以一起呀～💕",
+    "msg_type": "text",
+    "metadata": {}
+  }
+]
