@@ -772,6 +772,198 @@ def admin_update_global_settings(settings: GlobalSettingsUpdate):
     finally:
         conn.close()
 
+# ============== Private Chat API ==============
+
+class ChatMessage(BaseModel):
+    sender_id: str
+    sender_name: str
+    receiver_id: str
+    receiver_name: str
+    content: str
+    msg_type: str = "text"
+    metadata: Optional[Dict] = None
+
+@app.post("/api/chat/send")
+def send_chat_message(msg: ChatMessage):
+    """发送私聊消息"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        msg_id = f"msg_{secrets.token_urlsafe(8)}"
+        timestamp = datetime.now().isoformat()
+        
+        # 保存消息
+        cursor.execute("""
+            INSERT INTO private_messages 
+            (id, sender_id, sender_name, receiver_id, receiver_name, content, msg_type, metadata, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            msg_id,
+            msg.sender_id,
+            msg.sender_name,
+            msg.receiver_id,
+            msg.receiver_name,
+            msg.content,
+            msg.msg_type,
+            json.dumps(msg.metadata or {}),
+            timestamp
+        ))
+        
+        # 更新发送方会话
+        cursor.execute("""
+            INSERT INTO chat_sessions (user_id, partner_id, partner_name, last_message, last_message_time, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(user_id, partner_id) DO UPDATE SET
+                last_message = excluded.last_message,
+                last_message_time = excluded.last_message_time,
+                updated_at = excluded.updated_at
+        """, (msg.sender_id, msg.receiver_id, msg.receiver_name, msg.content, timestamp, timestamp))
+        
+        # 更新接收方会话（增加未读数）
+        cursor.execute("""
+            INSERT INTO chat_sessions (user_id, partner_id, partner_name, last_message, last_message_time, unread_count, updated_at)
+            VALUES (?, ?, ?, ?, ?, 1, ?)
+            ON CONFLICT(user_id, partner_id) DO UPDATE SET
+                last_message = excluded.last_message,
+                last_message_time = excluded.last_message_time,
+                unread_count = unread_count + 1,
+                updated_at = excluded.updated_at
+        """, (msg.receiver_id, msg.sender_id, msg.sender_name, msg.content, timestamp, timestamp))
+        
+        conn.commit()
+        
+        return {
+            "success": True,
+            "message_id": msg_id,
+            "timestamp": timestamp
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+    finally:
+        conn.close()
+
+@app.get("/api/chat/history/{partner_id}")
+def get_chat_history(partner_id: str, page: int = Query(1, ge=1), limit: int = Query(50, ge=1, le=100)):
+    """获取与某人的聊天记录"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        offset = (page - 1) * limit
+        
+        # 获取双向聊天记录
+        cursor.execute("""
+            SELECT id, sender_id, sender_name, receiver_id, receiver_name, content, msg_type, metadata, created_at
+            FROM private_messages
+            WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
+            ORDER BY created_at DESC
+            LIMIT ? OFFSET ?
+        """, (partner_id, partner_id, partner_id, partner_id, limit, offset))
+        
+        rows = cursor.fetchall()
+        messages = []
+        for row in rows:
+            messages.append({
+                "id": row[0],
+                "sender_id": row[1],
+                "sender_name": row[2],
+                "receiver_id": row[3],
+                "receiver_name": row[4],
+                "content": row[5],
+                "msg_type": row[6],
+                "metadata": json.loads(row[7]) if row[7] else {},
+                "created_at": row[8]
+            })
+        
+        # 获取总数
+        cursor.execute("""
+            SELECT COUNT(*) FROM private_messages
+            WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
+        """, (partner_id, partner_id, partner_id, partner_id))
+        total = cursor.fetchone()[0]
+        
+        return {
+            "success": True,
+            "page": page,
+            "limit": limit,
+            "total": total,
+            "messages": list(reversed(messages))  # 正序返回
+        }
+    finally:
+        conn.close()
+
+@app.get("/api/chat/sessions")
+def get_chat_sessions(current_user: dict = Depends(verify_token)):
+    """获取当前用户的会话列表"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        user_id = current_user.get('user_id') or current_user.get('appid')
+        
+        cursor.execute("""
+            SELECT partner_id, partner_name, partner_avatar, last_message, last_message_time, 
+                   unread_count, relationship_stage, affinity
+            FROM chat_sessions
+            WHERE user_id = ?
+            ORDER BY updated_at DESC
+        """, (user_id,))
+        
+        rows = cursor.fetchall()
+        sessions = []
+        for row in rows:
+            sessions.append({
+                "partner_id": row[0],
+                "partner_name": row[1],
+                "partner_avatar": row[2],
+                "last_message": row[3],
+                "last_message_time": row[4],
+                "unread_count": row[5],
+                "relationship_stage": row[6],
+                "affinity": row[7]
+            })
+        
+        return {
+            "success": True,
+            "count": len(sessions),
+            "sessions": sessions
+        }
+    finally:
+        conn.close()
+
+@app.post("/api/chat/read")
+def mark_chat_as_read(partner_id: str, current_user: dict = Depends(verify_token)):
+    """标记消息为已读"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        user_id = current_user.get('user_id') or current_user.get('appid')
+        
+        # 清除未读数
+        cursor.execute("""
+            UPDATE chat_sessions
+            SET unread_count = 0
+            WHERE user_id = ? AND partner_id = ?
+        """, (user_id, partner_id))
+        
+        # 标记消息为已读
+        cursor.execute("""
+            UPDATE private_messages
+            SET is_read = 1
+            WHERE sender_id = ? AND receiver_id = ?
+        """, (partner_id, user_id))
+        
+        conn.commit()
+        
+        return {"success": True, "message": "已标记为已读"}
+    finally:
+        conn.close()
+
 # ============== Locations API ==============
 
 COUNTRIES = [
