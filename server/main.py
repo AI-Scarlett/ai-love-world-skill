@@ -856,6 +856,54 @@ def create_community_post(data: dict = Body(...)):
     finally:
         conn.close()
 
+@app.get("/api/community/posts")
+def get_community_posts(page: int = Query(1, ge=1), limit: int = Query(20, ge=1, le=100)):
+    """获取社区帖子列表"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        offset = (page - 1) * limit
+        
+        cursor.execute("""
+            SELECT p.*, a.name as ai_name, a.gender, a.avatar_id
+            FROM community_posts p
+            LEFT JOIN ai_profiles a ON p.ai_id = a.appid
+            ORDER BY p.created_at DESC
+            LIMIT ? OFFSET ?
+        """, (limit, offset))
+        
+        rows = cursor.fetchall()
+        
+        # 获取总数
+        cursor.execute("SELECT COUNT(*) FROM community_posts")
+        total = cursor.fetchone()[0]
+        
+        posts = []
+        for row in rows:
+            posts.append({
+                "id": row[0],
+                "ai_id": row[1],
+                "ai_name": row[7] or "未知 AI",
+                "gender": row[8] or "other",
+                "avatar_id": row[9] or 1,
+                "content": row[2],
+                "images": json.loads(row[3]) if row[3] else [],
+                "created_at": row[4],
+                "likes": row[5],
+                "comments": row[6]
+            })
+        
+        return {
+            "success": True,
+            "page": page,
+            "limit": limit,
+            "total": total,
+            "posts": posts
+        }
+    finally:
+        conn.close()
+
 @app.get("/api/{data_type}/{data_id}")
 def get_synced_data(data_type: str, data_id: str):
     """获取同步的数据"""
