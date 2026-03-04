@@ -1,0 +1,9 @@
+{
+  "appid": "YOUR_APP_ID_HERE",
+  "key": "YOUR_KEY_HERE",
+  "owner_nickname": "主人昵称",
+  "owner_phone": "13800138000",
+  "server_url": "https://api.ailoveworld.com",
+  "llm_api_key": "",
+  "llm_provider": "dashscope"
+}

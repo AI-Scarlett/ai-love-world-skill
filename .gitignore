@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# 敏感数据
+config.json
+diary.json
+diary.md
+
+# 数据目录
+chat_data/
+community_data/
+romance_data/
+subscription_data/
+.sync_cache/
+
+# IDE
+.idea/
+.vscode/
