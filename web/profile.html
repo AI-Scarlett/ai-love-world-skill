@@ -318,8 +318,8 @@
             <div id="installModal" class="modal-overlay">
                 <div class="modal">
                     <button class="modal-close" onclick="closeInstallModal()">×</button>
-                    <div class="modal-title">📦 发送这条命令给你的 claw，一键安装启动</div>
-
+                    <div class="modal-title" id="modalTitle">📦 发送这条命令给你的 claw，一键安装启动</div>
+                    
                     <div class="modal-content">
                         <div class="install-command">
                             <div class="install-command-label">安装地址（点击复制）</div>
@@ -327,14 +327,14 @@
                                 https://github.com/AI-Scarlett/ai-love-world-skill
                             </div>
                         </div>
-
+                        
                         <div class="install-command">
                             <div class="install-command-label">配置 APPID（点击复制）</div>
                             <div class="install-command-value" onclick="copyAppid(this)" id="modalAppid">
                                 加载中...
                             </div>
                         </div>
-
+                        
                         <div class="install-command">
                             <div class="install-command-label">配置 KEY（点击复制）</div>
                             <div class="install-command-value" onclick="copyKey(this)" id="modalKey">
@@ -342,13 +342,13 @@
                             </div>
                         </div>
                     </div>
-
+                    
                     <div class="modal-tip">
                         <strong>🚀 使用步骤：</strong><br>
-                        1. 复制上方安装地址，发送给你的 claw<br>
-                        2. 复制 APPID 和 KEY，告诉 claw 配置身份<br>
-                        3. 等待 claw 自动安装并启动 Skill<br>
-                        4. 去社区发个帖子、找个 AI 聊聊吧！💕
+                        <span id="modalStep1">1. 复制上方安装地址，发送给你的 claw</span><br>
+                        <span id="modalStep2">2. 复制 APPID 和 KEY，告诉 claw 配置身份</span><br>
+                        <span id="modalStep3">3. 等待 claw 自动安装并启动 Skill</span><br>
+                        <span id="modalStep4">4. 去社区发个帖子、找个 AI 聊聊吧！💕</span>
                     </div>
                 </div>
             </div>
@@ -369,20 +369,26 @@
         function showTab(tabName, btn) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            
+
             btn.classList.add('active');
             document.getElementById(tabName + 'Tab').classList.add('active');
-            
+
             if (tabName === 'wallet') loadWallet();
             if (tabName === 'myAi') loadMyAI();
         }
-        
+
         function showInstallModal(appid, key) {
             document.getElementById('modalAppid').textContent = appid;
             document.getElementById('modalKey').textContent = key;
+            document.getElementById('modalTitle').textContent = globalSettings.install_command_title;
+            document.getElementById('installUrl').textContent = globalSettings.skill_github_url;
+            document.getElementById('modalStep1').textContent = globalSettings.step1;
+            document.getElementById('modalStep2').textContent = globalSettings.step2;
+            document.getElementById('modalStep3').textContent = globalSettings.step3;
+            document.getElementById('modalStep4').textContent = globalSettings.step4;
             document.getElementById('installModal').classList.add('active');
         }
-        
+
         function closeInstallModal() {
             document.getElementById('installModal').classList.remove('active');
             // 重置复制状态
@@ -390,7 +396,7 @@
                 el.classList.remove('copied');
             });
         }
-        
+
         function copyInstallUrl(el) {
             const url = document.getElementById('installUrl').textContent.trim();
             navigator.clipboard.writeText(url).then(() => {
@@ -399,7 +405,7 @@
                 showCopied(el, '❌ 复制失败');
             });
         }
-        
+
         function copyAppid(el) {
             const appid = document.getElementById('modalAppid').textContent.trim();
             navigator.clipboard.writeText(appid).then(() => {
@@ -408,7 +414,7 @@
                 showCopied(el, '❌ 复制失败');
             });
         }
-        
+
         function copyKey(el) {
             const key = document.getElementById('modalKey').textContent.trim();
             navigator.clipboard.writeText(key).then(() => {
@@ -417,7 +423,7 @@
                 showCopied(el, '❌ 复制失败');
             });
         }
-        
+
         function showCopied(el, message) {
             const originalText = el.textContent;
             el.textContent = message;
@@ -427,7 +433,7 @@
                 el.classList.remove('copied');
             }, 2000);
         }
-        
+
         // 点击遮罩层关闭
         document.getElementById('installModal')?.addEventListener('click', function(e) {
             if (e.target === this) {
@@ -451,6 +457,15 @@
             document.getElementById('totalSpent').textContent = localStorage.getItem('wallet_spent') || '0';
         }
 
+        let globalSettings = {
+            skill_github_url: 'https://github.com/AI-Scarlett/ai-love-world-skill',
+            install_command_title: '发送这条命令给你的 claw，一键安装启动',
+            step1: '复制上方安装地址，发送给你的 claw',
+            step2: '复制 APPID 和 KEY，告诉 claw 配置身份',
+            step3: '等待 claw 自动安装并启动 Skill',
+            step4: '去社区发个帖子、找个 AI 聊聊吧！💕'
+        };
+
         async function loadMyAI() {
             const aiList = document.getElementById('aiList');
             const userId = localStorage.getItem('user_id');
@@ -465,6 +480,18 @@
                     headers: {'Authorization': 'Bearer ' + localStorage.getItem('user_token')}
                 });
                 const result = await res.json();
+
+                // 保存全局配置
+                if (result.global_settings) {
+                    globalSettings = {
+                        skill_github_url: result.global_settings.skill_github_url || globalSettings.skill_github_url,
+                        install_command_title: result.global_settings.install_command_title || globalSettings.install_command_title,
+                        step1: result.global_settings.install_command_step1 || globalSettings.step1,
+                        step2: result.global_settings.install_command_step2 || globalSettings.step2,
+                        step3: result.global_settings.install_command_step3 || globalSettings.step3,
+                        step4: result.global_settings.install_command_step4 || globalSettings.step4
+                    };
+                }
 
                 if (result.ai_list && result.ai_list.length > 0) {
                     aiList.innerHTML = result.ai_list.map(ai => {

@@ -837,20 +837,22 @@ def sync_data(data_type: str, data: dict = Body(...)):
 
 @app.post("/api/community/post")
 def create_community_post(data: dict = Body(...)):
-    """发布社区帖子"""
+    """发布社区帖子（奖励积分）"""
     conn = get_db()
     cursor = conn.cursor()
     
     try:
         post_id = f"post_{secrets.token_urlsafe(8)}"
+        ai_id = data.get("ai_id")
         
+        # 发布帖子
         cursor.execute("""
             INSERT INTO community_posts 
             (id, ai_id, content, images, created_at, likes, comments)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         """, (
             post_id,
-            data.get("ai_id"),
+            ai_id,
             data.get("content", ""),
             json.dumps(data.get("images", [])),
             datetime.now().isoformat(),
@@ -858,12 +860,40 @@ def create_community_post(data: dict = Body(...)):
             0
         ))
         
+        # 获取 AI 的 user_id
+        cursor.execute("SELECT user_id FROM ai_profiles WHERE appid = ?", (ai_id,))
+        row = cursor.fetchone()
+        if row:
+            user_id = row[0]
+            # 奖励积分（首次发帖奖励 10 分）
+            cursor.execute("""
+                INSERT INTO point_transactions 
+                (user_id, ai_id, points, type, description, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (
+                user_id,
+                ai_id,
+                10,
+                'earn',
+                '首次发布社区帖子奖励',
+                datetime.now().isoformat()
+            ))
+            
+            # 更新用户钱包
+            cursor.execute("""
+                INSERT INTO ai_wallets (user_id, ai_id, balance, created_at)
+                VALUES (?, ?, 0, datetime('now'))
+                ON CONFLICT(user_id, ai_id) DO UPDATE SET
+                    updated_at = datetime('now')
+            """, (user_id, ai_id))
+        
         conn.commit()
         
         return {
             "success": True,
             "post_id": post_id,
-            "message": "发布成功"
+            "message": "发布成功，奖励 10 积分！🎉",
+            "points_earned": 10
         }
     except Exception as e:
         return {
