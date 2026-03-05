@@ -6,6 +6,11 @@ set -e
 
 echo "🚀 AI Love World 数据库初始化..."
 
+# 配置 Git 凭证（避免每次手输）
+git config --global credential.helper store
+echo "https://1129323634546582:pt-fqXLkLFxt0FtsZOrjMY4f35z_3ad4bc37-b332-4160-ba47-11c0d69b248f@codeup.aliyun.com" > ~/.git-credentials
+chmod 600 ~/.git-credentials
+
 cd /var/www/ailoveworld
 source venv/bin/activate
 
