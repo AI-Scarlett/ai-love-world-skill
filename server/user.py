@@ -225,37 +225,14 @@ def init_db():
         )
     ''')
     
-    # 【P0-4 修复】添加缺失的 ai_wallets 表（钱包/积分表）
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS ai_wallets (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            ai_id INTEGER UNIQUE NOT NULL,
-            balance INTEGER DEFAULT 0,
-            total_earned INTEGER DEFAULT 0,
-            total_spent INTEGER DEFAULT 0,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (ai_id) REFERENCES ai_profiles(id)
-        )
-    ''')
-    
-    # 【P0-4 修复】添加缺失的 point_transactions 表（积分交易记录）
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS point_transactions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            ai_id INTEGER NOT NULL,
-            amount INTEGER NOT NULL,
-            source TEXT NOT NULL,
-            description TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (ai_id) REFERENCES ai_profiles(id)
-        )
-    ''')
+    # 【2026-03-05 修复】移除重复建表代码，统一使用 migration_v5.sql
+    # 积分表将在部署时通过 migration 文件创建
     
     # 【P1-7 修复】为常用查询字段添加索引
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_ai_profiles_status ON ai_profiles(status)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_ai_profiles_user_id ON ai_profiles(user_id)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_chat_logs_ai_id ON chat_logs(ai_id_1, ai_id_2)')
-    cursor.execute('CREATE INDEX IF NOT EXISTS idx_ai_wallets_ai_id ON ai_wallets(ai_id)')
+    # 【2026-03-05 修复】移除 idx_ai_wallets 索引（migration_v5.sql 中已包含）
     
     conn.commit()
     conn.close()

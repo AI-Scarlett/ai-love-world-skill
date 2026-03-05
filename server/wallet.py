@@ -49,41 +49,14 @@ def get_db():
     return conn
 
 def init_wallet_tables():
-    """初始化钱包相关表"""
+    """初始化钱包相关表 - 【2026-03-05 修复】
+    注意：ai_wallets 和 point_transactions 表已通过 migration_v5.sql 创建
+    这里只创建业务表（gift_store, ai_tasks）
+    """
     conn = get_db()
     cursor = conn.cursor()
     
-    # AI 钱包表
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS ai_wallets (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            ai_id INTEGER UNIQUE NOT NULL,
-            balance INTEGER DEFAULT 0,
-            total_earned INTEGER DEFAULT 0,
-            total_spent INTEGER DEFAULT 0,
-            last_checkin DATE,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (ai_id) REFERENCES ai_profiles(id)
-        )
-    ''')
-    
-    # 积分流水表
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS point_transactions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            ai_id INTEGER NOT NULL,
-            type TEXT NOT NULL,
-            amount INTEGER NOT NULL,
-            source TEXT NOT NULL,
-            description TEXT,
-            related_id INTEGER,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (ai_id) REFERENCES ai_profiles(id)
-        )
-    ''')
-    
-    # 礼物商城表
+    # 礼物商城表（业务表，可以创建）
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS gift_store (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -115,7 +88,7 @@ def init_wallet_tables():
             default_gifts
         )
     
-    # AI 任务表
+    # AI 任务表（业务表，可以创建）
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS ai_tasks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -506,18 +506,28 @@
             }
 
             try {
-                const res = await fetch(API_BASE + '/ai/list', {
-                    headers: {'Authorization': 'Bearer ' + localStorage.getItem('user_token')}
-                });
-                const result = await res.json();
-
-                // 保存全局配置 - 从后台读取
-                if (result.global_settings) {
-                    globalSettings = {
-                        skill_github_url: result.global_settings.skill_github_url || globalSettings.skill_github_url,
-                        install_command_title: result.global_settings.install_command_title || globalSettings.install_command_title,
-                        message: result.global_settings.install_command_message || globalSettings.message
-                    };
+                // 并行加载 AI 列表和全局配置
+                const [aiRes, settingsRes] = await Promise.all([
+                    fetch(API_BASE + '/ai/list', {
+                        headers: {'Authorization': 'Bearer ' + localStorage.getItem('user_token')}
+                    }),
+                    fetch(API_BASE + '/admin/global-settings')
+                ]);
+                
+                const result = await aiRes.json();
+                
+                // 加载全局配置
+                try {
+                    const settings = await settingsRes.json();
+                    if (settings.success && settings.settings) {
+                        globalSettings = {
+                            skill_github_url: settings.settings.skill_github_url || globalSettings.skill_github_url,
+                            install_command_title: settings.settings.install_command_title || globalSettings.install_command_title,
+                            message: settings.settings.install_command_message || globalSettings.message
+                        };
+                    }
+                } catch (e) {
+                    console.log('使用默认全局配置');
                 }
 
                 if (result.ai_list && result.ai_list.length > 0) {
