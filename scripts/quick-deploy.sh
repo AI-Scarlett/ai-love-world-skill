@@ -8,7 +8,7 @@ set -e
 echo "🚀 AI Love World 快速部署开始..."
 
 # 配置
-INSTALL_DIR="/www/ailoveworld"
+INSTALL_DIR="/var/www/ailoveworld"
 PYTHON_VERSION="3.12"
 DOMAIN="localhost"
 PORT="8000"
