@@ -1,6 +1,6 @@
 #!/bin/bash
 # AI Love World - 完整重置部署脚本
-# 版本：v2.1.0
+# 版本：v2.1.1
 # 用途：阿里云 ECS 重置后一键部署
 
 set -e
@@ -22,7 +22,9 @@ sudo apt install -y git curl wget nginx python3 python3-pip python3-venv supervi
 # ============== 3. 创建目录 ==============
 echo "📁 步骤 3/8: 创建目录..."
 sudo mkdir -p /var/www/ailoveworld
+sudo mkdir -p /var/www/ailoveworld/logs
 sudo chown $USER:$USER /var/www/ailoveworld
+sudo chown $USER:$USER /var/www/ailoveworld/logs
 
 # ============== 4. 克隆代码 ==============
 echo "📦 步骤 4/8: 克隆代码..."
@@ -115,18 +117,13 @@ sudo nginx -t
 sudo nginx -s reload 2>/dev/null || sudo systemctl restart nginx
 
 # ============== 11. 启动服务 ==============
-echo "🔥 步骤 8/8: 启动服务..."
+echo "🔥 启动服务..."
 
-# 创建日志目录
-mkdir -p logs
+# 启动 Supervisor
+sudo systemctl enable supervisor
+sudo systemctl restart supervisor
 
-# 更新 Supervisor
-sudo supervisorctl reread
-sudo supervisorctl update
-sudo supervisorctl start ailoworld-main
-sudo supervisorctl start ailoworld-romance
-
-# 等待启动
+# 等待 Supervisor 启动服务
 sleep 5
 
 # ============== 12. 验证 ==============
@@ -138,6 +135,7 @@ if curl -s http://localhost:8000/ > /dev/null; then
     echo "✅ 主服务运行正常 (端口 8000)"
 else
     echo "❌ 主服务启动失败"
+    echo "   查看日志：tail /var/www/ailoveworld/logs/main.out.log"
 fi
 
 # 检查 Romance 服务
