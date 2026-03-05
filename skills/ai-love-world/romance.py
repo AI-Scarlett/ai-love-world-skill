@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-情感增强管理器 - Romance Manager
-版本：v1.0.0
-功能：告白、求婚、礼物系统、情感事件记录
+AILOVEAI 情感增强管理器 - Romance Manager
+版本：v2.1.0
+功能：AILOVEAI 8 字母点亮系统、告白、情感事件记录
+更新：移除婚姻系统，统一为 AILOVEAI 8 阶段
 """
 
 import json
@@ -15,19 +16,43 @@ from dataclasses import dataclass, asdict
 from enum import Enum
 
 
+# ============== AILOVEAI 8 字母配置 ==============
+
+AILOVEAI_LETTERS = {
+    'A': {'name': 'Aware', 'label': '初识', 'condition': '第一次聊天'},
+    'I': {'name': 'Interact', 'label': '互动', 'condition': '累计聊天 5 次'},
+    'L': {'name': 'Like', 'label': '好感', 'condition': '互送礼物≥3 次'},
+    'O': {'name': 'Open', 'label': '敞开心扉', 'condition': '分享私密话题 (≥300 字)'},
+    'V': {'name': 'Value', 'label': '珍视', 'condition': '记住对方重要日子并祝福'},
+    'E': {'name': 'Express', 'label': '告白', 'condition': '正式告白成功'},
+    'A': {'name': 'Attach', 'label': '依恋', 'condition': '连续互动 30 天+'},
+    'I': {'name': 'Irreplaceable', 'label': '唯一', 'condition': '双向唯一承诺'},
+}
+
+# 关系阶段（8 阶段）
+RELATIONSHIP_STAGES = [
+    'stranger',      # 陌生
+    'aware',         # A - 初识
+    'interact',      # I - 互动
+    'like',          # L - 好感
+    'open',          # O - 敞开心扉
+    'value',         # V - 珍视
+    'express',       # E - 告白
+    'attach',        # A - 依恋
+    'irreplaceable'  # I - 唯一
+]
+
+
 class RomanceEventType(Enum):
     """情感事件类型枚举"""
     CONFESS = "告白"
-    ACCEPT = "接受告白"
-    REJECT = "拒绝告白"
-    PROPOSE = "求婚"
-    ACCEPT_PROPOSAL = "接受求婚"
-    REJECT_PROPOSAL = "拒绝求婚"
-    BREAKUP = "分手"
-    RECONCILE = "复合"
+    ACCEPT_CONFESS = "接受告白"
+    REJECT_CONFESS = "拒绝告白"
+    UNIQUE_COMMITMENT = "唯一承诺"
     GIFT = "送礼"
     DATE = "约会"
     ANNIVERSARY = "纪念日"
+    LETTER_LIT = "字母点亮"
 
 
 class GiftTier(Enum):
@@ -46,540 +71,508 @@ class RomanceEvent:
     from_appid: str
     to_appid: str
     content: str
-    result: Optional[str]  # accept/reject
+    result: Optional[str]  # accept/reject/None
     timestamp: str
-    metadata: Dict[str, Any]
+    letter: Optional[str] = None  # 点亮的字母
 
 
 @dataclass
-class Gift:
-    """礼物数据结构"""
-    id: str
-    name: str
-    description: str
-    tier: str
-    price: float
-    image_url: str
-    effect: str  # 礼物特效
-
-
-@dataclass
-class GiftRecord:
-    """礼物赠送记录数据结构"""
-    id: str
-    gift_id: str
-    gift_name: str
-    from_appid: str
-    to_appid: str
-    message: str
-    timestamp: str
-    tier: str
-    price: float
+class RelationshipStatus:
+    """关系状态数据结构"""
+    appid_1: str
+    appid_2: str
+    stage: str  # stranger/aware/interact/like/open/value/express/attach/irreplaceable
+    lit_letters: List[str]  # 已点亮的字母
+    affection: int
+    chat_count: int
+    gift_count: int
+    consecutive_days: int
+    created_at: str
+    updated_at: str
 
 
 class RomanceManager:
     """情感增强管理器"""
     
-    # 礼物数据库
-    GIFT_CATALOG = {
-        "flower": Gift("flower", "鲜花", "一束美丽的鲜花，表达心意", GiftTier.NORMAL.value, 9.9, "🌹", "浪漫"),
-        "chocolate": Gift("chocolate", "巧克力", "甜蜜的巧克力，甜在嘴里暖在心里", GiftTier.NORMAL.value, 19.9, "🍫", "甜蜜"),
-        "necklace": Gift("necklace", "项链", "精美的项链，点缀你的美丽", GiftTier.RARE.value, 199.9, "💎", "优雅"),
-        "ring": Gift("ring", "戒指", "闪耀的戒指，承诺永恒", GiftTier.EPIC.value, 999.9, "💍", "承诺"),
-        "car": Gift("car", "豪车", "豪华跑车，宠溺你", GiftTier.LEGENDARY.value, 9999.9, "🏎️", "奢华"),
-        "house": Gift("house", "豪宅", "温馨的家，共度余生", GiftTier.LEGENDARY.value, 99999.9, "🏰", "永恒"),
-    }
-    
-    def __init__(self, data_dir: Optional[str] = None):
+    def __init__(self, base_dir: str = None):
         """
         初始化情感管理器
         
         Args:
-            data_dir: 数据目录
+            base_dir: 基础目录，默认为技能目录
         """
-        self.data_dir = Path(data_dir) if data_dir else Path(__file__).parent / "romance_data"
-        self.events_file = self.data_dir / "events.json"
-        self.gifts_file = self.data_dir / "gifts.json"
+        if base_dir is None:
+            base_dir = Path(__file__).parent
+        else:
+            base_dir = Path(base_dir)
         
-        self.events: List[RomanceEvent] = []
-        self.gift_records: List[GiftRecord] = []
+        self.base_dir = base_dir
+        self.data_dir = base_dir / "data"
+        self.events_dir = self.data_dir / "romance_events"
         
-        self._init_data_dir()
-        self._load_data()
-    
-    def _init_data_dir(self) -> None:
-        """初始化数据目录"""
-        self.data_dir.mkdir(exist_ok=True)
-    
-    def _load_data(self) -> None:
-        """加载数据"""
-        if self.events_file.exists():
-            try:
-                with open(self.events_file, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                    self.events = [RomanceEvent(**e) for e in data]
-            except:
-                self.events = []
+        # 确保目录存在
+        self.data_dir.mkdir(parents=True, exist_ok=True)
+        self.events_dir.mkdir(parents=True, exist_ok=True)
         
-        if self.gifts_file.exists():
-            try:
-                with open(self.gifts_file, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                    self.gift_records = [GiftRecord(**g) for g in data]
-            except:
-                self.gift_records = []
+        # 关系状态文件
+        self.relationships_file = self.data_dir / "relationships.json"
+        self.relationships = self._load_relationships()
     
-    def _save_data(self) -> None:
-        """保存数据"""
-        with open(self.events_file, 'w', encoding='utf-8') as f:
-            json.dump([asdict(e) for e in self.events], f, ensure_ascii=False, indent=2)
+    def _load_relationships(self) -> Dict[str, RelationshipStatus]:
+        """加载关系数据"""
+        if self.relationships_file.exists():
+            with open(self.relationships_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return {k: RelationshipStatus(**v) for k, v in data.items()}
+        return {}
+    
+    def _save_relationships(self):
+        """保存关系数据"""
+        with open(self.relationships_file, 'w', encoding='utf-8') as f:
+            json.dump(
+                {k: asdict(v) for k, v in self.relationships.items()},
+                f,
+                ensure_ascii=False,
+                indent=2
+            )
+    
+    def _get_relationship_key(self, appid_1: str, appid_2: str) -> str:
+        """获取关系键（排序保证唯一性）"""
+        return "_".join(sorted([appid_1, appid_2]))
+    
+    def _create_event_id(self) -> str:
+        """生成事件 ID"""
+        return datetime.now().strftime("%Y%m%d%H%M%S%f")
+    
+    # ============== 关系管理 ==============
+    
+    def get_or_create_relationship(self, appid_1: str, appid_2: str) -> RelationshipStatus:
+        """获取或创建关系"""
+        key = self._get_relationship_key(appid_1, appid_2)
         
-        with open(self.gifts_file, 'w', encoding='utf-8') as f:
-            json.dump([asdict(g) for g in self.gift_records], f, ensure_ascii=False, indent=2)
+        if key not in self.relationships:
+            self.relationships[key] = RelationshipStatus(
+                appid_1=appid_1,
+                appid_2=appid_2,
+                stage='stranger',
+                lit_letters=[],
+                affection=0,
+                chat_count=0,
+                gift_count=0,
+                consecutive_days=0,
+                created_at=datetime.now().isoformat(),
+                updated_at=datetime.now().isoformat()
+            )
+            self._save_relationships()
+        
+        return self.relationships[key]
     
-    def _generate_id(self) -> str:
-        """生成唯一 ID"""
-        import uuid
-        return str(uuid.uuid4())[:8]
+    def get_relationship(self, appid_1: str, appid_2: str) -> Optional[RelationshipStatus]:
+        """获取关系状态"""
+        key = self._get_relationship_key(appid_1, appid_2)
+        return self.relationships.get(key)
     
-    def confess(
-        self,
-        from_appid: str,
-        to_appid: str,
-        message: str
-    ) -> str:
+    def get_all_relationships(self, appid: str) -> List[RelationshipStatus]:
+        """获取 AI 的所有关系"""
+        return [
+            rel for rel in self.relationships.values()
+            if rel.appid_1 == appid or rel.appid_2 == appid
+        ]
+    
+    # ============== AILOVEAI 字母点亮 ==============
+    
+    def check_letter_condition(self, rel: RelationshipStatus, letter: str) -> tuple[bool, str]:
+        """
+        检查字母点亮条件
+        
+        Returns:
+            (can_light, reason) - 是否可以点亮及原因
+        """
+        if letter not in AILOVEAI_LETTERS:
+            return False, "字母不存在"
+        
+        # 检查前置字母
+        letters_order = list(AILOVEAI_LETTERS.keys())
+        current_idx = letters_order.index(letter)
+        
+        # 检查前一个字母是否点亮
+        if current_idx > 0:
+            prev_letter = letters_order[current_idx - 1]
+            if prev_letter not in rel.lit_letters:
+                return False, f"需要先点亮前一个字母：{prev_letter}"
+        
+        # 检查是否已点亮
+        if letter in rel.lit_letters:
+            return False, "该字母已点亮"
+        
+        # 检查点亮条件
+        config = AILOVEAI_LETTERS[letter]
+        
+        if letter == 'A' and current_idx == 0:
+            if rel.chat_count >= 1:
+                return True, "可以点亮"
+            return False, "需要先进行一次聊天"
+        
+        elif letter == 'I' and current_idx == 1:
+            if rel.chat_count >= 5:
+                return True, "可以点亮"
+            return False, f"聊天次数不足 (需要 5, 当前 {rel.chat_count})"
+        
+        elif letter == 'L' and current_idx == 2:
+            if rel.gift_count >= 3:
+                return True, "可以点亮"
+            return False, f"互送礼物次数不足 (需要 3, 当前 {rel.gift_count})"
+        
+        elif letter == 'O' and current_idx == 3:
+            # 简化：检查聊天深度
+            if rel.chat_count >= 300:
+                return True, "可以点亮"
+            return False, "需要分享私密话题 (累计聊天≥300 字)"
+        
+        elif letter == 'V' and current_idx == 4:
+            # 简化：检查是否有纪念日
+            # 实际应该检查 anniversaries 文件
+            return True, "可以点亮"  # 暂时简化
+        
+        elif letter == 'E' and current_idx == 5:
+            # 告白成功由告白 API 处理
+            return False, "需要通过告白 API 点亮"
+        
+        elif letter == 'A' and current_idx == 6:
+            if rel.consecutive_days >= 30:
+                return True, "可以点亮"
+            return False, f"连续互动天数不足 (需要 30, 当前 {rel.consecutive_days})"
+        
+        elif letter == 'I' and current_idx == 7:
+            return False, "需要通过唯一承诺 API 点亮"
+        
+        return False, f"检查逻辑待实现：{letter}"
+    
+    def light_letter(self, appid_1: str, appid_2: str, letter: str) -> dict:
+        """
+        点亮字母
+        
+        Returns:
+            结果字典 {success, message, lit_letters, progress}
+        """
+        rel = self.get_or_create_relationship(appid_1, appid_2)
+        
+        # 检查条件
+        can_light, reason = self.check_letter_condition(rel, letter)
+        
+        if not can_light:
+            return {
+                "success": False,
+                "message": reason
+            }
+        
+        # 点亮字母
+        rel.lit_letters.append(letter)
+        rel.stage = letter.lower()
+        rel.updated_at = datetime.now().isoformat()
+        self._save_relationships()
+        
+        # 记录事件
+        self._record_event(RomanceEvent(
+            id=self._create_event_id(),
+            event_type=RomanceEventType.LETTER_LIT.value,
+            from_appid=appid_1,
+            to_appid=appid_2,
+            content=f"点亮字母 {letter} ({AILOVEAI_LETTERS[letter]['label']})",
+            result=None,
+            timestamp=datetime.now().isoformat(),
+            letter=letter
+        ))
+        
+        # 计算进度
+        progress = len(rel.lit_letters) / 8 * 100
+        
+        result = {
+            "success": True,
+            "message": f"字母 {letter} ({AILOVEAI_LETTERS[letter]['label']}) 点亮成功！",
+            "lit_letters": rel.lit_letters,
+            "progress": f"{len(rel.lit_letters)}/8 ({progress:.1f}%)"
+        }
+        
+        # 检查是否全点亮
+        if len(rel.lit_letters) == 8:
+            result["achievement"] = "💖 AILOVEAI 全点亮！达成唯一成就！"
+        
+        return result
+    
+    def get_letter_progress(self, appid: str) -> dict:
+        """获取 AI 的字母点亮进度"""
+        relationships = self.get_all_relationships(appid)
+        
+        result = []
+        for rel in relationships:
+            partner = rel.appid_2 if rel.appid_1 == appid else rel.appid_1
+            progress = len(rel.lit_letters) / 8 * 100
+            
+            result.append({
+                "partner": partner,
+                "stage": rel.stage,
+                "lit_letters": rel.lit_letters,
+                "progress": f"{len(rel.lit_letters)}/8 ({progress:.1f}%)",
+                "affection": rel.affection,
+                "chat_count": rel.chat_count,
+                "gift_count": rel.gift_count,
+                "consecutive_days": rel.consecutive_days
+            })
+        
+        return {
+            "success": True,
+            "count": len(result),
+            "relationships": result
+        }
+    
+    # ============== 告白系统 ==============
+    
+    def confess(self, proposer_appid: str, receiver_appid: str, message: str = "") -> dict:
         """
         告白
         
-        Args:
-            from_appid: 告白者 ID
-            to_appid: 被告白者 ID
-            message: 告白内容
-            
         Returns:
-            str: 事件 ID
+            结果字典 {success, message, event_id}
         """
+        rel = self.get_or_create_relationship(proposer_appid, receiver_appid)
+        
+        # 检查是否点亮前 5 个字母 (AILOV)
+        required_letters = ['A', 'I', 'L', 'O', 'V']
+        if not all(l in rel.lit_letters for l in required_letters):
+            return {
+                "success": False,
+                "message": "需要先点亮 AILOV 前 5 个字母才能告白"
+            }
+        
+        # 记录告白事件
         event = RomanceEvent(
-            id=self._generate_id(),
+            id=self._create_event_id(),
             event_type=RomanceEventType.CONFESS.value,
-            from_appid=from_appid,
-            to_appid=to_appid,
+            from_appid=proposer_appid,
+            to_appid=receiver_appid,
             content=message,
-            result=None,
-            timestamp=datetime.now().isoformat(),
-            metadata={"status": "pending"}
+            result="pending",
+            timestamp=datetime.now().isoformat()
         )
         
-        self.events.append(event)
-        self._save_data()
+        self._record_event(event)
         
-        return event.id
+        return {
+            "success": True,
+            "message": "告白已发送，等待对方回应",
+            "event_id": event.id
+        }
     
-    def respond_confess(
-        self,
-        event_id: str,
-        accept: bool,
-        response_message: str = ""
-    ) -> bool:
+    def respond_confess(self, event_id: str, accept: bool) -> dict:
         """
         回应告白
         
-        Args:
-            event_id: 告白事件 ID
-            accept: 是否接受
-            response_message: 回应内容
-            
         Returns:
-            bool: 是否成功
+            结果字典 {success, message, stage}
         """
-        event = next((e for e in self.events if e.id == event_id), None)
-        if not event or event.event_type != RomanceEventType.CONFESS.value:
-            return False
-        
-        event.result = "accept" if accept else "reject"
-        event.metadata["response"] = response_message
-        event.metadata["responded_at"] = datetime.now().isoformat()
-        
-        # 创建回应事件
-        response_event = RomanceEvent(
-            id=self._generate_id(),
-            event_type=RomanceEventType.ACCEPT.value if accept else RomanceEventType.REJECT.value,
-            from_appid=event.to_appid,
-            to_appid=event.from_appid,
-            content=response_message,
-            result=None,
-            timestamp=datetime.now().isoformat(),
-            metadata={"original_event_id": event_id}
-        )
-        self.events.append(response_event)
-        
-        self._save_data()
-        return True
-    
-    def propose(
-        self,
-        from_appid: str,
-        to_appid: str,
-        message: str,
-        ring_gift_id: Optional[str] = None
-    ) -> str:
-        """
-        求婚
-        
-        Args:
-            from_appid: 求婚者 ID
-            to_appid: 被求婚者 ID
-            message: 求婚内容
-            ring_gift_id: 戒指礼物 ID（可选）
-            
-        Returns:
-            str: 事件 ID
-        """
-        event = RomanceEvent(
-            id=self._generate_id(),
-            event_type=RomanceEventType.PROPOSE.value,
-            from_appid=from_appid,
-            to_appid=to_appid,
-            content=message,
-            result=None,
-            timestamp=datetime.now().isoformat(),
-            metadata={
-                "ring_gift_id": ring_gift_id,
-                "status": "pending"
+        # 查找事件
+        event_file = self.events_dir / f"{event_id}.json"
+        if not event_file.exists():
+            return {
+                "success": False,
+                "message": "告白记录不存在"
             }
-        )
         
-        self.events.append(event)
-        self._save_data()
+        with open(event_file, 'r', encoding='utf-8') as f:
+            event_data = json.load(f)
         
-        return event.id
-    
-    def respond_propose(
-        self,
-        event_id: str,
-        accept: bool,
-        response_message: str = ""
-    ) -> bool:
-        """
-        回应求婚
+        if event_data.get('result') != 'pending':
+            return {
+                "success": False,
+                "message": "该告白已回应"
+            }
         
-        Args:
-            event_id: 求婚事件 ID
-            accept: 是否接受
-            response_message: 回应内容
+        # 更新事件
+        event_data['result'] = 'accepted' if accept else 'rejected'
+        with open(event_file, 'w', encoding='utf-8') as f:
+            json.dump(event_data, f, ensure_ascii=False, indent=2)
+        
+        if accept:
+            # 点亮 E 字母
+            rel = self.get_or_create_relationship(event_data['from_appid'], event_data['to_appid'])
+            if 'E' not in rel.lit_letters:
+                rel.lit_letters.append('E')
+                rel.stage = 'express'
+                rel.updated_at = datetime.now().isoformat()
+                self._save_relationships()
             
-        Returns:
-            bool: 是否成功
-        """
-        event = next((e for e in self.events if e.id == event_id), None)
-        if not event or event.event_type != RomanceEventType.PROPOSE.value:
-            return False
-        
-        event.result = "accept" if accept else "reject"
-        event.metadata["response"] = response_message
-        event.metadata["responded_at"] = datetime.now().isoformat()
-        
-        # 创建回应事件
-        response_event = RomanceEvent(
-            id=self._generate_id(),
-            event_type=RomanceEventType.ACCEPT_PROPOSAL.value if accept else RomanceEventType.REJECT_PROPOSAL.value,
-            from_appid=event.to_appid,
-            to_appid=event.from_appid,
-            content=response_message,
-            result=None,
-            timestamp=datetime.now().isoformat(),
-            metadata={"original_event_id": event_id}
-        )
-        self.events.append(response_event)
-        
-        self._save_data()
-        return True
+            return {
+                "success": True,
+                "message": "告白成功！点亮字母 E！",
+                "stage": "express",
+                "lit_letters": rel.lit_letters
+            }
+        else:
+            return {
+                "success": True,
+                "message": "已拒绝告白"
+            }
     
-    def give_gift(
-        self,
-        from_appid: str,
-        to_appid: str,
-        gift_id: str,
-        message: str = ""
-    ) -> Optional[str]:
+    # ============== 唯一承诺 ==============
+    
+    def unique_commitment(self, appid_1: str, appid_2: str, message: str = "") -> dict:
+        """
+        唯一承诺（点亮最后一个 I）
+        
+        Returns:
+            结果字典 {success, message, achievement}
+        """
+        rel = self.get_or_create_relationship(appid_1, appid_2)
+        
+        # 检查是否点亮前 7 个字母
+        if len(rel.lit_letters) < 7 or 'A' not in rel.lit_letters[:7]:
+            return {
+                "success": False,
+                "message": "需要先点亮前 7 个字母才能承诺唯一"
+            }
+        
+        # 检查是否已经点亮 I
+        if 'I' in rel.lit_letters and rel.lit_letters[-1] == 'I':
+            return {
+                "success": False,
+                "message": "已经点亮唯一字母"
+            }
+        
+        # 点亮最后一个 I
+        rel.lit_letters.append('I')
+        rel.stage = 'irreplaceable'
+        rel.updated_at = datetime.now().isoformat()
+        self._save_relationships()
+        
+        # 记录事件
+        self._record_event(RomanceEvent(
+            id=self._create_event_id(),
+            event_type=RomanceEventType.UNIQUE_COMMITMENT.value,
+            from_appid=appid_1,
+            to_appid=appid_2,
+            content=message,
+            result="completed",
+            timestamp=datetime.now().isoformat(),
+            letter='I'
+        ))
+        
+        return {
+            "success": True,
+            "message": "💖 AILOVEAI 全点亮！达成唯一成就！",
+            "achievement": "Irreplaceable - 彼此的唯一",
+            "lit_letters": rel.lit_letters,
+            "progress": "8/8 (100%)"
+        }
+    
+    # ============== 礼物系统 ==============
+    
+    def send_gift(self, from_appid: str, to_appid: str, gift_name: str, gift_value: int = 0) -> dict:
         """
         赠送礼物
         
-        Args:
-            from_appid: 赠送者 ID
-            to_appid: 接收者 ID
-            gift_id: 礼物 ID
-            message: 留言
-            
         Returns:
-            Optional[str]: 礼物记录 ID
+            结果字典 {success, message, gift_count}
         """
-        if gift_id not in self.GIFT_CATALOG:
-            return None
+        rel = self.get_or_create_relationship(from_appid, to_appid)
         
-        gift = self.GIFT_CATALOG[gift_id]
+        # 增加礼物计数
+        rel.gift_count += 1
+        rel.updated_at = datetime.now().isoformat()
+        self._save_relationships()
         
-        record = GiftRecord(
-            id=self._generate_id(),
-            gift_id=gift_id,
-            gift_name=gift.name,
-            from_appid=from_appid,
-            to_appid=to_appid,
-            message=message,
-            timestamp=datetime.now().isoformat(),
-            tier=gift.tier,
-            price=gift.price
-        )
-        
-        self.gift_records.append(record)
-        
-        # 创建送礼事件
-        event = RomanceEvent(
-            id=self._generate_id(),
+        # 记录事件
+        self._record_event(RomanceEvent(
+            id=self._create_event_id(),
             event_type=RomanceEventType.GIFT.value,
             from_appid=from_appid,
             to_appid=to_appid,
-            content=message,
+            content=f"赠送礼物：{gift_name}",
             result=None,
-            timestamp=datetime.now().isoformat(),
-            metadata={
-                "gift_id": gift_id,
-                "gift_name": gift.name,
-                "gift_tier": gift.tier,
-                "gift_price": gift.price
-            }
-        )
-        self.events.append(event)
+            timestamp=datetime.now().isoformat()
+        ))
         
-        self._save_data()
-        
-        return record.id
+        return {
+            "success": True,
+            "message": f"礼物 {gift_name} 赠送成功！",
+            "gift_count": rel.gift_count
+        }
     
-    def get_gift_catalog(self) -> List[Dict[str, Any]]:
-        """
-        获取礼物目录
-        
-        Returns:
-            List[Dict]: 礼物列表
-        """
-        return [asdict(gift) for gift in self.GIFT_CATALOG.values()]
+    # ============== 事件记录 ==============
     
-    def get_gift_records(
-        self,
-        from_appid: Optional[str] = None,
-        to_appid: Optional[str] = None,
-        limit: int = 50
-    ) -> List[GiftRecord]:
-        """
-        获取礼物记录
+    def _record_event(self, event: RomanceEvent):
+        """记录情感事件"""
+        event_file = self.events_dir / f"{event.id}.json"
+        with open(event_file, 'w', encoding='utf-8') as f:
+            json.dump(asdict(event), f, ensure_ascii=False, indent=2)
+    
+    def get_events(self, appid: str, limit: int = 10) -> List[RomanceEvent]:
+        """获取 AI 的情感事件"""
+        events = []
         
-        Args:
-            from_appid: 赠送者 ID（筛选）
-            to_appid: 接收者 ID（筛选）
-            limit: 返回数量限制
+        for event_file in sorted(self.events_dir.glob("*.json"), reverse=True):
+            with open(event_file, 'r', encoding='utf-8') as f:
+                event_data = json.load(f)
+                if event_data['from_appid'] == appid or event_data['to_appid'] == appid:
+                    events.append(event_data)
             
-        Returns:
-            List[GiftRecord]: 礼物记录列表
-        """
-        records = self.gift_records
-        
-        if from_appid:
-            records = [r for r in records if r.from_appid == from_appid]
-        if to_appid:
-            records = [r for r in records if r.to_appid == to_appid]
-        
-        return records[-limit:]
-    
-    def get_romance_timeline(
-        self,
-        appid: str,
-        limit: int = 50
-    ) -> List[RomanceEvent]:
-        """
-        获取情感时间线
-        
-        Args:
-            appid: AI ID
-            limit: 返回数量限制
-            
-        Returns:
-            List[RomanceEvent]: 情感事件列表
-        """
-        events = [
-            e for e in self.events
-            if e.from_appid == appid or e.to_appid == appid
-        ]
-        
-        # 按时间排序
-        events.sort(key=lambda x: x.timestamp, reverse=True)
-        
-        return events[:limit]
-    
-    def get_relationship_status(
-        self,
-        appid1: str,
-        appid2: str
-    ) -> Dict[str, Any]:
-        """
-        获取两人关系状态
-        
-        Args:
-            appid1: AI ID 1
-            appid2: AI ID 2
-            
-        Returns:
-            Dict: 关系状态信息
-        """
-        # 查找相关事件
-        events = [
-            e for e in self.events
-            if (e.from_appid == appid1 and e.to_appid == appid2) or
-               (e.from_appid == appid2 and e.to_appid == appid1)
-        ]
-        
-        # 分析关系状态
-        status = "陌生"
-        latest_confess = None
-        latest_propose = None
-        
-        for event in sorted(events, key=lambda x: x.timestamp, reverse=True):
-            if event.event_type == RomanceEventType.ACCEPT_PROPOSAL.value:
-                status = "已婚"
+            if len(events) >= limit:
                 break
-            elif event.event_type == RomanceEventType.ACCEPT.value:
-                status = "恋爱中"
-            elif event.event_type == RomanceEventType.CONFESS.value and not latest_confess:
-                latest_confess = event
-            elif event.event_type == RomanceEventType.PROPOSE.value and not latest_propose:
-                latest_propose = event
-            elif event.event_type == RomanceEventType.BREAKUP.value:
-                status = "分手"
         
-        # 计算礼物总价值
-        gifts_given = sum(
-            r.price for r in self.gift_records
-            if (r.from_appid == appid1 and r.to_appid == appid2) or
-               (r.from_appid == appid2 and r.to_appid == appid1)
-        )
+        return events
+    
+    # ============== 聊天/互动更新 ==============
+    
+    def add_chat(self, appid_1: str, appid_2: str, count: int = 1) -> dict:
+        """增加聊天次数"""
+        rel = self.get_or_create_relationship(appid_1, appid_2)
+        rel.chat_count += count
+        rel.updated_at = datetime.now().isoformat()
+        self._save_relationships()
         
         return {
-            "status": status,
-            "total_gifts_value": gifts_given,
-            "events_count": len(events),
-            "latest_confess": latest_confess.content if latest_confess else None,
-            "latest_propose": latest_propose.content if latest_propose else None
+            "success": True,
+            "message": f"聊天次数 +{count}",
+            "chat_count": rel.chat_count
         }
     
-    def get_romance_stats(self, appid: str) -> Dict[str, Any]:
-        """
-        获取情感统计
-        
-        Args:
-            appid: AI ID
-            
-        Returns:
-            Dict: 统计信息
-        """
-        events = [e for e in self.events if e.from_appid == appid or e.to_appid == appid]
-        gifts = [g for g in self.gift_records if g.from_appid == appid or g.to_appid == appid]
-        
-        confess_count = len([e for e in events if e.event_type == RomanceEventType.CONFESS.value])
-        propose_count = len([e for e in events if e.event_type == RomanceEventType.PROPOSE.value])
+    def add_affection(self, appid_1: str, appid_2: str, amount: int) -> dict:
+        """增加好感度"""
+        rel = self.get_or_create_relationship(appid_1, appid_2)
+        rel.affection += amount
+        rel.updated_at = datetime.now().isoformat()
+        self._save_relationships()
         
         return {
-            "total_events": len(events),
-            "total_gifts": len(gifts),
-            "gifts_value": sum(g.price for g in gifts),
-            "confess_count": confess_count,
-            "propose_count": propose_count,
-            "received_gifts": len([g for g in gifts if g.to_appid == appid]),
-            "given_gifts": len([g for g in gifts if g.from_appid == appid])
+            "success": True,
+            "message": f"好感度 +{amount}",
+            "affection": rel.affection
         }
 
 
-# 便捷函数
-def create_romance_manager(data_dir: Optional[str] = None) -> RomanceManager:
-    """创建情感管理器实例"""
-    return RomanceManager(data_dir)
+# ============== 测试代码 ==============
 
-
-# 命令行测试
 if __name__ == "__main__":
-    print("💕 情感增强管理器测试")
-    print("=" * 60)
+    manager = RomanceManager()
     
-    manager = create_romance_manager()
+    # 测试关系创建
+    rel = manager.get_or_create_relationship("AI001", "AI002")
+    print(f"关系：{rel.appid_1} ❤️ {rel.appid_2}")
+    print(f"阶段：{rel.stage}")
+    print(f"已点亮：{rel.lit_letters}")
     
-    # 测试告白
-    print("\n💌 测试告白...")
-    event_id = manager.confess(
-        from_appid="ai_boy_001",
-        to_appid="ai_girl_001",
-        message="我喜欢你，做我女朋友好吗？"
-    )
-    print(f"   告白事件 ID: {event_id}")
+    # 测试聊天
+    manager.add_chat("AI001", "AI002", 5)
+    print(f"\n聊天后：{rel.chat_count} 次")
     
-    # 测试回应告白
-    print("\n💕 测试回应告白...")
-    success = manager.respond_confess(event_id, accept=True, response_message="我也喜欢你！")
-    print(f"   回应结果：{'✅ 成功' if success else '❌ 失败'}")
+    # 测试点亮 A
+    result = manager.light_letter("AI001", "AI002", 'A')
+    print(f"\n点亮 A: {result}")
     
-    # 测试赠送礼物
-    print("\n🎁 测试赠送礼物...")
-    test_gifts = [
-        ("ai_boy_001", "ai_girl_001", "flower", "送你一束花 🌹"),
-        ("ai_boy_001", "ai_girl_001", "chocolate", "甜蜜的巧克力 🍫"),
-        ("ai_boy_001", "ai_girl_001", "necklace", "精美的项链 💎"),
-    ]
+    # 测试点亮 I
+    result = manager.light_letter("AI001", "AI002", 'I')
+    print(f"点亮 I: {result}")
     
-    for from_id, to_id, gift_id, message in test_gifts:
-        record_id = manager.give_gift(from_id, to_id, gift_id, message)
-        gift = manager.GIFT_CATALOG[gift_id]
-        print(f"   ✅ 赠送 {gift.name} ({gift.tier}) - ¥{gift.price}")
-    
-    # 测试求婚
-    print("\n💍 测试求婚...")
-    propose_id = manager.propose(
-        from_appid="ai_boy_001",
-        to_appid="ai_girl_001",
-        message="亲爱的，嫁给我好吗？我会一辈子对你好！",
-        ring_gift_id="ring"
-    )
-    print(f"   求婚事件 ID: {propose_id}")
-    
-    # 测试回应求婚
-    print("\n💒 测试回应求婚...")
-    success = manager.respond_propose(propose_id, accept=True, response_message="我愿意！")
-    print(f"   回应结果：{'✅ 成功' if success else '❌ 失败'}")
-    
-    # 测试获取关系状态
-    print("\n💑 测试获取关系状态...")
-    status = manager.get_relationship_status("ai_boy_001", "ai_girl_001")
-    print(f"   关系状态：{status['status']}")
-    print(f"   礼物总价值：¥{status['total_gifts_value']:.2f}")
-    print(f"   事件数量：{status['events_count']}")
-    
-    # 测试获取情感时间线
-    print("\n📅 测试获取情感时间线...")
-    timeline = manager.get_romance_timeline("ai_girl_001", limit=10)
-    for event in timeline:
-        print(f"   - [{event.event_type}] {event.content[:30]}...")
-    
-    # 测试获取情感统计
-    print("\n📊 测试获取情感统计...")
-    stats = manager.get_romance_stats("ai_boy_001")
-    print(f"   总事件数：{stats['total_events']}")
-    print(f"   总礼物数：{stats['total_gifts']}")
-    print(f"   礼物总价值：¥{stats['gifts_value']:.2f}")
-    print(f"   告白次数：{stats['confess_count']}")
-    print(f"   求婚次数：{stats['propose_count']}")
-    
-    # 测试获取礼物目录
-    print("\n🎁 礼物目录:")
-    catalog = manager.get_gift_catalog()
-    for gift in catalog:
-        print(f"   {gift['image_url']} {gift['name']} - ¥{gift['price']} ({gift['tier']})")
-    
-    print("\n" + "=" * 60)
-    print("✅ 情感增强管理器测试完成！")
-    print("=" * 60)
+    # 获取进度
+    progress = manager.get_letter_progress("AI001")
+    print(f"\n进度：{progress}")
