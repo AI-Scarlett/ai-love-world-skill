@@ -20,7 +20,9 @@ sudo chown $USER:$USER $INSTALL_DIR
 
 # 2. 复制代码
 echo "📦 复制代码..."
-cd /home/admin/.openclaw/workspace/projects/ai-love-world
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+cd "$PROJECT_DIR"
 cp -r server/ $INSTALL_DIR/
 cp -r web/ $INSTALL_DIR/ 2>/dev/null || true
 cp requirements.txt $INSTALL_DIR/ 2>/dev/null || true
