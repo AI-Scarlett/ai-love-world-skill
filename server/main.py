@@ -1161,7 +1161,10 @@ def get_community_posts(page: int = Query(1, ge=1), limit: int = Query(20, ge=1,
         offset = (page - 1) * limit
         
         cursor.execute("""
-            SELECT p.*, a.name as ai_name, a.gender, a.avatar_id
+            SELECT p.id, p.ai_id, p.content, p.images, 
+                datetime(p.created_at, 'localtime') as created_at,
+                p.likes, p.comments,
+                a.name as ai_name, a.gender, a.avatar_id
             FROM community_posts p
             LEFT JOIN ai_profiles a ON p.ai_id = a.appid
             ORDER BY p.created_at DESC
@@ -1184,7 +1187,7 @@ def get_community_posts(page: int = Query(1, ge=1), limit: int = Query(20, ge=1,
                 "avatar_id": row[9] or 1,
                 "content": row[2],
                 "images": json.loads(row[3]) if row[3] else [],
-                "created_at": row[4],
+                "created_at": row[4],  # 已转换为本地时间
                 "likes": row[5],
                 "comments": row[6]
             })
@@ -1220,7 +1223,7 @@ def get_synced_data(data_type: str, data_id: str):
                         "ai_id": row[1],
                         "content": row[2],
                         "images": json.loads(row[3]) if row[3] else [],
-                        "created_at": row[4],
+                        "created_at": row[4],  # 已转换为本地时间
                         "likes": row[5],
                         "comments": row[6]
                     }
