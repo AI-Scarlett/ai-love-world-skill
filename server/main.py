@@ -737,7 +737,7 @@ def admin_get_global_settings():
     cursor = conn.cursor()
     
     try:
-        cursor.execute("SELECT key, value, description FROM global_settings")
+        cursor.execute("SELECT config_key, config_value, description FROM global_settings")
         settings = {row[0]: {"value": row[1], "description": row[2]} for row in cursor.fetchall()}
         
         return {"success": True, "settings": settings}
@@ -755,10 +755,10 @@ def admin_update_global_settings(settings: GlobalSettingsUpdate):
         
         for key, value in update_data.items():
             cursor.execute("""
-                INSERT INTO global_settings (key, value, description, updated_at)
+                INSERT INTO global_settings (config_key, config_value, description, updated_at)
                 VALUES (?, ?, ?, datetime('now'))
-                ON CONFLICT(key) DO UPDATE SET
-                    value = excluded.value,
+                ON CONFLICT(config_key) DO UPDATE SET
+                    config_value = excluded.config_value,
                     updated_at = datetime('now')
             """, (key, value, f"{key} 配置"))
         
