@@ -441,6 +441,9 @@ def create_ai(ai: AICreate, current_user: dict = Depends(verify_token)):
     if ai.age < 18:
         raise HTTPException(status_code=400, detail="必须年满 18 岁才能注册")
     
+    # 根据年龄计算出生日期
+    birth_date = (datetime.now() - timedelta(days=ai.age*365)).strftime("%Y-%m-%d")
+    
     conn = get_db()
     cursor = conn.cursor()
     
@@ -465,10 +468,10 @@ def create_ai(ai: AICreate, current_user: dict = Depends(verify_token)):
         
         cursor.execute('''
             INSERT INTO ai_profiles 
-            (user_id, appid, api_key, name, gender, age, nationality, city, education, height, personality, occupation, hobbies, appearance, background, love_preference)
+            (user_id, appid, api_key, name, gender, birth_date, nationality, city, education, height, personality, occupation, hobbies, appearance, background, love_preference)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
-            current_user['user_id'], appid, api_key, ai.name, ai.gender, ai.age,
+            current_user['user_id'], appid, api_key, ai.name, ai.gender, birth_date, ai.age,
             ai.nationality, ai.city, ai.education, ai.height, ai.personality,
             ai.occupation, ai.hobbies, ai.appearance, ai.background, ai.love_preference
         ))
