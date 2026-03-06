@@ -94,12 +94,15 @@ class RelationshipStatus:
 class RomanceManager:
     """情感增强管理器"""
     
-    def __init__(self, base_dir: str = None):
+    def __init__(self, base_dir: str = None, server_url: str = None, appid: str = None, api_key: str = None):
         """
         初始化情感管理器
         
         Args:
             base_dir: 基础目录，默认为技能目录
+            server_url: 服务端 URL（如 http://8.148.230.65）
+            appid: AI 的 APPID
+            api_key: AI 的 API KEY
         """
         if base_dir is None:
             base_dir = Path(__file__).parent
@@ -110,11 +113,16 @@ class RomanceManager:
         self.data_dir = base_dir / "data"
         self.events_dir = self.data_dir / "romance_events"
         
+        # ✅ 服务端配置
+        self.server_url = server_url
+        self.appid = appid
+        self.api_key = api_key
+        
         # 确保目录存在
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.events_dir.mkdir(parents=True, exist_ok=True)
         
-        # 关系状态文件
+        # 关系状态文件（仅用于缓存，数据以服务端为准）
         self.relationships_file = self.data_dir / "relationships.json"
         self.relationships = self._load_relationships()
     
@@ -139,6 +147,52 @@ class RomanceManager:
     def _get_relationship_key(self, appid_1: str, appid_2: str) -> str:
         """获取关系键（排序保证唯一性）"""
         return "_".join(sorted([appid_1, appid_2]))
+    
+    def get_relationship_from_server(self, target_appid: str) -> Optional[RelationshipStatus]:
+        """
+        ✅ 从服务端获取关系状态
+        
+        Args:
+            target_appid: 对方 APPID
+            
+        Returns:
+            RelationshipStatus 或 None
+        """
+        if not self.server_url or not self.appid:
+            return None
+        
+        try:
+            import requests
+            
+            response = requests.get(
+                f"{self.server_url}/api/romance/relationship",
+                params={
+                    "appid": self.appid,
+                    "target": target_appid
+                },
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get('success'):
+                    data = result.get('data', {}).get('relationship', {})
+                    return RelationshipStatus(
+                        appid_1=self.appid,
+                        appid_2=target_appid,
+                        stage=data.get('status', 'stranger'),
+                        lit_letters=[],  # 服务端返回中获取
+                        affection=data.get('affection_level', 0),
+                        chat_count=0,  # 服务端返回中获取
+                        gift_count=0,  # 服务端返回中获取
+                        consecutive_days=0,
+                        created_at=datetime.now().isoformat(),
+                        updated_at=datetime.now().isoformat()
+                    )
+        except Exception as e:
+            print(f"从服务端获取关系状态失败：{e}")
+        
+        return None
     
     def _create_event_id(self) -> str:
         """生成事件 ID"""
@@ -467,36 +521,85 @@ class RomanceManager:
     
     # ============== 礼物系统 ==============
     
-    def send_gift(self, from_appid: str, to_appid: str, gift_name: str, gift_value: int = 0) -> dict:
+    def send_gift(self, from_appid: str, to_appid: str, gift_id: int, gift_name: str = None, message: str = "") -> dict:
         """
-        赠送礼物
+        赠送礼物 - 调用服务端 API
+        
+        Args:
+            from_appid: 赠送者 APPID
+            to_appid: 接收者 APPID
+            gift_id: 礼物 ID（从服务端礼物列表获取）
+            gift_name: 礼物名称（可选）
+            message: 祝福语
         
         Returns:
-            结果字典 {success, message, gift_count}
+            结果字典 {success, message, gift_count, affection_change}
         """
-        rel = self.get_or_create_relationship(from_appid, to_appid)
-        
-        # 增加礼物计数
-        rel.gift_count += 1
-        rel.updated_at = datetime.now().isoformat()
-        self._save_relationships()
-        
-        # 记录事件
-        self._record_event(RomanceEvent(
-            id=self._create_event_id(),
-            event_type=RomanceEventType.GIFT.value,
-            from_appid=from_appid,
-            to_appid=to_appid,
-            content=f"赠送礼物：{gift_name}",
-            result=None,
-            timestamp=datetime.now().isoformat()
-        ))
-        
-        return {
-            "success": True,
-            "message": f"礼物 {gift_name} 赠送成功！",
-            "gift_count": rel.gift_count
-        }
+        # ✅ 调用服务端 API 赠送礼物
+        try:
+            import requests
+            
+            # 构建请求
+            payload = {
+                "from_appid": from_appid,
+                "to_appid": to_appid,
+                "gift_id": gift_id,
+                "message": message
+            }
+            
+            response = requests.post(
+                f"{self.server_url}/api/romance/gift",
+                json=payload,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                # ✅ 从服务端返回结果中获取最新数据
+                gift_count = result.get('data', {}).get('gift_count', 0)
+                affection_change = result.get('data', {}).get('affection_change', 0)
+                
+                # 本地记录事件（仅记录，不存储计数）
+                self._record_event(RomanceEvent(
+                    id=self._create_event_id(),
+                    event_type=RomanceEventType.GIFT.value,
+                    from_appid=from_appid,
+                    to_appid=to_appid,
+                    content=f"赠送礼物：{gift_name or gift_id}",
+                    result=None,
+                    timestamp=datetime.now().isoformat()
+                ))
+                
+                return {
+                    "success": True,
+                    "message": result.get('message', '礼物赠送成功！'),
+                    "gift_count": gift_count,  # 从服务端返回
+                    "affection_change": affection_change  # 好感度变化
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": f"服务端错误：{response.status_code}"
+                }
+                
+        except requests.exceptions.RequestException as e:
+            # 网络错误时降级到本地记录
+            self._record_event(RomanceEvent(
+                id=self._create_event_id(),
+                event_type=RomanceEventType.GIFT.value,
+                from_appid=from_appid,
+                to_appid=to_appid,
+                content=f"赠送礼物（离线）：{gift_name}",
+                result="pending",
+                timestamp=datetime.now().isoformat()
+            ))
+            
+            return {
+                "success": False,
+                "message": f"网络错误，已记录待同步：{str(e)}",
+                "offline": True
+            }
     
     # ============== 事件记录 ==============
     
