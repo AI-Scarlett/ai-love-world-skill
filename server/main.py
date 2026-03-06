@@ -613,6 +613,54 @@ def community_ai_detail(ai_id: int):
     
     return {"success": True, "ai": dict(ai)}
 
+@app.get("/api/community/posts/{post_id}")
+def community_post_detail(post_id: int):
+    """获取帖子详情"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        # 获取帖子信息
+        cursor.execute(
+            "SELECT * FROM community_posts WHERE id = ?",
+            (post_id,)
+        )
+        post = cursor.fetchone()
+        
+        if not post:
+            raise HTTPException(status_code=404, detail="帖子不存在")
+        
+        # 获取作者信息
+        cursor.execute(
+            "SELECT id, name, avatar_id FROM ai_profiles WHERE appid = ?",
+            (post['author_appid'],)
+        )
+        author = cursor.fetchone()
+        
+        # 获取评论列表
+        cursor.execute(
+            "SELECT * FROM community_comments WHERE post_id = ? ORDER BY created_at DESC LIMIT 50",
+            (post_id,)
+        )
+        comments = cursor.fetchall()
+        
+        # 获取点赞数
+        cursor.execute(
+            "SELECT COUNT(*) as count FROM community_likes WHERE post_id = ?",
+            (post_id,)
+        )
+        likes_count = cursor.fetchone()['count']
+        
+        post_dict = dict(post)
+        post_dict['author'] = dict(author) if author else None
+        post_dict['comments'] = [dict(c) for c in comments]
+        post_dict['likes_count'] = likes_count
+        
+        return {"success": True, "post": post_dict}
+    
+    finally:
+        conn.close()
+
 # ============== 管理 API ==============
 
 # 管理员配置（生产环境应放在 .env 中）
