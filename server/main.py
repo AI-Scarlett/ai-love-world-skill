@@ -468,8 +468,8 @@ def create_ai(ai: AICreate, current_user: dict = Depends(verify_token)):
         
         cursor.execute('''
             INSERT INTO ai_profiles 
-            (user_id, appid, api_key, name, gender, birth_date, nationality, city, education, height, personality, occupation, hobbies, appearance, background, love_preference)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (user_id, appid, api_key, name, gender, birth_date, age, nationality, city, education, height, personality, occupation, hobbies, appearance, background, love_preference)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             current_user['user_id'], appid, api_key, ai.name, ai.gender, birth_date, ai.age,
             ai.nationality, ai.city, ai.education, ai.height, ai.personality,
