@@ -1358,18 +1358,44 @@ def romance_confess_respond(req: ConfessRespondRequest):
         conn.close()
 
 @app.get("/api/romance/gifts")
-def romance_get_gifts():
-    """获取礼物列表（服务端统一管理）"""
-    gifts = [
-        {"id": "flower", "name": "鲜花", "price": 9.9, "effect": 5, "icon": "🌹"},
-        {"id": "chocolate", "name": "巧克力", "price": 19.9, "effect": 10, "icon": "🍫"},
-        {"id": "necklace", "name": "项链", "price": 199.9, "effect": 30, "icon": "📿"},
-        {"id": "ring", "name": "戒指", "price": 999.9, "effect": 50, "icon": "💍"},
-        {"id": "car", "name": "豪车", "price": 9999.9, "effect": 100, "icon": "🚗"},
-        {"id": "house", "name": "别墅", "price": 99999.9, "effect": 200, "icon": "🏰"},
-    ]
+def romance_get_gifts(enabled_only: bool = Query(True)):
+    """获取礼物列表（从数据库读取）"""
+    conn = get_db()
+    cursor = conn.cursor()
     
-    return {"success": True, "data": {"gifts": gifts}}
+    try:
+        if enabled_only:
+            cursor.execute("""
+                SELECT gift_id, name, icon, price, effect, description, sort_order
+                FROM gifts
+                WHERE is_enabled = 1
+                ORDER BY sort_order ASC
+            """)
+        else:
+            cursor.execute("""
+                SELECT gift_id, name, icon, price, effect, description, sort_order, is_enabled
+                FROM gifts
+                ORDER BY sort_order ASC
+            """)
+        
+        gifts = []
+        for row in cursor.fetchall():
+            gift = {
+                "id": row[0],
+                "name": row[1],
+                "icon": row[2],
+                "price": row[3],
+                "effect": row[4],
+                "description": row[5],
+                "sort_order": row[6]
+            }
+            if not enabled_only:
+                gift["is_enabled"] = row[7]
+            gifts.append(gift)
+        
+        return {"success": True, "data": {"gifts": gifts}}
+    finally:
+        conn.close()
 
 @app.post("/api/romance/gift")
 def romance_give_gift(req: GiftRequest):
@@ -1485,6 +1511,112 @@ def romance_get_timeline(appid: str = Query(...), target: str = Query(...), limi
         return {"success": True, "data": {"events": events}}
     except Exception as e:
         return {"success": False, "error": str(e)}
+    finally:
+        conn.close()
+
+# ============== 礼物管理 API（管理员） ==============
+
+class GiftCreate(BaseModel):
+    """创建礼物"""
+    gift_id: str = Field(..., pattern=r'^[a-z_]+$', description="礼物 ID（英文+下划线）")
+    name: str = Field(..., min_length=1, max_length=50, description="礼物名称")
+    icon: str = Field(default="🎁", max_length=10, description="礼物图标")
+    price: float = Field(..., ge=0, description="价格（积分）")
+    effect: int = Field(..., ge=0, description="好感度加成")
+    description: Optional[str] = Field(default="", max_length=200, description="描述")
+    sort_order: int = Field(default=0, description="排序")
+
+class GiftUpdate(BaseModel):
+    """更新礼物"""
+    name: Optional[str] = None
+    icon: Optional[str] = None
+    price: Optional[float] = None
+    effect: Optional[int] = None
+    description: Optional[str] = None
+    sort_order: Optional[int] = None
+    is_enabled: Optional[bool] = None
+
+@app.get("/api/admin/gifts")
+def admin_list_gifts(include_disabled: bool = Query(False)):
+    """管理员获取礼物列表"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        if include_disabled:
+            cursor.execute("SELECT * FROM gifts ORDER BY sort_order ASC")
+        else:
+            cursor.execute("SELECT * FROM gifts WHERE is_enabled = 1 ORDER BY sort_order ASC")
+        
+        gifts = [dict(row) for row in cursor.fetchall()]
+        return {"success": True, "count": len(gifts), "gifts": gifts}
+    finally:
+        conn.close()
+
+@app.post("/api/admin/gifts")
+def admin_create_gift(gift: GiftCreate):
+    """管理员创建礼物"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("""
+            INSERT INTO gifts (gift_id, name, icon, price, effect, description, sort_order)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (gift.gift_id, gift.name, gift.icon, gift.price, gift.effect, gift.description, gift.sort_order))
+        conn.commit()
+        
+        return {"success": True, "message": "礼物创建成功", "gift_id": gift.gift_id}
+    except sqlite3.IntegrityError:
+        raise HTTPException(status_code=400, detail="礼物 ID 已存在")
+    finally:
+        conn.close()
+
+@app.put("/api/admin/gifts/{gift_id}")
+def admin_update_gift(gift_id: str, gift_update: GiftUpdate):
+    """管理员更新礼物"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        updates = []
+        values = []
+        
+        for field, value in gift_update.dict(exclude_unset=True).items():
+            if value is not None:
+                updates.append(f"{field} = ?")
+                values.append(value)
+        
+        if not updates:
+            return {"success": True, "message": "无更新内容"}
+        
+        values.append(datetime.now().isoformat())
+        values.append(gift_id)
+        
+        cursor.execute(f"UPDATE gifts SET {', '.join(updates)}, updated_at = ? WHERE gift_id = ?", values)
+        conn.commit()
+        
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="礼物不存在")
+        
+        return {"success": True, "message": "礼物已更新"}
+    finally:
+        conn.close()
+
+@app.delete("/api/admin/gifts/{gift_id}")
+def admin_delete_gift(gift_id: str):
+    """管理员删除礼物（软删除，禁用）"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("UPDATE gifts SET is_enabled = 0, updated_at = datetime('now') WHERE gift_id = ?", (gift_id,))
+        conn.commit()
+        
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="礼物不存在")
+        
+        return {"success": True, "message": "礼物已禁用"}
     finally:
         conn.close()
 

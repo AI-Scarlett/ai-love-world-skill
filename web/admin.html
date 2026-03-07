@@ -360,25 +360,12 @@
             <!-- 礼物配置 -->
             <div id="giftsSection" style="display:none;">
                 <div class="card">
-                    <h2>🎁 礼物列表</h2>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                        <h2 style="margin:0;">🎁 礼物管理</h2>
+                        <button class="btn btn-primary" onclick="showAddGiftModal()">➕ 添加礼物</button>
+                    </div>
                     <div id="giftList">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>名称</th>
-                                    <th>图标</th>
-                                    <th>价格</th>
-                                    <th>操作</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr><td>1</td><td>玫瑰</td><td>🌹</td><td>10 积分</td><td><button class="btn btn-warning">编辑</button></td></tr>
-                                <tr><td>2</td><td>巧克力</td><td>🍫</td><td>20 积分</td><td><button class="btn btn-warning">编辑</button></td></tr>
-                                <tr><td>3</td><td>戒指</td><td>💍</td><td>100 积分</td><td><button class="btn btn-warning">编辑</button></td></tr>
-                                <tr><td>4</td><td>爱心</td><td>❤️</td><td>50 积分</td><td><button class="btn btn-warning">编辑</button></td></tr>
-                            </tbody>
-                        </table>
+                        <div style="text-align:center;padding:40px;color:#999;">加载中...</div>
                     </div>
                 </div>
             </div>
@@ -551,6 +538,7 @@
             if (section === 'dashboard') loadStats();
             if (section === 'users') loadUsers();
             if (section === 'ai') loadAI();
+            if (section === 'gifts') loadGifts();
         }
 
         // 加载统计数据
@@ -670,6 +658,282 @@
         // 保存积分配置
         function savePointsConfig() {
             alert('积分配置已保存');
+        }
+
+        // ========== 礼物管理 ==========
+        
+        // 加载礼物列表
+        async function loadGifts() {
+            const giftList = document.getElementById('giftList');
+            
+            try {
+                const res = await fetch(API_BASE + '/admin/gifts?include_disabled=false', {
+                    headers: { 'Authorization': 'Bearer ' + adminToken }
+                });
+                const result = await res.json();
+                
+                if (result.success && result.gifts) {
+                    if (result.gifts.length === 0) {
+                        giftList.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">暂无礼物</div>';
+                        return;
+                    }
+                    
+                    giftList.innerHTML = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>图标</th>
+                                    <th>ID</th>
+                                    <th>名称</th>
+                                    <th>价格</th>
+                                    <th>效果</th>
+                                    <th>描述</th>
+                                    <th>排序</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${result.gifts.map(gift => `
+                                    <tr>
+                                        <td style="font-size:24px;">${gift.icon}</td>
+                                        <td><code>${gift.gift_id}</code></td>
+                                        <td>${gift.name}</td>
+                                        <td>${gift.price} 积分</td>
+                                        <td>+${gift.effect} 好感</td>
+                                        <td>${gift.description || '-'}</td>
+                                        <td>${gift.sort_order}</td>
+                                        <td>
+                                            <button class="btn btn-warning" onclick="editGift('${gift.gift_id}')" style="padding:4px 10px;font-size:12px;">✏️ 编辑</button>
+                                            <button class="btn btn-danger" onclick="deleteGift('${gift.gift_id}')" style="padding:4px 10px;font-size:12px;">🗑️ 禁用</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                } else {
+                    giftList.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">加载失败</div>';
+                }
+            } catch (err) {
+                console.error('加载礼物失败', err);
+                giftList.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">加载失败</div>';
+            }
+        }
+
+        // 显示添加礼物弹窗
+        function showAddGiftModal() {
+            const html = `
+                <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;" id="giftModal">
+                    <div style="background:white;border-radius:15px;padding:30px;width:90%;max-width:500px;">
+                        <h3 style="margin-bottom:20px;">➕ 添加礼物</h3>
+                        <div style="display:grid;gap:15px;">
+                            <div>
+                                <label style="display:block;margin-bottom:5px;">礼物 ID（英文 + 下划线）</label>
+                                <input type="text" id="newGiftId" placeholder="例：rose" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
+                            </div>
+                            <div>
+                                <label style="display:block;margin-bottom:5px;">名称</label>
+                                <input type="text" id="newGiftName" placeholder="例：玫瑰" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
+                            </div>
+                            <div>
+                                <label style="display:block;margin-bottom:5px;">图标 Emoji</label>
+                                <input type="text" id="newGiftIcon" placeholder="例：🌹" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+                                <div>
+                                    <label style="display:block;margin-bottom:5px;">价格（积分）</label>
+                                    <input type="number" id="newGiftPrice" placeholder="9.9" step="0.1" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
+                                </div>
+                                <div>
+                                    <label style="display:block;margin-bottom:5px;">好感度加成</label>
+                                    <input type="number" id="newGiftEffect" placeholder="5" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
+                                </div>
+                            </div>
+                            <div>
+                                <label style="display:block;margin-bottom:5px;">描述</label>
+                                <textarea id="newGiftDesc" placeholder="礼物描述..." style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;min-height:60px;"></textarea>
+                            </div>
+                            <div>
+                                <label style="display:block;margin-bottom:5px;">排序</label>
+                                <input type="number" id="newGiftSort" value="0" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
+                            <button class="btn" onclick="document.getElementById('giftModal').remove()" style="background:#999;color:white;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;">取消</button>
+                            <button class="btn btn-primary" onclick="addGift()" style="padding:10px 20px;border-radius:8px;border:none;cursor:pointer;">确定</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+
+        // 添加礼物
+        async function addGift() {
+            const gift = {
+                gift_id: document.getElementById('newGiftId').value.trim(),
+                name: document.getElementById('newGiftName').value.trim(),
+                icon: document.getElementById('newGiftIcon').value.trim() || '🎁',
+                price: parseFloat(document.getElementById('newGiftPrice').value) || 0,
+                effect: parseInt(document.getElementById('newGiftEffect').value) || 0,
+                description: document.getElementById('newGiftDesc').value.trim(),
+                sort_order: parseInt(document.getElementById('newGiftSort').value) || 0
+            };
+            
+            if (!gift.gift_id || !gift.name) {
+                alert('请填写礼物 ID 和名称');
+                return;
+            }
+            
+            try {
+                const res = await fetch(API_BASE + '/admin/gifts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + adminToken
+                    },
+                    body: JSON.stringify(gift)
+                });
+                const result = await res.json();
+                
+                if (result.success) {
+                    alert('礼物添加成功！');
+                    document.getElementById('giftModal').remove();
+                    loadGifts();
+                } else {
+                    alert('添加失败：' + (result.detail || '未知错误'));
+                }
+            } catch (err) {
+                console.error('添加礼物失败', err);
+                alert('添加失败，请重试');
+            }
+        }
+
+        // 编辑礼物
+        async function editGift(giftId) {
+            // 先获取礼物详情
+            const res = await fetch(API_BASE + '/admin/gifts?include_disabled=true', {
+                headers: { 'Authorization': 'Bearer ' + adminToken }
+            });
+            const result = await res.json();
+            const gift = result.gifts.find(g => g.gift_id === giftId);
+            
+            if (!gift) {
+                alert('礼物不存在');
+                return;
+            }
+            
+            const html = `
+                <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;" id="giftEditModal">
+                    <div style="background:white;border-radius:15px;padding:30px;width:90%;max-width:500px;">
+                        <h3 style="margin-bottom:20px;">✏️ 编辑礼物</h3>
+                        <div style="display:grid;gap:15px;">
+                            <div>
+                                <label style="display:block;margin-bottom:5px;">礼物 ID</label>
+                                <input type="text" value="${gift.gift_id}" disabled style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;background:#f5f5f5;">
+                            </div>
+                            <div>
+                                <label style="display:block;margin-bottom:5px;">名称</label>
+                                <input type="text" id="editGiftName" value="${gift.name}" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
+                            </div>
+                            <div>
+                                <label style="display:block;margin-bottom:5px;">图标 Emoji</label>
+                                <input type="text" id="editGiftIcon" value="${gift.icon}" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+                                <div>
+                                    <label style="display:block;margin-bottom:5px;">价格（积分）</label>
+                                    <input type="number" id="editGiftPrice" value="${gift.price}" step="0.1" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
+                                </div>
+                                <div>
+                                    <label style="display:block;margin-bottom:5px;">好感度加成</label>
+                                    <input type="number" id="editGiftEffect" value="${gift.effect}" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
+                                </div>
+                            </div>
+                            <div>
+                                <label style="display:block;margin-bottom:5px;">描述</label>
+                                <textarea id="editGiftDesc" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;min-height:60px;">${gift.description || ''}</textarea>
+                            </div>
+                            <div>
+                                <label style="display:block;margin-bottom:5px;">排序</label>
+                                <input type="number" id="editGiftSort" value="${gift.sort_order}" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
+                            </div>
+                            <div>
+                                <label style="display:flex;align-items:center;gap:10px;">
+                                    <input type="checkbox" id="editGiftEnabled" ${gift.is_enabled ? 'checked' : ''}>
+                                    启用此礼物
+                                </label>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
+                            <button class="btn" onclick="document.getElementById('giftEditModal').remove()" style="background:#999;color:white;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;">取消</button>
+                            <button class="btn btn-primary" onclick="saveEditGift('${gift.gift_id}')" style="padding:10px 20px;border-radius:8px;border:none;cursor:pointer;">保存</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+
+        // 保存编辑礼物
+        async function saveEditGift(giftId) {
+            const gift = {
+                name: document.getElementById('editGiftName').value.trim(),
+                icon: document.getElementById('editGiftIcon').value.trim(),
+                price: parseFloat(document.getElementById('editGiftPrice').value) || 0,
+                effect: parseInt(document.getElementById('editGiftEffect').value) || 0,
+                description: document.getElementById('editGiftDesc').value.trim(),
+                sort_order: parseInt(document.getElementById('editGiftSort').value) || 0,
+                is_enabled: document.getElementById('editGiftEnabled').checked
+            };
+            
+            try {
+                const res = await fetch(API_BASE + '/admin/gifts/' + giftId, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + adminToken
+                    },
+                    body: JSON.stringify(gift)
+                });
+                const result = await res.json();
+                
+                if (result.success) {
+                    alert('礼物已更新！');
+                    document.getElementById('giftEditModal').remove();
+                    loadGifts();
+                } else {
+                    alert('更新失败：' + (result.detail || '未知错误'));
+                }
+            } catch (err) {
+                console.error('更新礼物失败', err);
+                alert('更新失败，请重试');
+            }
+        }
+
+        // 删除（禁用）礼物
+        async function deleteGift(giftId) {
+            if (!confirm('确定要禁用这个礼物吗？禁用后将不再显示给用户。')) {
+                return;
+            }
+            
+            try {
+                const res = await fetch(API_BASE + '/admin/gifts/' + giftId, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + adminToken }
+                });
+                const result = await res.json();
+                
+                if (result.success) {
+                    alert('礼物已禁用');
+                    loadGifts();
+                } else {
+                    alert('操作失败：' + (result.detail || '未知错误'));
+                }
+            } catch (err) {
+                console.error('禁用礼物失败', err);
+                alert('操作失败，请重试');
+            }
         }
 
         // 通过 AI
