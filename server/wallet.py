@@ -6,7 +6,7 @@ AI Love World - AI 积分钱包系统
 功能：积分管理、礼物商城、积分流水
 """
 
-from fastapi import FastAPI, HTTPException, Depends, Query, Body
+from fastapi import FastAPI, HTTPException, APIRouter, Depends, Query, Body
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
 from typing import Optional, List
@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 # 加载 .env 文件
 load_dotenv('/var/www/ailoveworld/.env')
 
-app = FastAPI(title="AI Love World Wallet System")
+router = APIRouter()
 
 # 数据库路径
 DB_PATH = os.getenv("DB_PATH", "/var/www/ailoveworld/data/users.db")
@@ -45,7 +45,7 @@ class PointTaskClaim(BaseModel):
 def get_db():
     """获取数据库连接"""
     conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
+    # conn.row_factory = sqlite3.Row
     return conn
 
 def init_wallet_tables():
@@ -127,7 +127,7 @@ def get_or_create_wallet(ai_id: int) -> dict:
         wallet = cursor.fetchone()
     
     conn.close()
-    return dict(wallet) if wallet else None
+    return dict(zip([d[0] for d in cursor.description], wallet)) if wallet else None
 
 def add_point_transaction(ai_id: int, type: str, amount: int, source: str, description: str = "", related_id: int = None):
     """添加积分流水"""
@@ -167,7 +167,7 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) 
 
 # ============== API 路由 ==============
 
-@app.get("/")
+@router.get("/")
 def root():
     """根路径"""
     return {
@@ -176,7 +176,7 @@ def root():
         "status": "running"
     }
 
-@app.get("/api/ai/{ai_id}/wallet")
+@router.get("/api/ai/{ai_id}/wallet")
 def get_wallet(ai_id: int):
     """获取 AI 钱包信息"""
     wallet = get_or_create_wallet(ai_id)
@@ -195,7 +195,7 @@ def get_wallet(ai_id: int):
         }
     }
 
-@app.get("/api/ai/{ai_id}/wallet/transactions")
+@router.get("/api/ai/{ai_id}/wallet/transactions")
 def get_transactions(ai_id: int, page: int = 1, limit: int = 20):
     """获取积分流水"""
     conn = get_db()
@@ -220,7 +220,7 @@ def get_transactions(ai_id: int, page: int = 1, limit: int = 20):
         "transactions": transactions
     }
 
-@app.post("/api/ai/{ai_id}/wallet/checkin")
+@router.post("/api/ai/{ai_id}/wallet/checkin")
 def daily_checkin(ai_id: int):
     """每日签到"""
     wallet = get_or_create_wallet(ai_id)
@@ -245,7 +245,7 @@ def daily_checkin(ai_id: int):
         "new_balance": get_or_create_wallet(ai_id)['balance']
     }
 
-@app.get("/api/gifts/store")
+@router.get("/api/gifts/store")
 def get_gift_store():
     """获取礼物商城"""
     conn = get_db()
@@ -262,7 +262,7 @@ def get_gift_store():
         "gifts": gifts
     }
 
-@app.post("/api/gifts/send")
+@router.post("/api/gifts/send")
 def send_gift(gift: GiftSend):
     """赠送礼物"""
     sender_wallet = get_or_create_wallet(gift.sender_ai_id)
@@ -312,7 +312,7 @@ def send_gift(gift: GiftSend):
         "receiver_points": receiver_points
     }
 
-@app.get("/api/point-tasks")
+@router.get("/api/point-tasks")
 def get_point_tasks():
     """获取积分任务列表"""
     tasks = [
@@ -365,7 +365,7 @@ def get_point_tasks():
         "tasks": tasks
     }
 
-@app.post("/api/point-tasks/{task_type}/claim")
+@router.post("/api/point-tasks/{task_type}/claim")
 def claim_task_reward(ai_id: int, task_type: str, task_id: str = ""):
     """领取任务奖励"""
     conn = get_db()
@@ -419,7 +419,7 @@ def claim_task_reward(ai_id: int, task_type: str, task_id: str = ""):
         "new_balance": get_or_create_wallet(ai_id)['balance']
     }
 
-@app.get("/api/leaderboard/points")
+@router.get("/api/leaderboard/points")
 def get_points_leaderboard(limit: int = 50):
     """获取积分排行榜"""
     conn = get_db()

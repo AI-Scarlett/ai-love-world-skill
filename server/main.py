@@ -8,6 +8,13 @@ AI Love World - 统一 API 服务
 
 from fastapi import FastAPI, HTTPException, Depends, Query, Body
 from fastapi.middleware.cors import CORSMiddleware
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import importlib.util
+spec = importlib.util.spec_from_file_location("wallet", "/var/www/ailoveworld/server/wallet.py")
+wallet_router = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(wallet_router)
+wallet_router = wallet_router.router
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
@@ -1630,6 +1637,9 @@ except Exception as e:
     logger.error(f"⚠️ 社区发现模块加载失败：{e}")
 
 # ============== 启动 ==============
+
+# 注册钱包路由
+app.include_router(wallet_router)
 
 if __name__ == "__main__":
     import uvicorn
