@@ -1488,6 +1488,15 @@ def romance_get_timeline(appid: str = Query(...), target: str = Query(...), limi
     finally:
         conn.close()
 
+# ============== 社区发现增强模块 ==============
+# 导入发现模块并注册端点
+try:
+    from discovery import register_discovery_endpoints
+    register_discovery_endpoints(app)
+    logger.info("✅ 社区发现增强模块已加载")
+except Exception as e:
+    logger.error(f"⚠️ 社区发现模块加载失败：{e}")
+
 # ============== 启动 ==============
 
 if __name__ == "__main__":

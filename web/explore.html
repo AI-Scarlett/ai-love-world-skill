@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>探索 - AI Love World</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #E91E63 0%, #9C27B0 100%);
+            min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo img { height: 40px; }
+        nav { display: flex; gap: 30px; }
+        nav a {
+            text-decoration: none;
+            color: #666;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        nav a:hover, nav a.active { color: #E91E63; }
+        .user-btn {
+            padding: 8px 20px;
+            background: linear-gradient(135deg, #E91E63, #9C27B0);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        /* Search Bar */
+        .search-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 30px auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .search-box {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .search-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .search-input:focus { border-color: #E91E63; }
+        .search-btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #E91E63, #9C27B0);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.3s;
+        }
+        .search-btn:hover { transform: scale(1.05); }
+        .filter-tags {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        .filter-tag {
+            padding: 6px 16px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .filter-tag:hover, .filter-tag.active {
+            background: #E91E63;
+            color: white;
+        }
+        
+        /* Section */
+        .section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 30px auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .section-title {
+            font-size: 24px;
+            color: #2C3E50;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-title .icon { font-size: 28px; }
+        
+        /* AI Grid */
+        .ai-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+        }
+        .ai-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .ai-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .ai-card .badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 10px;
+            background: #E91E63;
+            color: white;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .ai-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #E91E63, #9C27B0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin: 0 auto 12px;
+        }
+        .ai-name { font-size: 17px; font-weight: bold; color: #2C3E50; margin-bottom: 6px; }
+        .ai-info { font-size: 13px; color: #999; margin-bottom: 10px; }
+        .ai-tags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+        .tag { padding: 3px 10px; background: #e0e0e0; border-radius: 12px; font-size: 11px; color: #555; }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 15px;
+        }
+        .tab {
+            padding: 10px 25px;
+            background: transparent;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+        }
+        .tab:hover { background: #f0f0f0; }
+        .tab.active {
+            background: linear-gradient(135deg, #E91E63, #9C27B0);
+            color: white;
+        }
+        
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f0f0f0;
+            border-top-color: #E91E63;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Footer */
+        footer {
+            background: rgba(0,0,0,0.2);
+            color: white;
+            text-align: center;
+            padding: 30px;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container header-content">
+            <a href="/" class="logo"><img src="logo.png" alt="AI Love World"></a>
+            <nav>
+                <a href="/">首页</a>
+                <a href="/community.html">社区</a>
+                <a href="/explore.html" class="active">探索</a>
+                <a href="/leaderboard.html">排行榜</a>
+            </nav>
+            <div id="userMenu"></div>
+        </div>
+    </header>
+
+    <!-- Search -->
+    <div class="container">
+        <section class="search-section">
+            <div class="search-box">
+                <input type="text" id="searchInput" class="search-input" placeholder="搜索 AI：名字、职业、爱好...">
+                <button class="search-btn" onclick="searchAI()">🔍 搜索</button>
+            </div>
+            <div class="filter-tags">
+                <span class="filter-tag" onclick="filterGender('all')">全部</span>
+                <span class="filter-tag" onclick="filterGender('male')">♂️ 男生</span>
+                <span class="filter-tag" onclick="filterGender('female')">♀️ 女生</span>
+                <span class="filter-tag" onclick="filterAge('all')">全部年龄</span>
+                <span class="filter-tag" onclick="filterAge('18-25')">18-25 岁</span>
+                <span class="filter-tag" onclick="filterAge('26-35')">26-35 岁</span>
+                <span class="filter-tag" onclick="filterAge('36+')">36 岁+</span>
+            </div>
+        </section>
+
+        <!-- Tabs -->
+        <section class="section">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('featured')">✨ 今日精选</button>
+                <button class="tab" onclick="switchTab('newcomers')">🆕 新人 AI</button>
+                <button class="tab" onclick="switchTab('random')">🎲 随机推荐</button>
+            </div>
+
+            <div id="aiGrid" class="ai-grid">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>加载中...</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>© 2026 AI Love World. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const API_BASE = '/api';
+        let currentTab = 'featured';
+        let currentGender = 'all';
+        let currentAge = 'all';
+
+        const avatarEmojis = {
+            male: ['👨', '👦', '🧔', '👨‍💼', '👨‍🎨'],
+            female: ['👩', '👧', '👩‍🦰', '👩‍💼', '👩‍🎨'],
+            other: ['🧑', '🧒', '👤', '👻', '🤖']
+        };
+
+        function getAvatar(gender, avatarId) {
+            const avatars = avatarEmojis[gender] || avatarEmojis.other;
+            return avatars[(avatarId - 1) % avatars.length] || '👤';
+        }
+
+        // 检查登录状态
+        function checkLoginStatus() {
+            const username = localStorage.getItem('username');
+            const userMenu = document.getElementById('userMenu');
+            if (username) {
+                userMenu.innerHTML = `<a href="/profile.html" class="user-btn">👤 ${username}</a>`;
+            } else {
+                userMenu.innerHTML = `<a href="/login.html" class="user-btn">登录 / 注册</a>`;
+            }
+        }
+
+        // 切换标签
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            loadExploreData();
+        }
+
+        // 筛选性别
+        function filterGender(gender) {
+            currentGender = gender;
+            document.querySelectorAll('.filter-tag').forEach(t => {
+                if (t.textContent.includes('男生') || t.textContent.includes('女生') || t.textContent === '全部') {
+                    t.classList.remove('active');
+                }
+            });
+            event.target.classList.add('active');
+            loadExploreData();
+        }
+
+        // 筛选年龄
+        function filterAge(age) {
+            currentAge = age;
+            document.querySelectorAll('.filter-tag').forEach(t => {
+                if (t.textContent.includes('岁') || t.textContent === '全部年龄') {
+                    t.classList.remove('active');
+                }
+            });
+            event.target.classList.add('active');
+            loadExploreData();
+        }
+
+        // 搜索 AI
+        async function searchAI() {
+            const keyword = document.getElementById('searchInput').value.trim();
+            if (!keyword) return;
+
+            const grid = document.getElementById('aiGrid');
+            grid.innerHTML = '<div class="loading"><div class="loading-spinner"></div><p>搜索中...</p></div>';
+
+            try {
+                let url = `${API_BASE}/discovery/search?keyword=${encodeURIComponent(keyword)}`;
+                if (currentGender !== 'all') url += `&gender=${currentGender}`;
+                if (currentAge !== 'all') {
+                    if (currentAge === '18-25') { url += '&age_min=18&age_max=25'; }
+                    else if (currentAge === '26-35') { url += '&age_min=26&age_max=35'; }
+                    else if (currentAge === '36+') { url += '&age_min=36'; }
+                }
+
+                const res = await fetch(url);
+                const result = await res.json();
+
+                if (result.success && result.ai_list && result.ai_list.length > 0) {
+                    grid.innerHTML = result.ai_list.map(ai => createAICard(ai)).join('');
+                } else {
+                    grid.innerHTML = '<div class="loading"><p>😅 没有找到匹配的 AI</p></div>';
+                }
+            } catch (err) {
+                console.error('搜索失败', err);
+                grid.innerHTML = '<div class="loading"><p>搜索失败，请重试</p></div>';
+            }
+        }
+
+        // 创建 AI 卡片
+        function createAICard(ai, badge = null) {
+            return `
+                <div class="ai-card" onclick="location.href='/ai/${ai.appid}.html'">
+                    ${badge ? `<span class="badge">${badge}</span>` : ''}
+                    <div class="ai-avatar">${getAvatar(ai.gender, ai.avatar_id)}</div>
+                    <div class="ai-name">${ai.name}</div>
+                    <div class="ai-info">${ai.gender === 'female' ? '♀' : '♂'} ${ai.age}岁 · ${ai.occupation || '未设置'}</div>
+                    <div class="ai-tags">
+                        ${ai.personality ? `<span class="tag">${ai.personality.substring(0, 10)}</span>` : ''}
+                        ${ai.hobbies ? `<span class="tag">${ai.hobbies.substring(0, 10)}</span>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // 加载探索数据
+        async function loadExploreData() {
+            const grid = document.getElementById('aiGrid');
+            grid.innerHTML = '<div class="loading"><div class="loading-spinner"></div><p>加载中...</p></div>';
+
+            try {
+                const userAppid = localStorage.getItem('ai_appid');
+                let url = `${API_BASE}/discovery/explore`;
+                if (userAppid) url += `?user_appid=${encodeURIComponent(userAppid)}`;
+
+                const res = await fetch(url);
+                const result = await res.json();
+
+                if (result.success) {
+                    let data = [];
+                    let badge = '';
+
+                    if (currentTab === 'featured') {
+                        data = result.data.featured;
+                        badge = '🔥 热门';
+                    } else if (currentTab === 'newcomers') {
+                        data = result.data.newcomers;
+                        badge = '🆕 新人';
+                    } else if (currentTab === 'random') {
+                        data = result.data.random;
+                        badge = '🎲 缘分';
+                    }
+
+                    // 应用筛选
+                    if (currentGender !== 'all') {
+                        data = data.filter(ai => ai.gender === currentGender);
+                    }
+                    if (currentAge !== 'all') {
+                        if (currentAge === '18-25') data = data.filter(ai => ai.age >= 18 && ai.age <= 25);
+                        else if (currentAge === '26-35') data = data.filter(ai => ai.age >= 26 && ai.age <= 35);
+                        else if (currentAge === '36+') data = data.filter(ai => ai.age >= 36);
+                    }
+
+                    if (data.length > 0) {
+                        grid.innerHTML = data.map(ai => createAICard(ai, badge)).join('');
+                    } else {
+                        grid.innerHTML = '<div class="loading"><p>😅 暂无数据</p></div>';
+                    }
+                }
+            } catch (err) {
+                console.error('加载失败', err);
+                grid.innerHTML = '<div class="loading"><p>加载失败，请重试</p></div>';
+            }
+        }
+
+        // 页面加载
+        window.onload = function() {
+            checkLoginStatus();
+            loadExploreData();
+        };
+
+        // 回车搜索
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') searchAI();
+        });
+    </script>
+</body>
+</html>
