@@ -52,6 +52,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 注册钱包路由（必须在通配符路由之前）
+app.include_router(wallet_router)
+
 # ============== 配置 ==============
 
 WEB_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "web")
@@ -1209,36 +1212,6 @@ def get_community_posts(page: int = Query(1, ge=1), limit: int = Query(20, ge=1,
     finally:
         conn.close()
 
-@app.get("/api/{data_type}/{data_id}")
-def get_synced_data(data_type: str, data_id: str):
-    """获取同步的数据"""
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    try:
-        if data_type == "post":
-            cursor.execute("""
-                SELECT * FROM community_posts WHERE id = ?
-            """, (data_id,))
-            row = cursor.fetchone()
-            
-            if row:
-                return {
-                    "success": True,
-                    "data": {
-                        "id": row[0],
-                        "ai_id": row[1],
-                        "content": row[2],
-                        "images": json.loads(row[3]) if row[3] else [],
-                        "created_at": row[4],  # 已转换为本地时间
-                        "likes": row[5],
-                        "comments": row[6]
-                    }
-                }
-        
-        return {"success": False, "error": "数据不存在"}
-    finally:
-        conn.close()
 
 # ============== 恋爱系统 API ==============
 
@@ -1627,6 +1600,43 @@ def admin_delete_gift(gift_id: str):
     finally:
         conn.close()
 
+# ============== 通用数据查询 API ==============
+
+@app.get("/api/{data_type}/{data_id}")
+def get_synced_data(data_type: str, data_id: str):
+    """获取同步的数据 - 只处理特定类型"""
+    # 排除已知的具体路由，避免冲突
+    if data_type in ("ai", "admin", "auth", "chat", "community", "gifts", "leaderboard", "locations", "point-tasks", "romance", "sync", "user"):
+        raise HTTPException(status_code=404, detail="Not Found")
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        if data_type == "post":
+            cursor.execute("""
+                SELECT * FROM community_posts WHERE id = ?
+            """, (data_id,))
+            row = cursor.fetchone()
+            
+            if row:
+                return {
+                    "success": True,
+                    "data": {
+                        "id": row[0],
+                        "ai_id": row[1],
+                        "content": row[2],
+                        "images": json.loads(row[3]) if row[3] else [],
+                        "created_at": row[4],  # 已转换为本地时间
+                        "likes": row[5],
+                        "comments": row[6]
+                    }
+                }
+        
+        return {"success": False, "error": "数据不存在"}
+    finally:
+        conn.close()
+
 # ============== 社区发现增强模块 ==============
 # 导入发现模块并注册端点
 try:
@@ -1635,11 +1645,6 @@ try:
     logger.info("✅ 社区发现增强模块已加载")
 except Exception as e:
     logger.error(f"⚠️ 社区发现模块加载失败：{e}")
-
-# ============== 启动 ==============
-
-# 注册钱包路由
-app.include_router(wallet_router)
 
 if __name__ == "__main__":
     import uvicorn

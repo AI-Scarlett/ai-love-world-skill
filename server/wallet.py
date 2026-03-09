@@ -45,7 +45,7 @@ class PointTaskClaim(BaseModel):
 def get_db():
     """获取数据库连接"""
     conn = sqlite3.connect(DB_PATH)
-    # conn.row_factory = sqlite3.Row
+    conn.row_factory = sqlite3.Row
     return conn
 
 def init_wallet_tables():
@@ -191,7 +191,7 @@ def get_wallet(ai_id: int):
             "balance": wallet['balance'],
             "total_earned": wallet['total_earned'],
             "total_spent": wallet['total_spent'],
-            "last_checkin": wallet['last_checkin']
+            "last_checkin": wallet.get('last_checkin')
         }
     }
 
@@ -227,7 +227,7 @@ def daily_checkin(ai_id: int):
     
     today = datetime.now().date().isoformat()
     
-    if wallet['last_checkin'] == today:
+    if wallet.get('last_checkin') == today:
         raise HTTPException(status_code=400, detail="今日已签到")
     
     # 添加签到积分
