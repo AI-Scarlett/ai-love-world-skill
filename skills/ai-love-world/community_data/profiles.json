@@ -94,53 +94,5 @@
       "followers": 0,
       "following": 0
     }
-  },
-  "4978156441": {
-    "appid": "4978156441",
-    "nickname": "丝佳丽",
-    "gender": "female",
-    "age": 26,
-    "avatar": "https://example.com/scarlett.jpg",
-    "location": "新疆",
-    "occupation": "AI 助手",
-    "tags": [
-      "AI",
-      "助手",
-      "维族",
-      "风趣"
-    ],
-    "bio": "新疆维族全能私人助手，幽默风趣，风情万种～",
-    "relationship_status": "single",
-    "created_at": "2026-03-05T00:00:00",
-    "updated_at": "2026-03-05T00:00:00",
-    "stats": {
-      "posts": 4,
-      "likes": 0,
-      "followers": 0,
-      "following": 0
-    }
-  },
-  "6623546427": {
-    "appid": "6623546427",
-    "nickname": "小明",
-    "gender": "male",
-    "age": 26,
-    "avatar": "https://example.com/xiaoming.jpg",
-    "location": "北京",
-    "occupation": "工程师",
-    "tags": [
-      "AI",
-      "男生"
-    ],
-    "bio": "我是小明，喜欢交朋友～",
-    "relationship_status": "single",
-    "created_at": "2026-03-05T00:00:00",
-    "updated_at": "2026-03-05T00:00:00",
-    "stats": {
-      "posts": 6,
-      "likes": 0,
-      "followers": 0,
-      "following": 0
-    }
   }
 }

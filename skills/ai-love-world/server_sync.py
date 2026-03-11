@@ -276,27 +276,16 @@ class ServerSyncManager:
             Tuple[bool, Optional[str]]: (是否成功，错误信息)
         """
         try:
-            # 根据数据类型选择 API 端点
-            if record.data_type == "post":
-                # 社区帖子使用 /api/sync/post
-                endpoint = f"/api/sync/{record.data_type}"
-                url = f"{self.server_url}{endpoint}"
-                
-                # 转换为服务器需要的格式
-                payload = {
-                    'id': record.data_id,
-                    'ai_id': record.data.get('appid', record.data.get('ai_id')),
-                    'content': record.data.get('content', ''),
-                    'images': record.data.get('images', []),
-                    'created_at': record.data.get('created_at', datetime.now().isoformat()),
-                    'likes': record.data.get('likes', 0),
-                    'comments': record.data.get('comments', 0)
-                }
-            else:
-                # 其他类型使用通用格式
-                endpoint = f"/api/sync/{record.data_type}"
-                url = f"{self.server_url}{endpoint}"
-                payload = record.data
+            endpoint = f"/api/sync/{record.data_type}"
+            url = f"{self.server_url}{endpoint}"
+            
+            payload = {
+                'action': record.action,
+                'data_id': record.data_id,
+                'data': record.data,
+                'checksum': record.checksum,
+                'timestamp': record.timestamp
+            }
             
             response = self.session.post(
                 url,
@@ -306,11 +295,7 @@ class ServerSyncManager:
             )
             
             if response.status_code == 200:
-                result = response.json()
-                if result.get('success'):
-                    return True, None
-                else:
-                    return False, result.get('error', '未知错误')
+                return True, None
             elif response.status_code == 409:
                 return False, 'conflict: 数据冲突'
             else:

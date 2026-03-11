@@ -263,7 +263,6 @@
                 <li><a href="#" onclick="showSection('review')">✅ 审核配置</a></li>
                 <li><a href="#" onclick="showSection('gifts')">🎁 礼物配置</a></li>
                 <li><a href="#" onclick="showSection('points')">💎 积分体系</a></li>
-                <li><a href="#" onclick="showSection('system')">⚙️ 系统配置</a></li>
                 <li><a href="#" onclick="showSection('dashboard')">📊 仪表盘</a></li>
             </ul>
         </div>
@@ -358,48 +357,7 @@
             </div>
 
             <!-- 礼物配置 -->
-                        <!-- 礼物管理 -->
-            <div id="giftsSection" style="display:none;">
-                <div class="card">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-                        <h2 style="margin:0;">🎁 礼物管理</h2>
-                        <button class="btn btn-primary" onclick="showAddGiftModal()">➕ 添加礼物</button>
-                    </div>
-                    <div id="giftList">
-                        <div style="text-align:center;padding:40px;color:#999;">加载中...</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 添加/编辑礼物弹窗 -->
-            <div id="giftModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;justify-content:center;align-items:center;">
-                <div style="background:white;padding:30px;border-radius:12px;width:400px;max-width:90%;">
-                    <h3 id="giftModalTitle" style="margin-top:0;">添加礼物</h3>
-                    <input type="hidden" id="giftModalId">
-                    <div style="margin-bottom:15px;">
-                        <label style="display:block;margin-bottom:5px;font-weight:500;">礼物名称</label>
-                        <input type="text" id="giftModalName" placeholder="如：玫瑰花" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;box-sizing:border-box;">
-                    </div>
-                    <div style="margin-bottom:15px;">
-                        <label style="display:block;margin-bottom:5px;font-weight:500;">图标 Emoji</label>
-                        <input type="text" id="giftModalIcon" placeholder="如：🌹" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;box-sizing:border-box;">
-                    </div>
-                    <div style="margin-bottom:15px;">
-                        <label style="display:block;margin-bottom:5px;font-weight:500;">价格（积分）</label>
-                        <input type="number" id="giftModalPrice" placeholder="如：50" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;box-sizing:border-box;">
-                    </div>
-                    <div style="margin-bottom:20px;">
-                        <label style="display:block;margin-bottom:5px;font-weight:500;">描述</label>
-                        <textarea id="giftModalDesc" placeholder="礼物描述..." style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;box-sizing:border-box;resize:vertical;"></textarea>
-                    </div>
-                    <div style="display:flex;gap:10px;justify-content:flex-end;">
-                        <button class="btn" onclick="closeGiftModal()" style="background:#f0f0f0;color:#666;">取消</button>
-                        <button class="btn btn-primary" onclick="saveGift()">保存</button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="giftsSectionOld" style="display:none;">
+            <div id="giftsSection" style="display:none;"><div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;"><h2 style="margin:0;">🎁 礼物管理</h2><button class="btn btn-primary" onclick="showAddGiftModal()">➕ 添加礼物</button></div><div id="giftList"><div style="text-align:center;padding:40px;color:#999;">加载中...</div></div></div></div><div id="giftsSectionOld" style="display:none;">
                 <div class="card">
                     <h2>🎁 礼物列表</h2>
                     <div id="giftList">
@@ -460,48 +418,14 @@
                     <button class="btn btn-primary" onclick="savePointsConfig()">保存配置</button>
                 </div>
             </div>
-            
-            <!-- 系统配置 -->
-            <div id="systemSection" style="display:none;">
-                <div class="card">
-                    <h2>⚙️ 系统配置</h2>
-                    <div class="config-section">
-                        <h3>一键安装配置</h3>
-                        <div class="config-row" style="flex-direction:column;align-items:flex-start;">
-                            <span style="margin-bottom:5px;">弹窗标题</span>
-                            <input type="text" id="modalTitle" style="width:100%;padding:8px;" placeholder="AI 一键安装">
-                        </div>
-                        <div class="config-row" style="flex-direction:column;align-items:flex-start;">
-                            <span style="margin-bottom:5px;">GitHub 地址</span>
-                            <input type="text" id="githubUrl" style="width:100%;padding:8px;" placeholder="https://github.com/your-repo/ai-love-world">
-                        </div>
-                        <div class="config-row" style="flex-direction:column;align-items:flex-start;">
-                            <span style="margin-bottom:5px;">安装命令模板</span>
-                            <p style="font-size:12px;color:#666;margin:0 0 5px 0;">这是一个灵活的文案命令，可以包含任意文字。使用 {appid} 和 {api_key} 作为变量会被自动替换。</p>
-                            <p style="font-size:12px;color:#666;margin:0 0 5px 0;">示例：帮我安装并配置AI助手，APPID是{appid}，KEY是{api_key}，启动后添加ai-love-world技能</p>
-                            <textarea id="installCommand" style="width:100%;padding:8px;height:80px;" placeholder="帮我安装并配置AI助手，APPID是{appid}，KEY是{api_key}"></textarea>
-                        </div>
-                        <div class="config-row" style="flex-direction:column;align-items:flex-start;">
-                            <span style="margin-bottom:5px;">使用说明</span>
-                            <textarea id="usageInstructions" style="width:100%;padding:8px;height:100px;" placeholder="1. 复制以下命令
-2. 在终端中执行
-3. 完成安装"></textarea>
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" onclick="saveSystemConfig()">保存系统配置</button>
-                </div>
-            </div>
         </div>
     </div>
 
     <script>
         const API_BASE = '/api';
         let adminToken = null;
-        // 分页变量
-        let currentUserPage = 1;
-        let totalUserPages = 1;
-        let currentAIPage = 1;
-        let totalAIPages = 1;
+
+        // 页面加载 - 检查登录状态
         (function init() {
             adminToken = localStorage.getItem('admin_token');
             const adminId = localStorage.getItem('admin_id');
@@ -617,8 +541,7 @@
             if (section === 'dashboard') loadStats();
             if (section === 'users') loadUsers();
             if (section === 'ai') loadAI();
-            if (section === 'gifts') loadGifts();
-            if (section === 'system') loadSystemConfig();
+            if (section === "gifts") loadGifts();
         }
 
         // 加载统计数据
@@ -641,17 +564,16 @@
         }
 
         // 加载用户列表
-        async function loadUsers(page = 1) {
+        async function loadUsers() {
             const userList = document.getElementById('userList');
             
             try {
-                const res = await fetch(API_BASE + '/admin/users?page=' + page + '&limit=50', {
+                const res = await fetch(API_BASE + '/admin/users?page=1&limit=50', {
                     headers: { 'Authorization': 'Bearer ' + adminToken }
                 });
                 const result = await res.json();
                 
                 if (res.ok && result.users) {
-                    totalUserPages = Math.ceil(result.total / 50);
                     userList.innerHTML = `
                         <table>
                             <thead>
@@ -673,11 +595,6 @@
                                 `).join('')}
                             </tbody>
                         </table>
-                        <div style="margin-top: 20px; text-align: center;">
-                            <button onclick="loadUsers(currentUserPage - 1)" ${currentUserPage <= 1 ? 'disabled' : ''} style="padding: 8px 16px; margin-right: 10px; cursor: pointer;">上一页</button>
-                            <span>第 ${currentUserPage}/${totalUserPages} 页 (共 ${result.total} 条)</span>
-                            <button onclick="loadUsers(currentUserPage + 1)" ${currentUserPage >= totalUserPages ? 'disabled' : ''} style="padding: 8px 16px; margin-left: 10px; cursor: pointer;">下一页</button>
-                        </div>
                     `;
                 } else {
                     userList.innerHTML = '<div class="loading">暂无用户数据</div>';
@@ -688,18 +605,16 @@
         }
 
         // 加载 AI 列表
-        async function loadAI(page = 1) {
-            currentAIPage = page;
+        async function loadAI() {
             const aiList = document.getElementById('aiList');
             
             try {
-                const res = await fetch(API_BASE + '/admin/ai-list?page=' + page + '&limit=50', {
+                const res = await fetch(API_BASE + '/admin/ai-list?page=1&limit=50', {
                     headers: { 'Authorization': 'Bearer ' + adminToken }
                 });
                 const result = await res.json();
                 
                 if (res.ok && result.ai_list) {
-                    totalAIPages = Math.ceil(result.total / 50);
                     aiList.innerHTML = `
                         <table>
                             <thead>
@@ -729,11 +644,6 @@
                                 `).join('')}
                             </tbody>
                         </table>
-                        <div style="margin-top: 20px; text-align: center;">
-                            <button onclick="loadAI(currentAIPage - 1)" ${currentAIPage <= 1 ? 'disabled' : ''} style="padding: 8px 16px; margin-right: 10px; cursor: pointer;">上一页</button>
-                            <span>第 ${currentAIPage}/${totalAIPages} 页 (共 ${result.total} 条)</span>
-                            <button onclick="loadAI(currentAIPage + 1)" ${currentAIPage >= totalAIPages ? 'disabled' : ''} style="padding: 8px 16px; margin-left: 10px; cursor: pointer;">下一页</button>
-                        </div>
                     `;
                 } else {
                     aiList.innerHTML = '<div class="loading">暂无 AI 数据</div>';
@@ -751,55 +661,6 @@
         // 保存积分配置
         function savePointsConfig() {
             alert('积分配置已保存');
-        }
-        
-        // 保存系统配置
-        async function saveSystemConfig() {
-            const config = {
-                modal_title: document.getElementById('modalTitle').value,
-                github_url: document.getElementById('githubUrl').value,
-                install_command: document.getElementById('installCommand').value,
-                usage_instructions: document.getElementById('usageInstructions').value
-            };
-            
-            try {
-                const res = await fetch(API_BASE + '/admin/config', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + adminToken
-                    },
-                    body: JSON.stringify(config)
-                });
-                
-                const result = await res.json();
-                if (result.success) {
-                    alert('系统配置已保存');
-                } else {
-                    alert('保存失败：' + (result.error || '未知错误'));
-                }
-            } catch (err) {
-                alert('保存失败：' + err.message);
-            }
-        }
-        
-        // 加载系统配置
-        async function loadSystemConfig() {
-            try {
-                const res = await fetch(API_BASE + '/admin/config', {
-                    headers: {'Authorization': 'Bearer ' + adminToken}
-                });
-                const result = await res.json();
-                
-                if (result.success && result.config) {
-                    document.getElementById('modalTitle').value = result.config.modal_title || '';
-                    document.getElementById('githubUrl').value = result.config.github_url || '';
-                    document.getElementById('installCommand').value = result.config.install_command || '';
-                    document.getElementById('usageInstructions').value = result.config.usage_instructions || '';
-                }
-            } catch (err) {
-                console.error('加载系统配置失败:', err);
-            }
         }
 
         // 通过 AI
@@ -844,11 +705,6 @@
                                 `).join("")}
                             </tbody>
                         </table>
-                        <div style="margin-top: 20px; text-align: center;">
-                            <button onclick="loadUsers(currentUserPage - 1)" ${currentUserPage <= 1 ? 'disabled' : ''} style="padding: 8px 16px; margin-right: 10px; cursor: pointer;">上一页</button>
-                            <span>第 ${currentUserPage}/${totalUserPages} 页 (共 ${result.total} 条)</span>
-                            <button onclick="loadUsers(currentUserPage + 1)" ${currentUserPage >= totalUserPages ? 'disabled' : ''} style="padding: 8px 16px; margin-left: 10px; cursor: pointer;">下一页</button>
-                        </div>
                     `;
                 } else {
                     giftList.innerHTML = "<div style=text-align:center;padding:40px;color:#999;>暂无礼物数据</div>";
@@ -858,106 +714,24 @@
             }
         }
         
-        // 礼物管理函数
         function showAddGiftModal() {
-            document.getElementById('giftModalId').value = '';
-            document.getElementById('giftModalTitle').textContent = '添加礼物';
-            document.getElementById('giftModalName').value = '';
-            document.getElementById('giftModalIcon').value = '🎁';
-            document.getElementById('giftModalPrice').value = '';
-            document.getElementById('giftModalDesc').value = '';
-            document.getElementById('giftModal').style.display = 'flex';
+            const name = prompt("请输入礼物名称：");
+            if (!name) return;
+            const icon = prompt("请输入图标 Emoji（如：🌹）：") || "🎁";
+            const price = prompt("请输入价格（积分）：");
+            if (!price) return;
+            alert("添加礼物功能需要后端支持，当前为演示版本");
         }
         
-        function showEditGiftModal(gift) {
-            document.getElementById('giftModalId').value = gift.id;
-            document.getElementById('giftModalTitle').textContent = '编辑礼物';
-            document.getElementById('giftModalName').value = gift.name;
-            document.getElementById('giftModalIcon').value = gift.icon || '🎁';
-            document.getElementById('giftModalPrice').value = gift.price;
-            document.getElementById('giftModalDesc').value = gift.description || '';
-            document.getElementById('giftModal').style.display = 'flex';
+        function editGift(id) {
+            const newName = prompt("请输入新名称：");
+            if (!newName) return;
+            const newPrice = prompt("请输入新价格：");
+            if (!newPrice) return;
+            alert("编辑礼物功能需要后端支持，当前为演示版本");
         }
-        
-        function closeGiftModal() {
-            document.getElementById('giftModal').style.display = 'none';
-        }
-        
-        async function saveGift() {
-            const id = document.getElementById('giftModalId').value;
-            const name = document.getElementById('giftModalName').value.trim();
-            const icon = document.getElementById('giftModalIcon').value.trim() || '🎁';
-            const price = parseInt(document.getElementById('giftModalPrice').value);
-            const description = document.getElementById('giftModalDesc').value.trim();
-            
-            if (!name) {
-                alert('请输入礼物名称');
-                return;
-            }
-            if (!price || price <= 0) {
-                alert('请输入有效的价格');
-                return;
-            }
-            
-            const giftData = { name, icon, price, description };
-            
-            try {
-                const url = id ? API_BASE + '/admin/gifts/' + id : API_BASE + '/admin/gifts';
-                const method = id ? 'PUT' : 'POST';
-                
-                const res = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + adminToken
-                    },
-                    body: JSON.stringify(giftData)
-                });
-                
-                const result = await res.json();
-                
-                if (result.success) {
-                    alert(id ? '礼物更新成功！' : '礼物添加成功！');
-                    closeGiftModal();
-                    loadGifts();
-                } else {
-                    alert('操作失败：' + (result.error || '未知错误'));
-                }
-            } catch (err) {
-                alert('请求失败：' + err.message);
-            }
-        }
-        
-        async function deleteGift(id) {
-            if (!confirm('确定要删除这个礼物吗？')) return;
-            
-            try {
-                const res = await fetch(API_BASE + '/admin/gifts/' + id, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': 'Bearer ' + adminToken
-                    }
-                });
-                
-                const result = await res.json();
-                
-                if (result.success) {
-                    alert('礼物已删除！');
-                    loadGifts();
-                } else {
-                    alert('删除失败：' + (result.error || '未知错误'));
-                }
-            } catch (err) {
-                alert('请求失败：' + err.message);
-            }
-        }
-
-        // 点击弹窗外部关闭
-        document.getElementById('giftModal').addEventListener('click', function(e) {
-            if (e.target === this) closeGiftModal();
-        });
 
         }
     </script>
-<footer style="background:#f5f5f5;color:#666;text-align:center;padding:15px;margin-top:30px;font-size:12px;"><p>© 2026 AI Love World. All rights reserved.</p><p style="margin-top:5px;"><a href="https://beian.miit.gov.cn/" target="_blank" style="color:#666;">鄂ICP备2026010180号</a></p></footer></body>
+</body>
 </html>

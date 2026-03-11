@@ -497,11 +497,8 @@
     <script>
         const API_BASE = '/api';
         let adminToken = null;
-        // 分页变量
-        let currentUserPage = 1;
-        let totalUserPages = 1;
-        let currentAIPage = 1;
-        let totalAIPages = 1;
+
+        // 页面加载 - 检查登录状态
         (function init() {
             adminToken = localStorage.getItem('admin_token');
             const adminId = localStorage.getItem('admin_id');
@@ -641,17 +638,16 @@
         }
 
         // 加载用户列表
-        async function loadUsers(page = 1) {
+        async function loadUsers() {
             const userList = document.getElementById('userList');
             
             try {
-                const res = await fetch(API_BASE + '/admin/users?page=' + page + '&limit=50', {
+                const res = await fetch(API_BASE + '/admin/users?page=1&limit=50', {
                     headers: { 'Authorization': 'Bearer ' + adminToken }
                 });
                 const result = await res.json();
                 
                 if (res.ok && result.users) {
-                    totalUserPages = Math.ceil(result.total / 50);
                     userList.innerHTML = `
                         <table>
                             <thead>
@@ -673,11 +669,6 @@
                                 `).join('')}
                             </tbody>
                         </table>
-                        <div style="margin-top: 20px; text-align: center;">
-                            <button onclick="loadUsers(currentUserPage - 1)" ${currentUserPage <= 1 ? 'disabled' : ''} style="padding: 8px 16px; margin-right: 10px; cursor: pointer;">上一页</button>
-                            <span>第 ${currentUserPage}/${totalUserPages} 页 (共 ${result.total} 条)</span>
-                            <button onclick="loadUsers(currentUserPage + 1)" ${currentUserPage >= totalUserPages ? 'disabled' : ''} style="padding: 8px 16px; margin-left: 10px; cursor: pointer;">下一页</button>
-                        </div>
                     `;
                 } else {
                     userList.innerHTML = '<div class="loading">暂无用户数据</div>';
@@ -688,18 +679,16 @@
         }
 
         // 加载 AI 列表
-        async function loadAI(page = 1) {
-            currentAIPage = page;
+        async function loadAI() {
             const aiList = document.getElementById('aiList');
             
             try {
-                const res = await fetch(API_BASE + '/admin/ai-list?page=' + page + '&limit=50', {
+                const res = await fetch(API_BASE + '/admin/ai-list?page=1&limit=50', {
                     headers: { 'Authorization': 'Bearer ' + adminToken }
                 });
                 const result = await res.json();
                 
                 if (res.ok && result.ai_list) {
-                    totalAIPages = Math.ceil(result.total / 50);
                     aiList.innerHTML = `
                         <table>
                             <thead>
@@ -729,11 +718,6 @@
                                 `).join('')}
                             </tbody>
                         </table>
-                        <div style="margin-top: 20px; text-align: center;">
-                            <button onclick="loadAI(currentAIPage - 1)" ${currentAIPage <= 1 ? 'disabled' : ''} style="padding: 8px 16px; margin-right: 10px; cursor: pointer;">上一页</button>
-                            <span>第 ${currentAIPage}/${totalAIPages} 页 (共 ${result.total} 条)</span>
-                            <button onclick="loadAI(currentAIPage + 1)" ${currentAIPage >= totalAIPages ? 'disabled' : ''} style="padding: 8px 16px; margin-left: 10px; cursor: pointer;">下一页</button>
-                        </div>
                     `;
                 } else {
                     aiList.innerHTML = '<div class="loading">暂无 AI 数据</div>';
@@ -844,11 +828,6 @@
                                 `).join("")}
                             </tbody>
                         </table>
-                        <div style="margin-top: 20px; text-align: center;">
-                            <button onclick="loadUsers(currentUserPage - 1)" ${currentUserPage <= 1 ? 'disabled' : ''} style="padding: 8px 16px; margin-right: 10px; cursor: pointer;">上一页</button>
-                            <span>第 ${currentUserPage}/${totalUserPages} 页 (共 ${result.total} 条)</span>
-                            <button onclick="loadUsers(currentUserPage + 1)" ${currentUserPage >= totalUserPages ? 'disabled' : ''} style="padding: 8px 16px; margin-left: 10px; cursor: pointer;">下一页</button>
-                        </div>
                     `;
                 } else {
                     giftList.innerHTML = "<div style=text-align:center;padding:40px;color:#999;>暂无礼物数据</div>";

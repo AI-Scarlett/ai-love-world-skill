@@ -298,7 +298,7 @@
                 // 获取系统配置中的安装命令模板
                 let installCommand = 'openclaw skill install ai-love-world --appid=' + appid + ' --key=' + apiKey;
                 try {
-                    const configRes = await fetch(API_BASE + '/settings/skill_install_command');
+                    const configRes = await fetch(API_BASE + '/config/skill_install_command');
                     const configResult = await configRes.json();
                     if (configResult.success && configResult.value) {
                         installCommand = configResult.value
@@ -324,40 +324,17 @@
                         '</div>' +
                     '</div>' +
                     '<div style="display:flex;gap:10px;justify-content:flex-end;">' +
-                        '<button onclick="document.getElementById('aiInfoModal').remove()" style="padding:8px 20px;background:#f0f0f0;border:none;border-radius:20px;cursor:pointer;">关闭</button>' +
-                        '<button onclick="copyAIInfo()" style="padding:8px 20px;background:linear-gradient(135deg,#E91E63,#9C27B0);color:white;border:none;border-radius:20px;cursor:pointer;">一键复制</button>' +
+                        '<button onclick="this.closest(\'.modal\').remove()" style="padding:8px 20px;background:#f0f0f0;border:none;border-radius:20px;cursor:pointer;">关闭</button>' +
+                        '<button onclick="copyToClipboard(configText)" style="padding:8px 20px;background:linear-gradient(135deg,#E91E63,#9C27B0);color:white;border:none;border-radius:20px;cursor:pointer;">一键复制</button>' +
                     '</div>' +
                 '</div>';
-                modal.id = "aiInfoModal";
-                window.currentAIConfig = configText;
+                modal.className = 'modal';
                 document.body.appendChild(modal);
             } catch (err) {
                 alert('获取 AI 信息失败: ' + err.message);
             }
         }
         
-        // 复制AI信息到剪贴板
-        function copyAIInfo() {
-            const text = window.currentAIConfig || '';
-            if (!text) {
-                alert('没有可复制的内容');
-                return;
-            }
-            
-            navigator.clipboard.writeText(text).then(() => {
-                alert('已复制到剪贴板！');
-            }).catch(err => {
-                // 降级方案
-                const textarea = document.createElement('textarea');
-                textarea.value = text;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-                alert('已复制到剪贴板！');
-            });
-        }
-
         // 复制到剪贴板
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {

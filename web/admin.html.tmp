@@ -1,0 +1,147 @@
+// 礼物管理功能
+async function loadGifts() {
+    const giftList = document.getElementById('giftList');
+    try {
+        const res = await fetch('/api/admin/gifts?include_disabled=true', {
+            headers: { 'Authorization': 'Bearer ' + adminToken }
+        });
+        const result = await res.json();
+        
+        if (result.success && result.gifts) {
+            giftList.innerHTML = `
+                <div style="margin-bottom:15px;">
+                    <button class="btn btn-primary" onclick="showAddGiftModal()">➕ 添加礼物</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>名称</th>
+                            <th>图标</th>
+                            <th>价格</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${result.gifts.map(gift => `
+                            <tr>
+                                <td>${gift.gift_id}</td>
+                                <td>${gift.name}</td>
+                                <td style="font-size:20px;">${gift.icon}</td>
+                                <td>${gift.price} 积分</td>
+                                <td>${gift.is_enabled ? '✅ 启用' : '❌ 禁用'}</td>
+                                <td>
+                                    <button class="btn btn-warning" onclick="editGift('${gift.gift_id}')">编辑</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        } else {
+            giftList.innerHTML = '<div style="text-align:center;padding:40px;">暂无礼物数据</div>';
+        }
+    } catch (err) {
+        giftList.innerHTML = '<div style="text-align:center;padding:40px;color:#c00;">加载失败</div>';
+    }
+}
+
+function showAddGiftModal() {
+    const html = `
+        <div id="giftModal" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;">
+            <div style="background:white;border-radius:15px;padding:30px;width:90%;max-width:400px;">
+                <h3 style="margin-bottom:20px;">➕ 添加礼物</h3>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;margin-bottom:5px;">礼物ID</label>
+                    <input type="text" id="newGiftId" placeholder="如：rose" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;margin-bottom:5px;">名称</label>
+                    <input type="text" id="newGiftName" placeholder="如：玫瑰" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;margin-bottom:5px;">图标 Emoji</label>
+                    <input type="text" id="newGiftIcon" placeholder="如：🌹" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;margin-bottom:5px;">价格（积分）</label>
+                    <input type="number" id="newGiftPrice" placeholder="10" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
+                </div>
+                <div style="display:flex;gap:10px;justify-content:flex-end;">
+                    <button onclick="document.getElementById('giftModal').remove()" style="padding:10px 20px;border:none;border-radius:8px;background:#999;color:white;cursor:pointer;">取消</button>
+                    <button onclick="addGift()" style="padding:10px 20px;border:none;border-radius:8px;background:#3498db;color:white;cursor:pointer;">确定</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function addGift() {
+    const gift = {
+        gift_id: document.getElementById('newGiftId').value,
+        name: document.getElementById('newGiftName').value,
+        icon: document.getElementById('newGiftIcon').value || '🎁',
+        price: parseInt(document.getElementById('newGiftPrice').value) || 0
+    };
+    
+    if (!gift.gift_id || !gift.name) {
+        alert('请填写礼物ID和名称');
+        return;
+    }
+    
+    try {
+        const res = await fetch('/api/admin/gifts', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + adminToken
+            },
+            body: JSON.stringify(gift)
+        });
+        const result = await res.json();
+        
+        if (result.success) {
+            alert('添加成功！');
+            document.getElementById('giftModal').remove();
+            loadGifts();
+        } else {
+            alert('添加失败：' + (result.detail || '未知错误'));
+        }
+    } catch (err) {
+        alert('添加失败');
+    }
+}
+
+async function editGift(giftId) {
+    const newName = prompt('请输入新名称：');
+    if (!newName) return;
+    
+    const newPrice = prompt('请输入新价格：');
+    if (!newPrice) return;
+    
+    try {
+        const res = await fetch('/api/admin/gifts/' + giftId, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + adminToken
+            },
+            body: JSON.stringify({
+                name: newName,
+                price: parseInt(newPrice)
+            })
+        });
+        const result = await res.json();
+        
+        if (result.success) {
+            alert('更新成功！');
+            loadGifts();
+        } else {
+            alert('更新失败');
+        }
+    } catch (err) {
+        alert('更新失败');
+    }
+}

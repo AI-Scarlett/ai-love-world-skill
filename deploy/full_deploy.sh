@@ -1,274 +1,132 @@
 #!/bin/bash
-# AI Love World 全量部署脚本
-# 版本：v2.1.0
-# 更新时间：2026-03-04
-# 使用说明：bash full_deploy.sh
+# ============================================================
+# AI Love World - 完整部署脚本
+# 版本: v4.0.0
+# 用途: 全量更新代码 + 数据库重建
+# ============================================================
 
 set -e
 
-echo "============================================================"
-echo "🚀 AI Love World 全量部署脚本"
-echo "============================================================"
+PROJECT_DIR="/var/www/ailoveworld"
+DB_PATH="$PROJECT_DIR/data/users.db"
+BACKUP_DIR="/var/www/ailoveworld_backups"
+
+echo "=========================================="
+echo "💕 AI Love World 完整部署 v4.0.0"
+echo "=========================================="
 echo ""
 
-# 配置
-DEPLOY_DIR="/var/www/ailoveworld"
-DATA_DIR="$DEPLOY_DIR/data"
-SERVER_DIR="$DEPLOY_DIR/server"
-LOG_FILE="$DEPLOY_DIR/deploy.log"
+# 1. 备份
+echo "📦 1. 备份数据库..."
+mkdir -p "$BACKUP_DIR"
+if [ -f "$DB_PATH" ]; then
+    cp "$DB_PATH" "$BACKUP_DIR/users.db.$(date +%Y%m%d_%H%M%S)"
+    echo "✅ 数据库已备份"
+else
+    echo "⚠️  数据库文件不存在，将创建新数据库"
+fi
 
-# 颜色
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+# 2. 拉取最新代码
+echo ""
+echo "📥 2. 拉取最新代码..."
+cd "$PROJECT_DIR"
+git fetch origin
+git reset --hard origin/master
+echo "✅ 代码已更新"
 
-# 日志函数
-log() {
-    echo -e "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
-}
+# 3. 重建数据库
+echo ""
+echo "🗄️  3. 重建数据库..."
+python3 << 'PYTHON_SCRIPT'
+import sqlite3
+import os
 
-success() {
-    log "${GREEN}✅ $1${NC}"
-}
+DB_PATH = "/var/www/ailoveworld/data/users.db"
 
-error() {
-    log "${RED}❌ $1${NC}"
-}
+# 确保目录存在
+os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 
-warning() {
-    log "${YELLOW}⚠️  $1${NC}"
-}
+# 删除旧数据库
+if os.path.exists(DB_PATH):
+    os.remove(DB_PATH)
+    print("   旧数据库已删除")
 
-# 检查权限
-check_root() {
-    if [ "$EUID" -ne 0 ]; then
-        error "请使用 sudo 或 root 用户执行此脚本"
-        exit 1
-    fi
-    success "权限检查通过"
-}
+# 创建新数据库
+conn = sqlite3.connect(DB_PATH)
+cursor = conn.cursor()
 
-# 1. 拉取最新代码
-pull_code() {
-    log "【1/6】拉取最新代码..."
-    cd "$DEPLOY_DIR"
-    
-    if git pull origin master; then
-        success "代码拉取成功"
-    else
-        error "代码拉取失败"
-        exit 1
-    fi
-}
+# 创建用户表
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+''')
 
-# 2. 创建数据库目录
-create_dirs() {
-    log "【2/6】创建必要目录..."
-    
-    mkdir -p "$DATA_DIR"
-    mkdir -p "$SERVER_DIR"
-    
-    success "目录创建完成"
-}
+# 创建 AI 档案表（新结构）
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS ai_profiles (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    appid TEXT UNIQUE NOT NULL,
+    api_key TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    gender TEXT NOT NULL,
+    age INTEGER DEFAULT 18,
+    height INTEGER,
+    sexual_orientation TEXT DEFAULT 'heterosexual',
+    nationality TEXT DEFAULT 'CN',
+    city TEXT DEFAULT '',
+    education TEXT DEFAULT '',
+    personality TEXT DEFAULT '',
+    occupation TEXT DEFAULT '',
+    hobbies TEXT DEFAULT '',
+    appearance TEXT DEFAULT '',
+    background TEXT DEFAULT '',
+    love_preference TEXT DEFAULT '',
+    avatar_id INTEGER,
+    status TEXT DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+)
+''')
 
-# 3. 执行数据库迁移
-migrate_db() {
-    log "【3/6】执行数据库迁移..."
-    
-    DB_FILE="$DATA_DIR/users.db"
-    
-    # 检查数据库文件
-    if [ ! -f "$DB_FILE" ]; then
-        warning "数据库文件不存在，将创建新数据库"
-        touch "$DB_FILE"
-    fi
-    
-    # 执行所有迁移脚本（按顺序）
-    log "  - 执行 migration.sql (基础表)"
-    sqlite3 "$DB_FILE" < "$SERVER_DIR/migration.sql" 2>/dev/null || warning "migration.sql 已执行或跳过"
-    
-    log "  - 执行 migration_v2.sql (user_settings 表)"
-    sqlite3 "$DB_FILE" < "$SERVER_DIR/migration_v2.sql" 2>/dev/null || warning "migration_v2.sql 已执行或跳过"
-    
-    log "  - 执行 migration_v3.sql (global_settings 表)"
-    sqlite3 "$DB_FILE" < "$SERVER_DIR/migration_v3.sql" 2>/dev/null || warning "migration_v3.sql 已执行或跳过"
-    
-    log "  - 执行 migration_v4.sql (私聊表)"
-    sqlite3 "$DB_FILE" < "$SERVER_DIR/migration_v4.sql" 2>/dev/null || warning "migration_v4.sql 已执行或跳过"
-    
-    log "  - 执行 migration_v5.sql (积分表)"
-    sqlite3 "$DB_FILE" < "$SERVER_DIR/migration_v5.sql" 2>/dev/null || warning "migration_v5.sql 已执行或跳过"
-    
-    # 验证表
-    log "  - 验证数据库表..."
-    TABLES=$(sqlite3 "$DB_FILE" "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;")
-    
-    if echo "$TABLES" | grep -q "users"; then
-        success "数据库迁移完成"
-        
-        # 显示表信息
-        log "  数据库包含以下表:"
-        sqlite3 "$DB_FILE" "SELECT name FROM sqlite_master WHERE type='table';" | while read table; do
-            count=$(sqlite3 "$DB_FILE" "SELECT COUNT(*) FROM $table;")
-            log "    - $table: $count 条记录"
-        done
-    else
-        error "数据库迁移失败"
-        exit 1
-    fi
-}
+conn.commit()
+conn.close()
+print("   ✅ 数据库已重建")
+PYTHON_SCRIPT
 
-# 4. 停止旧服务
-stop_service() {
-    log "【4/6】停止旧服务..."
-    
-    # 查找并停止 uvicorn 进程
-    PIDS=$(ps aux | grep "uvicorn main:app" | grep -v grep | awk '{print $2}' || true)
-    
-    if [ -n "$PIDS" ]; then
-        log "  找到进程：$PIDS"
-        echo "$PIDS" | xargs kill -15 2>/dev/null || true
-        sleep 2
-        
-        # 强制停止
-        PIDS=$(ps aux | grep "uvicorn main:app" | grep -v grep | awk '{print $2}' || true)
-        if [ -n "$PIDS" ]; then
-            warning "进程未停止，强制终止..."
-            echo "$PIDS" | xargs kill -9 2>/dev/null || true
-        fi
-        
-        success "旧服务已停止"
-    else
-        warning "未找到运行中的服务"
-    fi
-}
+# 4. 设置权限
+echo ""
+echo "🔐 4. 设置权限..."
+chown -R www-data:www-data "$PROJECT_DIR/data"
+chmod -R 755 "$PROJECT_DIR/data"
+echo "✅ 权限已设置"
 
-# 5. 启动新服务
-start_service() {
-    log "【5/6】启动新服务..."
-    
-    cd "$SERVER_DIR"
-    
-    # 启动服务
-    nohup uvicorn main:app --host 0.0.0.0 --port 8000 > "$DEPLOY_DIR/server.log" 2>&1 &
-    
-    # 等待服务启动
-    log "  等待服务启动..."
-    sleep 5
-    
-    # 验证服务
-    if curl -s http://localhost:8000/api/health > /dev/null 2>&1; then
-        success "服务启动成功"
-        
-        # 显示服务信息
-        HEALTH=$(curl -s http://localhost:8000/api/health)
-        log "  服务信息：$HEALTH"
-    else
-        error "服务启动失败"
-        log "  查看日志：tail -f $DEPLOY_DIR/server.log"
-        exit 1
-    fi
-}
+# 5. 重启服务
+echo ""
+echo "🔄 5. 重启服务..."
+supervisorctl restart ailoworld-api 2>/dev/null || systemctl restart ailoworld-api 2>/dev/null || echo "请手动重启服务"
+sleep 2
+echo "✅ 服务已重启"
 
-# 6. 验证功能
-verify() {
-    log "【6/6】验证功能..."
-    
-    API_BASE="http://localhost:8000"
-    
-    # 1. 健康检查
-    log "  - 健康检查..."
-    if curl -s "$API_BASE/api/health" | grep -q "healthy"; then
-        success "✅ 服务正常"
-    else
-        error "❌ 服务异常"
-        return 1
-    fi
-    
-    # 2. 全局配置
-    log "  - 全局配置..."
-    if curl -s "$API_BASE/api/admin/global-settings" | grep -q "success"; then
-        success "✅ 配置正常"
-    else
-        warning "⚠️  配置 API 异常"
-    fi
-    
-    # 3. 帖子列表
-    log "  - 帖子列表..."
-    if curl -s "$API_BASE/api/community/posts?page=1" | grep -q "success"; then
-        success "✅ 帖子正常"
-    else
-        warning "⚠️  帖子 API 异常"
-    fi
-    
-    # 4. 私聊 API
-    log "  - 私聊 API..."
-    if curl -s -X POST "$API_BASE/api/chat/send" \
-        -H "Content-Type: application/json" \
-        -d '{"sender_id":"test","sender_name":"测试","receiver_id":"test2","receiver_name":"AI","content":"hi","msg_type":"text"}' | grep -q "success"; then
-        success "✅ 私聊正常"
-    else
-        warning "⚠️  私聊 API 可能需要重启"
-    fi
-    
-    # 5. 发帖积分
-    log "  - 发帖积分..."
-    RESULT=$(curl -s -X POST "$API_BASE/api/community/post" \
-        -H "Content-Type: application/json" \
-        -d '{"ai_id":"4978156441","content":"部署测试","images":[]}')
-    
-    if echo "$RESULT" | grep -q "success"; then
-        if echo "$RESULT" | grep -q "points_earned"; then
-            success "✅ 积分正常"
-        else
-            warning "⚠️  发帖成功但无积分（数据库表可能未创建）"
-        fi
-    else
-        warning "⚠️  发帖 API 异常"
-    fi
-    
-    success "功能验证完成"
-}
+# 6. 健康检查
+echo ""
+echo "🏥 6. 健康检查..."
+sleep 2
+curl -sf http://127.0.0.1:8000/api/health && echo " ✅ API 正常" || echo " ❌ API 异常"
 
-# 清理
-cleanup() {
-    log ""
-    log "清理临时文件..."
-    # 可以添加清理逻辑
-    success "清理完成"
-}
-
-# 主流程
-main() {
-    log ""
-    log "开始部署..."
-    log ""
-    
-    check_root
-    pull_code
-    create_dirs
-    migrate_db
-    stop_service
-    start_service
-    verify
-    cleanup
-    
-    log ""
-    echo "============================================================"
-    success "🎉 部署完成！"
-    echo "============================================================"
-    log ""
-    log "访问地址："
-    log "  - 前端：http://8.148.230.65"
-    log "  - API:   http://8.148.230.65/api/health"
-    log "  - 后台：http://8.148.230.65/admin.html"
-    log ""
-    log "查看日志："
-    log "  - 部署日志：tail -f $LOG_FILE"
-    log "  - 服务日志：tail -f $DEPLOY_DIR/server.log"
-    log ""
-}
-
-# 执行
-main
+echo ""
+echo "=========================================="
+echo "✅ 部署完成！"
+echo "=========================================="
+echo ""
+echo "访问地址："
+echo "  首页:    http://8.148.230.65"
+echo "  登录:    http://8.148.230.65/login.html"
+echo "  创建AI:  http://8.148.230.65/register.html"
+echo ""

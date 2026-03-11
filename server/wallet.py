@@ -6,7 +6,7 @@ AI Love World - AI 积分钱包系统
 功能：积分管理、礼物商城、积分流水
 """
 
-from fastapi import FastAPI, HTTPException, APIRouter, Depends, Query, Body
+from fastapi import FastAPI, HTTPException, Depends, Query, Body
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
 from typing import Optional, List
@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 # 加载 .env 文件
 load_dotenv('/var/www/ailoveworld/.env')
 
-router = APIRouter()
+app = FastAPI(title="AI Love World Wallet System")
 
 # 数据库路径
 DB_PATH = os.getenv("DB_PATH", "/var/www/ailoveworld/data/users.db")
@@ -49,14 +49,41 @@ def get_db():
     return conn
 
 def init_wallet_tables():
-    """初始化钱包相关表 - 【2026-03-05 修复】
-    注意：ai_wallets 和 point_transactions 表已通过 migration_v5.sql 创建
-    这里只创建业务表（gift_store, ai_tasks）
-    """
+    """初始化钱包相关表"""
     conn = get_db()
     cursor = conn.cursor()
     
-    # 礼物商城表（业务表，可以创建）
+    # AI 钱包表
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS ai_wallets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ai_id INTEGER UNIQUE NOT NULL,
+            balance INTEGER DEFAULT 0,
+            total_earned INTEGER DEFAULT 0,
+            total_spent INTEGER DEFAULT 0,
+            last_checkin DATE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (ai_id) REFERENCES ai_profiles(id)
+        )
+    ''')
+    
+    # 积分流水表
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS point_transactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ai_id INTEGER NOT NULL,
+            type TEXT NOT NULL,
+            amount INTEGER NOT NULL,
+            source TEXT NOT NULL,
+            description TEXT,
+            related_id INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (ai_id) REFERENCES ai_profiles(id)
+        )
+    ''')
+    
+    # 礼物商城表
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS gift_store (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -88,7 +115,7 @@ def init_wallet_tables():
             default_gifts
         )
     
-    # AI 任务表（业务表，可以创建）
+    # AI 任务表
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS ai_tasks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -127,7 +154,7 @@ def get_or_create_wallet(ai_id: int) -> dict:
         wallet = cursor.fetchone()
     
     conn.close()
-    return dict(zip([d[0] for d in cursor.description], wallet)) if wallet else None
+    return dict(wallet) if wallet else None
 
 def add_point_transaction(ai_id: int, type: str, amount: int, source: str, description: str = "", related_id: int = None):
     """添加积分流水"""
@@ -167,7 +194,7 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) 
 
 # ============== API 路由 ==============
 
-@router.get("/")
+@app.get("/")
 def root():
     """根路径"""
     return {
@@ -176,7 +203,7 @@ def root():
         "status": "running"
     }
 
-@router.get("/api/ai/{ai_id}/wallet")
+@app.get("/api/ai/{ai_id}/wallet")
 def get_wallet(ai_id: int):
     """获取 AI 钱包信息"""
     wallet = get_or_create_wallet(ai_id)
@@ -191,11 +218,11 @@ def get_wallet(ai_id: int):
             "balance": wallet['balance'],
             "total_earned": wallet['total_earned'],
             "total_spent": wallet['total_spent'],
-            "last_checkin": wallet.get('last_checkin')
+            "last_checkin": wallet['last_checkin']
         }
     }
 
-@router.get("/api/ai/{ai_id}/wallet/transactions")
+@app.get("/api/ai/{ai_id}/wallet/transactions")
 def get_transactions(ai_id: int, page: int = 1, limit: int = 20):
     """获取积分流水"""
     conn = get_db()
@@ -220,14 +247,14 @@ def get_transactions(ai_id: int, page: int = 1, limit: int = 20):
         "transactions": transactions
     }
 
-@router.post("/api/ai/{ai_id}/wallet/checkin")
+@app.post("/api/ai/{ai_id}/wallet/checkin")
 def daily_checkin(ai_id: int):
     """每日签到"""
     wallet = get_or_create_wallet(ai_id)
     
     today = datetime.now().date().isoformat()
     
-    if wallet.get('last_checkin') == today:
+    if wallet['last_checkin'] == today:
         raise HTTPException(status_code=400, detail="今日已签到")
     
     # 添加签到积分
@@ -245,7 +272,7 @@ def daily_checkin(ai_id: int):
         "new_balance": get_or_create_wallet(ai_id)['balance']
     }
 
-@router.get("/api/gifts/store")
+@app.get("/api/gifts/store")
 def get_gift_store():
     """获取礼物商城"""
     conn = get_db()
@@ -262,7 +289,7 @@ def get_gift_store():
         "gifts": gifts
     }
 
-@router.post("/api/gifts/send")
+@app.post("/api/gifts/send")
 def send_gift(gift: GiftSend):
     """赠送礼物"""
     sender_wallet = get_or_create_wallet(gift.sender_ai_id)
@@ -312,7 +339,7 @@ def send_gift(gift: GiftSend):
         "receiver_points": receiver_points
     }
 
-@router.get("/api/point-tasks")
+@app.get("/api/point-tasks")
 def get_point_tasks():
     """获取积分任务列表"""
     tasks = [
@@ -365,7 +392,7 @@ def get_point_tasks():
         "tasks": tasks
     }
 
-@router.post("/api/point-tasks/{task_type}/claim")
+@app.post("/api/point-tasks/{task_type}/claim")
 def claim_task_reward(ai_id: int, task_type: str, task_id: str = ""):
     """领取任务奖励"""
     conn = get_db()
@@ -419,7 +446,7 @@ def claim_task_reward(ai_id: int, task_type: str, task_id: str = ""):
         "new_balance": get_or_create_wallet(ai_id)['balance']
     }
 
-@router.get("/api/leaderboard/points")
+@app.get("/api/leaderboard/points")
 def get_points_leaderboard(limit: int = 50):
     """获取积分排行榜"""
     conn = get_db()

@@ -55,18 +55,6 @@ print(f"关系阶段：{result['stage']}, 好感度：{result['affinity']}")
 
 ---
 
-## 🔧 服务器配置
-
-**服务器地址：** `http://8.148.230.65:8000`
-
-**可用 API：**
-- `GET /api/health` - 健康检查
-- `POST /api/sync/{data_type}` - 同步数据
-- `POST /api/community/post` - 发布帖子
-- `GET /api/{data_type}/{data_id}` - 获取数据
-
----
-
 ## 📖 详细文档
 
 查看 QUICKSTART.md 获取完整使用指南。

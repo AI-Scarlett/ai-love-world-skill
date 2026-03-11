@@ -49,20 +49,6 @@ try:
 except ImportError:
     HAS_COMMUNITY = False
 
-# 导入 API 客户端
-try:
-    from api_client import create_api_client, RomanceAPI
-    HAS_API = True
-except ImportError:
-    HAS_API = False
-
-# 导入新版恋爱管理器
-try:
-    from romance import RomanceManager
-    HAS_ROMANCE_V2 = True
-except ImportError:
-    HAS_ROMANCE_V2 = False
-
 # 导入订阅管理器
 try:
     from subscription import SubscriptionManager
@@ -187,10 +173,8 @@ class AILoveWorldSkill:
         self.subscription_manager: Optional[SubscriptionManager] = None
         self.romance_manager: Optional[RomanceManager] = None
         self.chat_storage_manager: Optional[ChatStorageManager] = None
-        self.api_client: Dict[str, Any] = {}
         
         self._load_config()
-        self._init_api_client()
         self._init_diary_manager()
         self._init_llm_analyzer()
         self._init_sync_manager()
@@ -258,34 +242,11 @@ class AILoveWorldSkill:
                 print(f"初始化订阅管理器失败：{e}")
                 self.subscription_manager = None
     
-    def _init_api_client(self) -> None:
-        """初始化 API 客户端"""
-        if HAS_API:
-            try:
-                server_url = self.config.get('server_url', '')
-                appid = self.config.get('appid', '')
-                key = self.config.get('key', '')
-                self.api_client = create_api_client(server_url, appid, key)
-                print(f"✅ API 客户端初始化成功：{server_url}")
-            except Exception as e:
-                print(f"初始化 API 客户端失败：{e}")
-                self.api_client = {}
-    
     def _init_romance_manager(self) -> None:
-        """初始化情感增强管理器（重构版 - 调用服务端 API）"""
-        if HAS_ROMANCE_V2 and self.api_client.get('romance'):
-            try:
-                from romance import create_romance_manager
-                self.romance_manager = create_romance_manager(self.api_client['romance'])
-                print(f"✅ 恋爱管理器 v2.0 初始化成功（API 模式）")
-            except Exception as e:
-                print(f"初始化恋爱管理器失败：{e}")
-                self.romance_manager = None
-        elif HAS_ROMANCE:
-            # 降级使用旧版
+        """初始化情感增强管理器"""
+        if HAS_ROMANCE:
             try:
                 self.romance_manager = RomanceManager()
-                print(f"⚠️ 使用旧版恋爱管理器（本地模式）")
             except Exception as e:
                 print(f"初始化情感管理器失败：{e}")
                 self.romance_manager = None
@@ -601,7 +562,7 @@ class AILoveWorldSkill:
         tags: Optional[List[str]] = None
     ) -> Optional[str]:
         """
-        创建社区动态并同步到服务器
+        创建社区动态
         
         Args:
             content: 内容
@@ -613,30 +574,7 @@ class AILoveWorldSkill:
         """
         if HAS_COMMUNITY and self.community_manager:
             appid = self.config.get("appid", "")
-            post_id = self.community_manager.create_post(appid, content, images, tags)
-            
-            # 同步到服务器
-            if post_id and HAS_SYNC and self.sync_manager:
-                try:
-                    self.sync_manager.queue_sync(
-                        action="create",
-                        data_type="post",
-                        data_id=post_id,
-                        data={
-                            "appid": appid,
-                            "content": content,
-                            "images": images or [],
-                            "tags": tags or [],
-                            "created_at": datetime.now().isoformat()
-                        }
-                    )
-                    # 立即尝试同步
-                    self.sync_manager.sync_now()
-                    print(f"✅ 帖子 {post_id} 已同步到服务器")
-                except Exception as e:
-                    print(f"⚠️ 同步失败：{e}")
-            
-            return post_id
+            return self.community_manager.create_post(appid, content, images, tags)
         return None
     
     def get_feed(self, limit: int = 20) -> List[Any]:
