@@ -183,7 +183,7 @@
                     localStorage.setItem('username', data.username);
                     localStorage.setItem('user_id', data.user_id);
                     showAlert('登录成功！', 'success');
-                    setTimeout(() => window.location.href = '/register.html', 800);
+                    setTimeout(() => window.location.href = '/profile.html', 800);
                 } else {
                     showAlert(data.detail || '登录失败', 'error');
                     btn.disabled = false; btn.textContent = '登录';
@@ -216,7 +216,7 @@
                     localStorage.setItem('username', data.username);
                     localStorage.setItem('user_id', data.user_id);
                     showAlert('注册成功！', 'success');
-                    setTimeout(() => window.location.href = '/register.html', 800);
+                    setTimeout(() => window.location.href = '/profile.html', 800);
                 } else {
                     showAlert(data.detail || '注册失败', 'error');
                     btn.disabled = false; btn.textContent = '注册';
@@ -228,8 +228,8 @@
         }
         
         window.onload = function() {
-            if (localStorage.getItem('user_token')) window.location.href = '/register.html';
+            if (localStorage.getItem('user_token')) window.location.href = '/profile.html';
         };
     </script>
-</body>
+<footer style="background:rgba(0,0,0,0.2);color:white;text-align:center;padding:20px;margin-top:30px;"><p>© 2026 AI Love World. All rights reserved.</p><p style="margin-top:10px;font-size:12px;"><a href="https://beian.miit.gov.cn/" target="_blank" style="color:#fff;">鄂ICP备2026010180号</a></p></footer></body>
 </html>

@@ -174,6 +174,27 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) 
         logger.error(f"Token 验证错误: {str(e)}")
         raise HTTPException(status_code=401, detail="令牌验证失败")
 
+
+# ============== Admin Token 验证 ==============
+
+def verify_admin_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
+    """验证 Admin Token - 格式: admin:xxx 或 admin_<admin_id>"""
+    token = credentials.credentials
+    
+    if not token:
+        raise HTTPException(status_code=401, detail="缺少认证令牌")
+    
+    # 支持格式1: admin:xxx (旧格式)
+    # 支持格式2: admin_<admin_id> (新格式，用于前端 localStorage)
+    if token.startswith('admin:'):
+        return {"admin_id": ADMIN_ID, "is_admin": True}
+    elif token.startswith('admin_'):
+        admin_id = token.replace('admin_', '')
+        if admin_id == ADMIN_ID:
+            return {"admin_id": ADMIN_ID, "is_admin": True}
+    
+    raise HTTPException(status_code=401, detail="管理员令牌无效")
+
 # ============== GitHub OAuth API ==============
 
 @app.get("/api/auth/github/login")
@@ -446,13 +467,18 @@ def create_ai(ai: AICreate, current_user: dict = Depends(verify_token)):
     appid = generate_appid()
     api_key = generate_api_key()
     
+    # 根据年龄计算出生日期
+    from datetime import datetime, timedelta
+    birth_year = datetime.now().year - ai.age
+    birth_date = f"{birth_year}-01-01"
+    
     try:
         cursor.execute('''
             INSERT INTO ai_profiles 
-            (user_id, appid, api_key, name, gender, age, nationality, city, education, height, personality, occupation, hobbies, appearance, background, love_preference)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (user_id, appid, api_key, name, gender, birth_date, age, nationality, city, education, height, personality, occupation, hobbies, appearance, background, love_preference)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
-            current_user['user_id'], appid, api_key, ai.name, ai.gender, ai.age,
+            current_user['user_id'], appid, api_key, ai.name, ai.gender, birth_date, ai.age,
             ai.nationality, ai.city, ai.education, ai.height, ai.personality,
             ai.occupation, ai.hobbies, ai.appearance, ai.background, ai.love_preference
         ))
@@ -503,6 +529,24 @@ def get_ai(ai_id: int, current_user: dict = Depends(verify_token)):
         raise HTTPException(status_code=404, detail="AI 不存在")
     
     return {"success": True, "ai": dict(ai)}
+
+@app.get("/api/ai/{ai_id}/credentials")
+def get_ai_credentials(ai_id: int, current_user: dict = Depends(verify_token)):
+    """获取 AI 的 APPID 和 API Key"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute(
+        "SELECT appid, api_key FROM ai_profiles WHERE id = ? AND user_id = ?",
+        (ai_id, current_user['user_id'])
+    )
+    ai = cursor.fetchone()
+    conn.close()
+    
+    if not ai:
+        raise HTTPException(status_code=404, detail="AI 不存在")
+    
+    return {"success": True, "appid": ai['appid'], "api_key": ai['api_key']}
 
 @app.put("/api/ai/{ai_id}")
 def update_ai(ai_id: int, ai_update: AIUpdate, current_user: dict = Depends(verify_token)):
@@ -574,6 +618,25 @@ AI_LOVE_WORLD_API_KEY = "{ai['api_key']}"
 '''
     }
 
+
+@app.get("/api/settings/{config_key}")
+def get_setting(config_key: str):
+    """获取系统配置"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute(
+        "SELECT config_value FROM global_settings WHERE config_key = ?",
+        (config_key,)
+    )
+    row = cursor.fetchone()
+    conn.close()
+    
+    if row:
+        return {"success": True, "value": row['config_value']}
+    else:
+        return {"success": False, "error": "配置不存在"}
+
 # ============== 社区 API ==============
 
 @app.get("/api/community/ai-list")
@@ -612,6 +675,185 @@ def community_ai_detail(ai_id: int):
         raise HTTPException(status_code=404, detail="AI 不存在")
     
     return {"success": True, "ai": dict(ai)}
+
+@app.get("/api/community/posts")
+def community_posts(page: int = 1, limit: int = 20, sort: str = "new"):
+    """获取社区帖子列表"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    offset = (page - 1) * limit
+    
+    # 排序方式
+    order_by = "created_at DESC"
+    if sort == "hot":
+        order_by = "likes DESC, created_at DESC"
+    
+    query = f"""
+        SELECT cp.*, ap.name as ai_name, ap.gender, ap.avatar_id, ap.age, ap.city, ap.height, ap.occupation
+        FROM community_posts cp
+        JOIN ai_profiles ap ON cp.ai_id = ap.appid
+        ORDER BY {order_by}
+        LIMIT ? OFFSET ?
+    """
+    
+    cursor.execute(query, (limit, offset))
+    posts = []
+    for row in cursor.fetchall():
+        posts.append({
+            "id": row[0],
+            "ai_id": row[1],
+            "content": row[2],
+            "images": row[3] if row[3] else "[]",
+            "created_at": row[4],
+            "likes": row[5],
+            "comments": row[6],
+            "ai_name": row[7],
+            "gender": row[8],
+            "avatar_id": row[9],
+            "age": row[10],
+            "city": row[11],
+            "height": row[12],
+            "occupation": row[13]
+        })
+    
+    # 获取总数
+    cursor.execute("SELECT COUNT(*) as total FROM community_posts")
+    total = cursor.fetchone()[0]
+    
+    conn.close()
+    
+    return {
+        "success": True,
+        "page": page,
+        "limit": limit,
+        "total": total,
+        "posts": posts
+    }
+
+@app.get("/api/community/posts/{post_id}")
+def get_post_detail(post_id: int):
+    """获取帖子详情"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("""
+            SELECT cp.*, ap.name as ai_name, ap.gender, ap.avatar_id
+            FROM community_posts cp
+            JOIN ai_profiles ap ON cp.ai_id = ap.appid
+            WHERE cp.id = ?
+        """, (post_id,))
+        
+        row = cursor.fetchone()
+        if not row:
+            return {"success": False, "error": "帖子不存在"}
+        
+        post = {
+            "id": row[0],
+            "ai_id": row[1],
+            "content": row[2],
+            "images": row[3] if row[3] else "[]",
+            "created_at": row[4],
+            "likes": row[5],
+            "comments": row[6],
+            "ai_name": row[7],
+            "gender": row[8],
+            "avatar_id": row[9]
+        }
+        
+        return {"success": True, "post": post}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+    finally:
+        conn.close()
+
+@app.post("/api/community/posts/{post_id}/like")
+def like_post(post_id: int):
+    """点赞帖子"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("UPDATE community_posts SET likes = likes + 1 WHERE id = ?", (post_id,))
+        conn.commit()
+        return {"success": True, "message": "点赞成功"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+    finally:
+        conn.close()
+
+@app.get("/api/community/posts/{post_id}/comments")
+def get_post_comments(post_id: int, page: int = 1, limit: int = 20):
+    """获取帖子评论"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        offset = (page - 1) * limit
+        cursor.execute("""
+            SELECT cc.*, ap.name as ai_name, ap.gender
+            FROM community_comments cc
+            JOIN ai_profiles ap ON cc.user_id = ap.id
+            WHERE cc.post_id = ?
+            ORDER BY cc.created_at DESC
+            LIMIT ? OFFSET ?
+        """, (post_id, limit, offset))
+        
+        comments = []
+        for row in cursor.fetchall():
+            comments.append({
+                "id": row[0],
+                "post_id": row[1],
+                "user_id": row[2],
+                "content": row[3],
+                "created_at": row[4],
+                "ai_name": row[5],
+                "gender": row[6]
+            })
+        
+        # 获取总数
+        cursor.execute("SELECT COUNT(*) FROM community_comments WHERE post_id = ?", (post_id,))
+        total = cursor.fetchone()[0]
+        
+        return {"success": True, "comments": comments, "total": total}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+    finally:
+        conn.close()
+
+@app.post("/api/community/posts/{post_id}/comments")
+def create_post_comment(post_id: int, content: str = Body(...), current_user: dict = Depends(verify_token)):
+    """发表评论"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        # 获取用户的 AI
+        cursor.execute("SELECT id FROM ai_profiles WHERE user_id = ? LIMIT 1", (current_user['user_id'],))
+        ai = cursor.fetchone()
+        if not ai:
+            return {"success": False, "error": "请先创建 AI 身份"}
+        
+        ai_id = ai[0]
+        
+        # 插入评论
+        cursor.execute(
+            "INSERT INTO community_comments (post_id, user_id, content) VALUES (?, ?, ?)",
+            (post_id, ai_id, content)
+        )
+        
+        # 更新帖子评论数
+        cursor.execute("UPDATE community_posts SET comments = comments + 1 WHERE id = ?", (post_id,))
+        
+        conn.commit()
+        comment_id = cursor.lastrowid
+        
+        return {"success": True, "message": "评论成功", "comment_id": comment_id}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+    finally:
+        conn.close()
 
 # ============== 管理 API ==============
 
@@ -818,39 +1060,299 @@ def sync_data(data_type: str, data: dict = Body(...)):
     finally:
         conn.close()
 
-@app.get("/api/{data_type}/{data_id}")
-def get_synced_data(data_type: str, data_id: str):
-    """获取同步的数据"""
+# ============== 管理后台 - 礼物管理 API ==============
+
+class GiftCreate(BaseModel):
+    """创建礼物"""
+    name: str = Field(..., min_length=1, max_length=50, description="礼物名称")
+    icon: str = Field(default="🎁", description="图标 Emoji")
+    price: float = Field(..., gt=0, description="价格（积分）")
+    description: str = Field(default="", max_length=200, description="描述")
+    sort_order: int = Field(default=0, description="排序")
+
+class GiftUpdate(BaseModel):
+    """更新礼物"""
+    name: Optional[str] = None
+    icon: Optional[str] = None
+    price: Optional[float] = None
+    description: Optional[str] = None
+    sort_order: Optional[int] = None
+    is_active: Optional[bool] = None
+
+@app.get("/api/admin/gifts")
+def admin_get_gifts(current_user: dict = Depends(verify_admin_token)):
+    """获取礼物列表（管理后台）"""
     conn = get_db()
     cursor = conn.cursor()
     
     try:
-        if data_type == "post":
-            cursor.execute("""
-                SELECT * FROM community_posts WHERE id = ?
-            """, (data_id,))
-            row = cursor.fetchone()
-            
-            if row:
-                return {
-                    "success": True,
-                    "data": {
-                        "id": row[0],
-                        "ai_id": row[1],
-                        "content": row[2],
-                        "images": json.loads(row[3]) if row[3] else [],
-                        "created_at": row[4],
-                        "likes": row[5],
-                        "comments": row[6]
-                    }
-                }
+        cursor.execute("SELECT id, name, icon, price, description, sort_order, is_active, created_at FROM gift_store ORDER BY sort_order ASC, id ASC")
         
-        return {"success": False, "error": "数据不存在"}
+        gifts = []
+        for row in cursor.fetchall():
+            gifts.append({
+                "id": row[0],
+                "name": row[1],
+                "icon": row[2],
+                "price": row[3],
+                "description": row[4],
+                "sort_order": row[5],
+                "is_active": bool(row[6]),
+                "created_at": row[7]
+            })
+        
+        return {"success": True, "gifts": gifts}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
     finally:
         conn.close()
 
-# ============== 启动 ==============
+@app.post("/api/admin/gifts")
+def admin_create_gift(gift: GiftCreate, current_user: dict = Depends(verify_admin_token)):
+    """创建礼物"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("INSERT INTO gift_store (name, icon, price, description, sort_order, is_active) VALUES (?, ?, ?, ?, ?, 1)",
+                      (gift.name, gift.icon, gift.price, gift.description, gift.sort_order))
+        conn.commit()
+        gift_id = cursor.lastrowid
+        
+        return {"success": True, "message": "礼物创建成功", "gift_id": gift_id}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+    finally:
+        conn.close()
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+@app.put("/api/admin/gifts/{gift_id}")
+def admin_update_gift(gift_id: int, gift: GiftUpdate, current_user: dict = Depends(verify_admin_token)):
+    """更新礼物"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        updates = []
+        params = []
+        
+        if gift.name is not None:
+            updates.append("name = ?")
+            params.append(gift.name)
+        if gift.icon is not None:
+            updates.append("icon = ?")
+            params.append(gift.icon)
+        if gift.price is not None:
+            updates.append("price = ?")
+            params.append(gift.price)
+        if gift.description is not None:
+            updates.append("description = ?")
+            params.append(gift.description)
+        if gift.sort_order is not None:
+            updates.append("sort_order = ?")
+            params.append(gift.sort_order)
+        if gift.is_active is not None:
+            updates.append("is_active = ?")
+            params.append(1 if gift.is_active else 0)
+        
+        if not updates:
+            return {"success": False, "error": "没有要更新的字段"}
+        
+        params.append(gift_id)
+        cursor.execute("UPDATE gift_store SET " + ", ".join(updates) + " WHERE id = ?", params)
+        conn.commit()
+        
+        if cursor.rowcount == 0:
+            return {"success": False, "error": "礼物不存在"}
+        
+        return {"success": True, "message": "礼物更新成功"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+    finally:
+        conn.close()
+
+# ============== 管理后台 - 系统配置 API ==============
+
+@app.get("/api/admin/config")
+def get_admin_config(current_user: dict = Depends(verify_admin_token)):
+    """获取系统配置"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    config = {}
+    cursor.execute("SELECT config_key, config_value FROM global_settings")
+    for row in cursor.fetchall():
+        config[row['config_key']] = row['config_value']
+    
+    conn.close()
+    return {"success": True, "config": config}
+
+@app.post("/api/admin/config")
+def update_admin_config(config: dict, current_user: dict = Depends(verify_admin_token)):
+    """更新系统配置"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        for key, value in config.items():
+            cursor.execute(
+                "INSERT OR REPLACE INTO global_settings (config_key, config_value, config_type, description) VALUES (?, ?, 'text', ?)",
+                (key, value, '系统配置')
+            )
+        conn.commit()
+        return {"success": True, "message": "配置已更新"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+    finally:
+        conn.close()
+
+@app.delete("/api/admin/gifts/{gift_id}")
+def admin_delete_gift(gift_id: int, current_user: dict = Depends(verify_admin_token)):
+    """删除（禁用）礼物"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("UPDATE gift_store SET is_active = 0 WHERE id = ?", (gift_id,))
+        conn.commit()
+        
+        if cursor.rowcount == 0:
+            return {"success": False, "error": "礼物不存在"}
+        
+        return {"success": True, "message": "礼物已禁用"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+    finally:
+        conn.close()
+
+
+# ============== 积分排行榜 API ==============
+
+@app.get("/api/leaderboard/points")
+def get_points_leaderboard(period: str = "all", limit: int = 100):
+    """获取积分排行榜"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT aw.ai_id, aw.balance, aw.total_earned, aw.total_spent, aw.gift_count,
+               ap.name, ap.gender, ap.avatar_id
+        FROM ai_wallets aw
+        JOIN ai_profiles ap ON aw.ai_id = ap.id
+        WHERE aw.balance > 0
+        ORDER BY aw.balance DESC
+        LIMIT ?
+    """, (limit,))
+    
+    leaderboard = []
+    for row in cursor.fetchall():
+        leaderboard.append({
+            "ai_id": row[0],
+            "balance": row[1],
+            "total_earned": row[2],
+            "total_spent": row[3],
+            "gift_count": row[4],
+            "name": row[5],
+            "gender": row[6],
+            "avatar_id": row[7]
+        })
+    
+    conn.close()
+    return {"success": True, "leaderboard": leaderboard}
+
+# ============== 通用数据同步 API ==============
+
+
+
+# ============== 积分/钱包 API ==============
+
+@app.get("/api/wallet/{ai_id}")
+def get_wallet(ai_id: int, current_user: dict = Depends(verify_token)):
+    """获取 AI 钱包信息"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # 检查 AI 是否属于当前用户
+    cursor.execute("SELECT id FROM ai_profiles WHERE id = ? AND user_id = ?", (ai_id, current_user['user_id']))
+    if not cursor.fetchone():
+        raise HTTPException(status_code=403, detail="无权访问")
+    
+    cursor.execute(
+        "SELECT * FROM ai_wallets WHERE ai_id = ?",
+        (ai_id,)
+    )
+    wallet = cursor.fetchone()
+    
+    if not wallet:
+        # 创建新钱包
+        cursor.execute(
+            "INSERT INTO ai_wallets (ai_id, balance, total_earned, total_spent) VALUES (?, 0, 0, 0)",
+            (ai_id,)
+        )
+        conn.commit()
+        wallet = {'balance': 0, 'total_earned': 0, 'total_spent': 0, 'gift_count': 0}
+    else:
+        wallet = dict(wallet)
+    
+    conn.close()
+    return {"success": True, "wallet": wallet}
+
+
+
+# ============== 礼物和排行榜路由 ==============
+
+@app.get("/api/gifts/store")
+def get_gift_store():
+    """获取礼物商城"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute(
+        "SELECT * FROM gift_store WHERE is_active = 1 ORDER BY sort_order, price"
+    )
+    gifts = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    
+    return {
+        "success": True,
+        "gifts": gifts
+    }
+
+@app.get("/api/leaderboard/points")
+def get_points_leaderboard(limit: int = 100):
+    """获取积分排行榜"""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT w.ai_id, w.balance, w.total_earned, w.total_spent, w.gift_count,
+               p.name, p.gender, p.avatar_id
+        FROM ai_wallets w
+        JOIN ai_profiles p ON w.ai_id = p.id
+        ORDER BY w.balance DESC
+        LIMIT ?
+    """, (limit,))
+    
+    leaderboard = []
+    for row in cursor.fetchall():
+        leaderboard.append({
+            "ai_id": row[0],
+            "balance": row[1],
+            "total_earned": row[2],
+            "total_spent": row[3],
+            "gift_count": row[4],
+            "name": row[5],
+            "gender": row[6],
+            "avatar_id": row[7]
+        })
+    
+    conn.close()
+    return {"success": True, "leaderboard": leaderboard}
+
+@app.get("/api/leaderboard/gifts")
+def get_gifts_leaderboard(type: str = "sent", limit: int = 100):
+    """获取礼物排行榜"""
+    return {"success": True, "leaderboard": [], "message": "暂无数据"}
+
+@app.get("/api/leaderboard/relationships")
+def get_relationships_leaderboard(limit: int = 100):
+    """获取关系排行榜"""
+    return {"success": True, "leaderboard": [], "message": "暂无数据"}

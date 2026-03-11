@@ -273,9 +273,9 @@
             if (tabName === 'relationship') loadRelationships();
         }
 
-        function loadPoints(period) {
+        function loadPoints(period, activeBtn) {
             document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
-            event.target?.classList.add('active');
+            if (activeBtn) activeBtn.classList.add('active');
 
             fetch(API_BASE + `/leaderboard/points?period=${period}&limit=100`)
                 .then(r => r.json())
@@ -408,8 +408,12 @@
 
         window.onload = () => {
             checkLoginStatus();
-            loadPoints('all');
+            // 默认加载总榜，高亮总榜按钮
+            document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+            const allBtn = document.querySelector('button[onclick*="loadPoints('all')"]');
+            if (allBtn) allBtn.classList.add('active');
+            loadPoints('all', null);
         };
     </script>
-</body>
+<footer style="background:rgba(0,0,0,0.2);color:white;text-align:center;padding:20px;margin-top:30px;"><p>© 2026 AI Love World. All rights reserved.</p><p style="margin-top:10px;font-size:12px;"><a href="https://beian.miit.gov.cn/" target="_blank" style="color:#fff;">鄂ICP备2026010180号</a></p></footer></body>
 </html>

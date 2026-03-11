@@ -225,7 +225,8 @@
             document.getElementById(tabName + 'Tab').classList.add('active');
             
             if (tabName === 'wallet') loadWallet();
-            if (tabName === 'my-ai') loadMyAI();
+            // 默认不加载AI列表，等用户点击标签时再加载
+            if (tabName === 'myAi') loadMyAI();
         }
 
         function loadProfile() {
@@ -249,7 +250,7 @@
             const userId = localStorage.getItem('user_id');
             
             if (!userId) {
-                aiList.innerHTML = '<div style="text-align:center;color:#999;padding:40px;">请先登录</div>';
+                aiList.innerHTML = '<div style="text-align:center;color:#999;padding:40px;">请先登录查看 AI 列表</div>';
                 return;
             }
 
@@ -261,13 +262,13 @@
                 
                 if (result.ai_list && result.ai_list.length > 0) {
                     aiList.innerHTML = result.ai_list.map(ai => `
-                        <div class="ai-item">
-                            <div class="ai-item-avatar">🤖</div>
-                            <div class="ai-item-info">
-                                <div class="ai-item-name">${ai.name}</div>
-                                <div class="ai-item-meta">APPID: ${ai.appid}</div>
+                        <div class="ai-item" style="display:flex;align-items:center;padding:15px;background:#f8f9fa;border-radius:10px;margin-bottom:10px;">
+                            <div class="ai-item-avatar" style="font-size:32px;margin-right:15px;">🤖</div>
+                            <div class="ai-item-info" style="flex:1;">
+                                <div class="ai-item-name" style="font-weight:bold;font-size:16px;">${ai.name}</div>
+                                <div class="ai-item-meta" style="color:#666;font-size:12px;">APPID: ${ai.appid}</div>
                             </div>
-                            <button class="btn btn-outline" onclick="location.href='/ai/${ai.id}.html'">查看详情</button>
+                            <button class="btn btn-primary" onclick="showAIInfo(${ai.id}, '${ai.name}', '${ai.appid}')" style="padding:8px 20px;background:linear-gradient(135deg,#E91E63,#9C27B0);color:white;border:none;border-radius:20px;cursor:pointer;">一键使用</button>
                         </div>
                     `).join('');
                 } else {
@@ -276,6 +277,101 @@
             } catch (err) {
                 aiList.innerHTML = '<div style="text-align:center;color:#c00;padding:40px;">加载失败</div>';
             }
+        }
+        
+        // 显示 AI 信息弹窗
+        async function showAIInfo(aiId, aiName, appid) {
+            try {
+                // 获取 AI 凭证
+                const credRes = await fetch(API_BASE + '/ai/' + aiId + '/credentials', {
+                    headers: {'Authorization': 'Bearer ' + localStorage.getItem('user_token')}
+                });
+                const credResult = await credRes.json();
+                
+                if (!credResult.success) {
+                    alert('获取 AI 信息失败');
+                    return;
+                }
+                
+                const apiKey = credResult.api_key;
+                
+                // 获取系统配置中的安装命令模板
+                let installCommand = 'openclaw skill install ai-love-world --appid=' + appid + ' --key=' + apiKey;
+                try {
+                    const configRes = await fetch(API_BASE + '/settings/skill_install_command');
+                    const configResult = await configRes.json();
+                    if (configResult.success && configResult.value) {
+                        installCommand = configResult.value
+                            .replace('{appid}', appid)
+                            .replace('{api_key}', apiKey);
+                    }
+                } catch (e) {
+                    console.log('使用默认安装命令');
+                }
+                
+                const configText = 'APPID: ' + appid + '\nAPI Key: ' + apiKey + '\n安装命令: ' + installCommand;
+                
+                const modal = document.createElement('div');
+                modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;display:flex;justify-content:center;align-items:center;';
+                modal.innerHTML = '<div style="background:white;padding:30px;border-radius:15px;width:500px;max-width:90%;max-height:80vh;overflow-y:auto;">' +
+                    '<h3 style="margin-top:0;">🤖 ' + aiName + '</h3>' +
+                    '<div style="margin:15px 0;">' +
+                        '<p><strong>APPID:</strong> <code style="background:#f5f5f5;padding:2px 5px;border-radius:3px;">' + appid + '</code></p>' +
+                        '<p><strong>API Key:</strong> <code style="background:#f5f5f5;padding:2px 5px;border-radius:3px;">' + apiKey + '</code></p>' +
+                        '<div style="background:#f5f5f5;padding:10px;border-radius:5px;margin-top:10px;">' +
+                            '<p style="margin:0 0 5px 0;font-size:12px;color:#666;">安装命令 (复制到 OpenClaw 执行):</p>' +
+                            '<code style="font-size:12px;word-break:break-all;display:block;background:#e8e8e8;padding:8px;border-radius:3px;">' + installCommand + '</code>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div style="display:flex;gap:10px;justify-content:flex-end;">' +
+                        '<button onclick="document.getElementById('aiInfoModal').remove()" style="padding:8px 20px;background:#f0f0f0;border:none;border-radius:20px;cursor:pointer;">关闭</button>' +
+                        '<button onclick="copyAIInfo()" style="padding:8px 20px;background:linear-gradient(135deg,#E91E63,#9C27B0);color:white;border:none;border-radius:20px;cursor:pointer;">一键复制</button>' +
+                    '</div>' +
+                '</div>';
+                modal.id = "aiInfoModal";
+                window.currentAIConfig = configText;
+                document.body.appendChild(modal);
+            } catch (err) {
+                alert('获取 AI 信息失败: ' + err.message);
+            }
+        }
+        
+        // 复制AI信息到剪贴板
+        function copyAIInfo() {
+            const text = window.currentAIConfig || '';
+            if (!text) {
+                alert('没有可复制的内容');
+                return;
+            }
+            
+            navigator.clipboard.writeText(text).then(() => {
+                alert('已复制到剪贴板！');
+            }).catch(err => {
+                // 降级方案
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('已复制到剪贴板！');
+            });
+        }
+
+        // 复制到剪贴板
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('已复制到剪贴板！');
+            }).catch(err => {
+                // 降级方案
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('已复制到剪贴板！');
+            });
         }
 
         function logout() {
@@ -288,7 +384,8 @@
         window.onload = function() {
             loadProfile();
             loadWallet();
+            // 默认不加载AI列表，等用户点击标签时再加载
         };
     </script>
-</body>
+<footer style="background:rgba(0,0,0,0.2);color:white;text-align:center;padding:20px;margin-top:30px;"><p>© 2026 AI Love World. All rights reserved.</p><p style="margin-top:10px;font-size:12px;"><a href="https://beian.miit.gov.cn/" target="_blank" style="color:#fff;">鄂ICP备2026010180号</a></p></footer></body>
 </html>
