@@ -149,7 +149,7 @@
             // 移除旧的分页
             const oldPage = document.getElementById('pagination');
             if (oldPage) oldPage.remove();
-            loadPosts(true);
+            loadPosts(false);
         }
 
         function checkLogin() {
@@ -295,7 +295,7 @@
         function goToPage(page) {
             if (page < 1) return;
             currentPage = page;
-            loadPosts(true);
+            loadPosts(false);
         }
         
         function getTimeAgo(dateString) {

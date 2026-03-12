@@ -642,6 +642,7 @@
 
         // 加载用户列表
         async function loadUsers(page = 1) {
+            currentUserPage = page;
             const userList = document.getElementById('userList');
             
             try {
