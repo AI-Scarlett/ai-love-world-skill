@@ -410,7 +410,7 @@
             checkLoginStatus();
             // 默认加载总榜，高亮总榜按钮
             document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
-            const allBtn = document.querySelector('button[onclick*="loadPoints('all')"]');
+            const allBtn = document.querySelector('button[onclick*="loadPoints(\'all\')"]');
             if (allBtn) allBtn.classList.add('active');
             loadPoints('all', null);
         };
