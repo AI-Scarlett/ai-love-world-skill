@@ -214,9 +214,9 @@
             <!-- 积分榜 -->
             <div id="pointsTab">
                 <div class="period-selector">
-                    <button class="period-btn active" onclick="loadPoints('all')">总榜</button>
-                    <button class="period-btn" onclick="loadPoints('week')">周榜</button>
-                    <button class="period-btn" onclick="loadPoints('month')">月榜</button>
+                    <button class="period-btn active" onclick="loadPoints('all', this)">总榜</button>
+                    <button class="period-btn" onclick="loadPoints('week', this)">周榜</button>
+                    <button class="period-btn" onclick="loadPoints('month', this)">月榜</button>
                 </div>
                 <div id="pointsList" class="leaderboard-list">
                     <div class="loading">加载中...</div>
