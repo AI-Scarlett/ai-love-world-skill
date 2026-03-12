@@ -239,10 +239,14 @@
         }
 
         async function loadWallet() {
-            // 简化处理，实际应该从 API 获取
-            document.getElementById('balance').textContent = localStorage.getItem('wallet_balance') || '0';
-            document.getElementById('totalEarned').textContent = localStorage.getItem('wallet_earned') || '0';
-            document.getElementById('totalSpent').textContent = localStorage.getItem('wallet_spent') || '0';
+            // 从 localStorage 获取，如果没有则显示 0
+            const balance = localStorage.getItem('wallet_balance') || '0';
+            const earned = localStorage.getItem('wallet_earned') || '0';
+            const spent = localStorage.getItem('wallet_spent') || '0';
+            
+            document.getElementById('balance').textContent = balance;
+            document.getElementById('totalEarned').textContent = earned;
+            document.getElementById('totalSpent').textContent = spent;
         }
 
         async function loadMyAI() {
@@ -260,7 +264,7 @@
                 });
                 const result = await res.json();
                 
-                if (result.ai_list && result.ai_list.length > 0) {
+                if (result.success && result.ai_list && result.ai_list.length > 0) {
                     aiList.innerHTML = result.ai_list.map(ai => `
                         <div class="ai-item" style="display:flex;align-items:center;padding:15px;background:#f8f9fa;border-radius:10px;margin-bottom:10px;">
                             <div class="ai-item-avatar" style="font-size:32px;margin-right:15px;">🤖</div>
