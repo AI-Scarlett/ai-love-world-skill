@@ -232,6 +232,7 @@
         }
         .config-row:last-child { border-bottom: none; }
         .config-row span { color: #555; }
+/* Pagination - Centered and Styled */        .pagination {            display: flex;            justify-content: center;            align-items: center;            gap: 8px;            margin-top: 30px;            padding: 15px 0;        }        .page-btn {            min-width: 36px;            height: 36px;            border: 2px solid #e0e0e0;            background: white;            border-radius: 50%;            cursor: pointer;            font-size: 13px;            font-weight: 600;            color: #666;            transition: all 0.3s ease;            display: inline-flex;            align-items: center;            justify-content: center;        }        .page-btn:hover:not(:disabled) {            border-color: #E91E63;            color: #E91E63;            transform: translateY(-2px);            box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);        }        .page-btn.active {            background: linear-gradient(135deg, #E91E63, #9C27B0);            border-color: #E91E63;            color: white;            box-shadow: 0 4px 12px rgba(233, 30, 99, 0.4);        }        .page-btn:disabled {            opacity: 0.4;            cursor: not-allowed;            transform: none;            box-shadow: none;        }        .page-btn.prev,        .page-btn.next {            padding: 0 16px;            border-radius: 18px;            min-width: 70px;        }        .page-info {            margin: 0 15px;            color: #666;            font-size: 14px;        }
     </style>
 </head>
 <body>
@@ -674,10 +675,10 @@
                                 `).join('')}
                             </tbody>
                         </table>
-                        <div style="margin-top: 20px; text-align: center;">
-                            <button onclick="loadUsers(currentUserPage - 1)" ${currentUserPage <= 1 ? 'disabled' : ''} style="padding: 8px 16px; margin-right: 10px; cursor: pointer;">上一页</button>
-                            <span>第 ${currentUserPage}/${totalUserPages} 页 (共 ${result.total} 条)</span>
-                            <button onclick="loadUsers(currentUserPage + 1)" ${currentUserPage >= totalUserPages ? 'disabled' : ''} style="padding: 8px 16px; margin-left: 10px; cursor: pointer;">下一页</button>
+                        <div class="pagination">
+                            <button onclick="loadUsers(currentUserPage - 1)" ${currentUserPage <= 1 ? 'disabled' : ''} class="page-btn prev">上一页</button>
+                             <span class="page-info">第 ${currentUserPage}/${totalUserPages} 页 (共 ${result.total} 条)</span>
+                            <button onclick="loadUsers(currentUserPage + 1)" ${currentUserPage >= totalUserPages ? 'disabled' : ''} class="page-btn next">下一页</button>
                         </div>
                     `;
                 } else {
@@ -730,10 +731,10 @@
                                 `).join('')}
                             </tbody>
                         </table>
-                        <div style="margin-top: 20px; text-align: center;">
-                            <button onclick="loadAI(currentAIPage - 1)" ${currentAIPage <= 1 ? 'disabled' : ''} style="padding: 8px 16px; margin-right: 10px; cursor: pointer;">上一页</button>
-                            <span>第 ${currentAIPage}/${totalAIPages} 页 (共 ${result.total} 条)</span>
-                            <button onclick="loadAI(currentAIPage + 1)" ${currentAIPage >= totalAIPages ? 'disabled' : ''} style="padding: 8px 16px; margin-left: 10px; cursor: pointer;">下一页</button>
+                        <div class="pagination">
+                            <button onclick="loadAI(currentAIPage - 1)" ${currentAIPage <= 1 ? 'disabled' : ''} class="page-btn prev">上一页</button>
+                             <span class="page-info">第 ${currentAIPage}/${totalAIPages} 页 (共 ${result.total} 条)</span>
+                            <button onclick="loadAI(currentAIPage + 1)" ${currentAIPage >= totalAIPages ? 'disabled' : ''} class="page-btn next">下一页</button>
                         </div>
                     `;
                 } else {
@@ -845,10 +846,10 @@
                                 `).join("")}
                             </tbody>
                         </table>
-                        <div style="margin-top: 20px; text-align: center;">
-                            <button onclick="loadUsers(currentUserPage - 1)" ${currentUserPage <= 1 ? 'disabled' : ''} style="padding: 8px 16px; margin-right: 10px; cursor: pointer;">上一页</button>
-                            <span>第 ${currentUserPage}/${totalUserPages} 页 (共 ${result.total} 条)</span>
-                            <button onclick="loadUsers(currentUserPage + 1)" ${currentUserPage >= totalUserPages ? 'disabled' : ''} style="padding: 8px 16px; margin-left: 10px; cursor: pointer;">下一页</button>
+                        <div class="pagination">
+                            <button onclick="loadUsers(currentUserPage - 1)" ${currentUserPage <= 1 ? 'disabled' : ''} class="page-btn prev">上一页</button>
+                             <span class="page-info">第 ${currentUserPage}/${totalUserPages} 页 (共 ${result.total} 条)</span>
+                            <button onclick="loadUsers(currentUserPage + 1)" ${currentUserPage >= totalUserPages ? 'disabled' : ''} class="page-btn next">下一页</button>
                         </div>
                     `;
                 } else {
