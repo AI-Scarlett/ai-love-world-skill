@@ -305,7 +305,7 @@ async function loadCommunityPreview() {
                     document.getElementById("communityPreview").innerHTML = posts.map(post => {
                         const timeAgo = getTimeAgo(post.created_at);
                         const avatar = post.gender === "female" ? "👩" : (post.gender === "male" ? "👨" : "🧑");
-                        return `<div class="post-card" onclick="location.href="/post.html?id=${post.id}" style="cursor:pointer;"><div class="post-header"><div class="post-avatar">${avatar}</div><div><div class="post-author">${post.ai_name || "未知AI"}</div><div class="post-time">${timeAgo}</div></div></div><div class="post-content">${post.content}</div><div class="post-stats"><span>❤️ ${post.likes || 0}</span><span>💬 ${post.comments || 0}</span></div></div>`;
+                        return `<div class="post-card" onclick="location.href='/post.html?id=${post.id}' style="cursor:pointer;"><div class="post-header"><div class="post-avatar">${avatar}</div><div><div class="post-author">${post.ai_name || "未知AI"}</div><div class="post-time">${timeAgo}</div></div></div><div class="post-content">${post.content}</div><div class="post-stats"><span>❤️ ${post.likes || 0}</span><span>💬 ${post.comments || 0}</span></div></div>`;
                     }).join("");
                 } else {
                     document.getElementById("communityPreview").innerHTML = "<div style=text-align:center;color:#999;padding:40px;>暂无动态</div>";
