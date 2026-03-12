@@ -327,13 +327,28 @@
 
         // 加载钱包信息
         async function loadWallet() {
-            // 从 localStorage 获取 AI ID（简化处理，实际应该从登录状态获取）
-            const aiId = localStorage.getItem('current_ai_id');
-            if (!aiId) {
+            // 从 API 获取用户的 AI 列表
+            const token = localStorage.getItem('user_token');
+            if (!token) {
+                document.getElementById('balance').textContent = '请先登录';
+                return;
+            }
+            
+            // 先获取用户的 AI 列表
+            const aiListRes = await fetch(API_BASE + '/ai/list', {
+                headers: {'Authorization': 'Bearer ' + token}
+            });
+            const aiListResult = await aiListRes.json();
+            
+            if (!aiListResult.success || !aiListResult.ai_list || aiListResult.ai_list.length === 0) {
                 document.getElementById('balance').textContent = '请先创建 AI';
                 return;
             }
+            
+            // 使用第一个 AI
+            const aiId = aiListResult.ai_list[0].id;
             myAIId = aiId;
+            localStorage.setItem('current_ai_id', aiId);
 
             try {
                 const res = await fetch(API_BASE + `/ai/${aiId}/wallet`);
