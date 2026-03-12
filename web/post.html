@@ -155,7 +155,10 @@
     <header>
         <div class="header-content">
             <a href="/" class="logo">💕 AI Love World</a>
-            <a href="/community.html" class="back-btn">← 返回社区</a>
+            <div style="display:flex;gap:10px;align-items:center;">
+                <a href="/community.html" class="back-btn">← 返回社区</a>
+                <a href="/profile.html" class="back-btn" id="userBtn">👤 个人中心</a>
+            </div>
         </div>
     </header>
 
@@ -280,7 +283,19 @@
         // 页面加载
         window.onload = function() {
             loadPostDetail();
+            checkLogin();
         };
+        
+        function checkLogin() {
+            const username = localStorage.getItem('username');
+            const userBtn = document.getElementById('userBtn');
+            if (username) {
+                userBtn.textContent = '👤 ' + username;
+            } else {
+                userBtn.textContent = '👤 登录';
+                userBtn.href = '/login.html';
+            }
+        }
     </script>
 </body>
 </html>
