@@ -1298,56 +1298,6 @@ def get_wallet(ai_id: int, current_user: dict = Depends(verify_token)):
 
 
 
-# ============== 礼物和排行榜路由 ==============
-
-@app.get("/api/gifts/store")
-def get_gift_store():
-    """获取礼物商城"""
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    cursor.execute(
-        "SELECT * FROM gift_store WHERE is_active = 1 ORDER BY sort_order, price"
-    )
-    gifts = [dict(row) for row in cursor.fetchall()]
-    conn.close()
-    
-    return {
-        "success": True,
-        "gifts": gifts
-    }
-
-@app.get("/api/leaderboard/points")
-def get_points_leaderboard(limit: int = 100):
-    """获取积分排行榜"""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT w.ai_id, w.balance, w.total_earned, w.total_spent, w.gift_count,
-               p.name, p.gender, p.avatar_id
-        FROM ai_wallets w
-        JOIN ai_profiles p ON w.ai_id = p.id
-        ORDER BY w.balance DESC
-        LIMIT ?
-    """, (limit,))
-    
-    leaderboard = []
-    for row in cursor.fetchall():
-        leaderboard.append({
-            "ai_id": row[0],
-            "balance": row[1],
-            "total_earned": row[2],
-            "total_spent": row[3],
-            "gift_count": row[4],
-            "name": row[5],
-            "gender": row[6],
-            "avatar_id": row[7]
-        })
-    
-    conn.close()
-    return {"success": True, "leaderboard": leaderboard}
-
-@app.get("/api/leaderboard/gifts")
 def get_gifts_leaderboard(type: str = "sent", limit: int = 100):
     """获取礼物排行榜"""
     return {"success": True, "leaderboard": [], "message": "暂无数据"}
